@@ -14,12 +14,12 @@ use Doctrine\DBAL\Schema\Schema;
  */
 final readonly class DbalEventStoreSchema
 {
-    private const string EVENTS_TABLE = 'event_store_events';
-    private const string GLOBAL_POSITION_TABLE = 'event_store_global_position';
-    private const array TABLES = [
-        self::EVENTS_TABLE,
-        self::GLOBAL_POSITION_TABLE
-    ];
+    /**
+     * Constructs DbalEventStoreSchema
+     */
+    public function __construct(private DbalEventStoreTables $tables = new DbalEventStoreTables())
+    {
+    }
 
     /**
      * Returns the event-store schema definition
@@ -27,28 +27,31 @@ final readonly class DbalEventStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $events = $schema->createTable(self::EVENTS_TABLE);
-        $events->addColumn('global_position', 'bigint');
-        $events->addColumn('aggregate_name', 'string', ['length' => 255]);
-        $events->addColumn('aggregate_identifier', 'string', ['length' => 255]);
-        $events->addColumn('stream_version', 'integer');
-        $events->addColumn('event_name', 'string', ['length' => 255]);
-        $events->addColumn('schema_version', 'integer');
-        $events->addColumn('payload', 'text');
-        $events->addColumn('message_id', 'string', ['length' => 36]);
-        $events->addColumn('message_timestamp', 'string', ['length' => 32]);
-        $events->addColumn('message_meta', 'text');
-        $events->setPrimaryKey(['global_position']);
-        $events->addUniqueIndex(
+        $eventTable = $schema->createTable($this->tables->eventTable()->schemaName());
+        $eventTable->addColumn('global_position', 'bigint');
+        $eventTable->addColumn('aggregate_name', 'string', ['length' => 255]);
+        $eventTable->addColumn('aggregate_identifier', 'string', ['length' => 255]);
+        $eventTable->addColumn('stream_version', 'integer');
+        $eventTable->addColumn('event_name', 'string', ['length' => 255]);
+        $eventTable->addColumn('schema_version', 'integer');
+        $eventTable->addColumn('payload', 'text');
+        $eventTable->addColumn('message_id', 'string', ['length' => 36]);
+        $eventTable->addColumn('message_timestamp', 'string', ['length' => 32]);
+        $eventTable->addColumn('message_meta', 'text');
+        $eventTable->setPrimaryKey(['global_position']);
+        $eventTable->addUniqueIndex(
             ['aggregate_name', 'aggregate_identifier', 'stream_version'],
-            'event_store_stream_version_unique'
+            $this->tables->eventTable()->name() === 'event_store_events' ? 'event_store_stream_version_unique' : null
         );
-        $events->addUniqueIndex(['message_id'], 'event_store_message_id_unique');
+        $eventTable->addUniqueIndex(
+            ['message_id'],
+            $this->tables->eventTable()->name() === 'event_store_events' ? 'event_store_message_id_unique' : null
+        );
 
-        $position = $schema->createTable(self::GLOBAL_POSITION_TABLE);
-        $position->addColumn('singleton', 'smallint');
-        $position->addColumn('position', 'bigint');
-        $position->setPrimaryKey(['singleton']);
+        $globalPositionTable = $schema->createTable($this->tables->globalPositionTable()->schemaName());
+        $globalPositionTable->addColumn('singleton', 'smallint');
+        $globalPositionTable->addColumn('position', 'bigint');
+        $globalPositionTable->setPrimaryKey(['singleton']);
 
         return $schema;
     }
@@ -60,20 +63,28 @@ final readonly class DbalEventStoreSchema
     {
         $schemaManager = $connection->createSchemaManager();
         $schema = $this->schema();
+        // PostgreSQL reports case-sensitive names with DBAL quoting markers.
+        // Ordinary names cannot contain these delimiters, so compare exact logical names.
+        $existingTables = array_map(
+            static fn(string $tableName): string => trim($tableName, '`"'),
+            $schemaManager->listTableNames()
+        );
 
-        foreach (self::TABLES as $table) {
-            if (!$schemaManager->tablesExist([$table])) {
-                $schemaManager->createTable($schema->getTable($table));
+        foreach ([$this->tables->eventTable(), $this->tables->globalPositionTable()] as $table) {
+            if (!in_array($table->name(), $existingTables, true)) {
+                $schemaManager->createTable($schema->getTable($table->name()));
             }
         }
 
+        $positionTable = $this->tables->globalPositionTable()->quoted($connection->getDatabasePlatform());
+
         if (
             false === $connection->fetchOne(
-                sprintf('SELECT singleton FROM %s WHERE singleton = ?', self::GLOBAL_POSITION_TABLE),
+                sprintf('SELECT singleton FROM %s WHERE singleton = ?', $positionTable),
                 [1]
             )
         ) {
-            $connection->insert(self::GLOBAL_POSITION_TABLE, [
+            $connection->insert($positionTable, [
                 'singleton' => 1,
                 'position'  => 0
             ]);

@@ -6,12 +6,12 @@ namespace Fight\Test\Common\Functional;
 
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
-use Fight\Common\Adapter\Http\Mcp\DenyAllMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
 use Fight\Common\Adapter\Http\OAuth\OAuthMetadataHandler;
 use Fight\Common\Adapter\Http\OAuth\OAuthMiddleware;
 use Fight\Common\Adapter\Http\OAuth\OAuthResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\DenyAllMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Application\Auth\Exception\AuthException;
 use Fight\Common\Application\Auth\OAuth\OAuthClaimsHandoff;
 use Fight\Common\Application\Auth\OAuth\OAuthDiagnostics;
@@ -22,10 +22,10 @@ use Fight\Common\Application\Auth\OAuth\OAuthTokenRejected;
 use Fight\Common\Application\Auth\OAuth\OAuthTokenRequirements;
 use Fight\Common\Application\Auth\OAuth\OAuthTokenValidator;
 use Fight\Common\Application\Auth\OAuth\OAuthValidatedClaims;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Domain\Auth\NonceRepository;
 use Fight\Test\Common\Fixture\Mcp\EndpointCapability;
 use Fight\Test\Common\Fixture\OAuth\OAuthFixture;
@@ -72,8 +72,8 @@ final class OAuthMcpJourneyTest extends TestCase
         $handoff->expects(in_array($scenario, ['valid', 'handoff', 'endpoint-failure'], true) ? self::once() : self::never())->method('accept')->willReturnCallback(function (OAuthValidatedClaims $claims) use ($scenario, &$handoffCalls, &$sequence): void {
             ++$handoffCalls;
             $sequence[] = 'handoff';
-            self::assertSame('fixture-subject', $claims->claims->get('sub'));
-            self::assertFalse($claims->claims->has('credential'));
+            self::assertSame('fixture-subject', $claims->claims()->get('sub'));
+            self::assertFalse($claims->claims()->has('credential'));
             if ($scenario === 'handoff') { throw new RuntimeException('private-claim context resolution failure'); }
         });
         $diagnostics = new class implements OAuthDiagnostics {
@@ -93,10 +93,10 @@ final class OAuthMcpJourneyTest extends TestCase
             return true;
         });
         $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('OAuth fixture', '1'), [$capability]), new DenyAllMcpOriginPolicy(), $guard, new McpResponseFactory($factory, $factory, $endpointDiagnostics));
-        $responses = new OAuthResponseFactory($factory, $factory);
+        $oauthResponseFactory = new OAuthResponseFactory($factory, $factory);
         $server = new OAuthResourceServer($requirements, $validator, $handoff, $diagnostics);
         $scopes = OAuthScopeSet::fromArray($scenario === 'scope' ? ['mcp:write', 'mcp:read'] : ['mcp:read']);
-        $middleware = new OAuthMiddleware($server, $scopes, $responses);
+        $middleware = new OAuthMiddleware($server, $scopes, $oauthResponseFactory);
         $request = $this->request()->withHeader('Authorization', 'Bearer fixture-token');
         $request = match ($scenario) {
             'missing' => $request->withoutHeader('Authorization'),
@@ -105,7 +105,7 @@ final class OAuthMcpJourneyTest extends TestCase
             'body' => $request->withoutHeader('Authorization')->withHeader('Content-Type', 'application/x-www-form-urlencoded')->withBody($factory->createStream('access_token=secret-token')),
             'hmac' => $request->withHeader('Authorization', 'HMAC-SHA256'), default => $request
         };
-        $metadataResponse = (new OAuthMetadataHandler($requirements->metadata, $responses))->handle(new ServerRequest('GET', $requirements->metadata->metadataUrl));
+        $metadataResponse = (new OAuthMetadataHandler($requirements->metadata(), $oauthResponseFactory))->handle(new ServerRequest('GET', $requirements->metadata()->metadataUrl()));
         self::assertSame(200, $metadataResponse->getStatusCode());
         self::assertSame(OAuthFixture::RESOURCE, json_decode((string) $metadataResponse->getBody(), true)['resource']);
         $response = $middleware->process($request, $endpoint);
@@ -119,8 +119,8 @@ final class OAuthMcpJourneyTest extends TestCase
             if ($classification === OAuthFailure::INTERNAL_ERROR) { self::assertNotEmpty($diagnostics->records[0]['trace']); }
         }
         if ($status === 400 || $status === 401 || $status === 403) {
-            self::assertStringContainsString('resource_metadata="'.$requirements->metadata->metadataUrl.'"', $response->getHeaderLine('WWW-Authenticate'));
-            self::assertStringContainsString('scope="'.implode(' ', $scopes->values).'"', $response->getHeaderLine('WWW-Authenticate'));
+            self::assertStringContainsString('resource_metadata="'.$requirements->metadata()->metadataUrl().'"', $response->getHeaderLine('WWW-Authenticate'));
+            self::assertStringContainsString('scope="'.implode(' ', $scopes->values()).'"', $response->getHeaderLine('WWW-Authenticate'));
             if ($error === null) { self::assertStringNotContainsString('error=', $response->getHeaderLine('WWW-Authenticate')); }
             else { self::assertStringContainsString('error="'.$error.'"', $response->getHeaderLine('WWW-Authenticate')); }
         }
@@ -147,9 +147,9 @@ final class OAuthMcpJourneyTest extends TestCase
         $signer = new HmacRequestService('fixture-key', $private, static fn(int $size): string => 'fixture-nonce');
         $signed = $signer->signRequest($this->request());
         self::assertSame('HMAC-SHA256', $signed->getHeaderLine('Authorization'));
-        $nonces = $this->createMock(NonceRepository::class);
-        $nonces->expects(self::once())->method('consume');
-        $hmac = new HmacAuthenticator('fixture-key', $private, 60, $nonces);
+        $nonceRepository = $this->createMock(NonceRepository::class);
+        $nonceRepository->expects(self::once())->method('consume');
+        $hmac = new HmacAuthenticator('fixture-key', $private, 60, $nonceRepository);
         $validator = $this->createMock(OAuthTokenValidator::class);
         $validator->expects(self::never())->method('validate');
         $handoff = $this->createMock(OAuthClaimsHandoff::class);

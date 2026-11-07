@@ -56,8 +56,8 @@ use Fight\Common\Domain\Serialization\Serializable;
 final readonly class Coordinate implements Serializable
 {
     private function __construct(
-        public float $lat,
-        public float $lng
+        public float $latitude,
+        public float $longitude
     ) {}
 
     public static function fromString(string $value): static
@@ -72,7 +72,7 @@ final readonly class Coordinate implements Serializable
 
     public function arraySerialize(): array
     {
-        return ['lat' => $this->lat, 'lng' => $this->lng];
+        return ['lat' => $this->latitude, 'lng' => $this->longitude];
     }
 }
 ```

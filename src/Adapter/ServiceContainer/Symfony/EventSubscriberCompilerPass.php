@@ -25,14 +25,17 @@ class EventSubscriberCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(ServiceAwareEventDispatcher::class);
+        $eventDispatcherDefinition = $container->findDefinition(ServiceAwareEventDispatcher::class);
         $taggedServices = $container->findTaggedServiceIds('common.event_subscriber', true);
 
-        foreach ($taggedServices as $id => $tags) {
-            $serviceDefinition = $container->getDefinition($id);
+        foreach ($taggedServices as $subscriberServiceId => $tags) {
+            $serviceDefinition = $container->getDefinition($subscriberServiceId);
 
             if (!$serviceDefinition->isPublic()) {
-                $message = sprintf('The service "%s" must be public as event subscribers are lazy-loaded', $id);
+                $message = sprintf(
+                    'The service "%s" must be public as event subscribers are lazy-loaded',
+                    $subscriberServiceId
+                );
                 throw new Exception($message);
             }
 
@@ -43,11 +46,15 @@ class EventSubscriberCompilerPass implements CompilerPassInterface
             $reflection = new ReflectionClass($serviceClass);
 
             if (!$reflection->implementsInterface(EventSubscriber::class)) {
-                $message = sprintf('Service "%s" must implement interface "%s"', $id, EventSubscriber::class);
+                $message = sprintf(
+                    'Service "%s" must implement interface "%s"',
+                    $subscriberServiceId,
+                    EventSubscriber::class
+                );
                 throw new Exception($message);
             }
 
-            $definition->addMethodCall('registerService', [$serviceClass, $id]);
+            $eventDispatcherDefinition->addMethodCall('registerService', [$serviceClass, $subscriberServiceId]);
         }
     }
 }

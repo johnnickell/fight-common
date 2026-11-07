@@ -43,11 +43,11 @@ git pull --ff-only
 git switch -c feature/task-NNNNN-short-description
 ```
 
-For coordinated or concurrent work, use a linked checkout under the repository's ignored run area:
+For coordinated or concurrent work, use a linked checkout outside the repository's ignored run area:
 
 ```bash
 git worktree add -b feature/task-NNNNN-short-description \
-  .runs/worktrees/short-description develop
+  ../.worktrees/fight-common-short-description develop
 ```
 
 Run every command from the selected checkout. Keep investigation notes in `.runs/notes/`, reusable local handoffs
@@ -75,6 +75,16 @@ docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
   php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
 ```
 
+Focused PHPStan uses the same explicit 512M per-process budget as the full gate and interactive wrapper:
+
+```bash
+docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
+  php vendor/bin/phpstan analyse --memory-limit=512M
+```
+
+This is a limit for each PHPStan process, including parallel workers, not a total container memory allocation.
+Existing concurrency and analysis findings remain unchanged.
+
 Useful interactive wrappers include:
 
 ```bash
@@ -91,18 +101,24 @@ The canonical pre-submit gate is:
 ./bin/build
 ```
 
-It resolves and installs dependencies with `composer update`, validates the documentation artifact, provisions
-disposable MySQL and PostgreSQL services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac,
-Rector's dry run, direct unit tests with exact statement coverage, integration tests, functional tests, and planning
-integrity. This library ignores `composer.lock`; every full build resolves its supported dependency constraints
-instead of reusing a stale local lock. A focused run provides iteration feedback; implementation completion requires
-the full gate. Documentation-only follow-ups may retain a verified earlier full pass with input-equivalence evidence
-and current targeted checks under `docs/engineering/standards/Testing.md`.
+It validates planning freshly and prepares dependencies with `composer update` on every invocation. It can
+reuse a verified successful application receipt only when source, dependencies, instructions, runtime,
+owned fixture data, artifacts and original evidence still match. Use `./bin/build --force` for deliberate fresh
+execution. See `docs/engineering/LOCAL_TOOLING.md` in the source checkout for startup and guarded teardown.
+
+On a cache miss the complete gate validates the documentation artifact and runs Composer validation, syntax
+checks, PHPCS, PHPStan, Deptrac, Rector's dry run, direct unit tests with exact statement coverage, integration
+tests and functional tests against this checkout's disposable MySQL/PostgreSQL services. This library ignores
+`composer.lock`; preparation resolves its supported constraints instead of reusing a stale local lock. Focused
+checks provide iteration feedback; report fresh planning separately from any reused application receipt.
 
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
 delivery evidence for the checked-out SHA, not a second dependency or quality lane. The workflow is **work → local
-verification → independent review → land**: local evidence permits technical acceptance without a PR or hosted run,
-including in this public repository. Authorized land owns the later push and PR creation.
+verification → independent Review → independent QA → authorized Land → human merge**. Local evidence permits
+technical acceptance without a PR or hosted run, including in this public repository. QA challenges applicable
+behavior, including libraries and executable instructions; it is not replaced by a green build. Authorized Land
+owns the later push and PR creation. Installed shared skills use the repository's
+`planning/agents/shared-workflows.md` binding; automation is optional for contributors.
 
 To enable the tracked pre-commit gate:
 
@@ -115,14 +131,83 @@ Never use `git commit --no-verify`, disable, or otherwise bypass the hook merely
 interrupted, or inconvenient. An exception requires explicit authorization for that exact commit and leaves
 delivery unverified.
 
+## Refresh build runtimes and TLS trust
+
+The PHP image follows the stable 8.5 line; image-building wrappers use `--pull` and stop if retrieval or
+building fails. PHP 8.5.12 is the minimum patched interpreter for CVE-2026-109618 and CVE-2026-109619.
+This does not change the library's public support floor or Composer's simulated platform. A Composer update
+cannot patch a consumer's web-serving PHP: its operator must urgently upgrade the interpreter using the
+[PHP security guidance](https://www.php.net/archive/2026.php) and restart the affected serving processes.
+Common's CLI verification is not a consumer deployment or proof of web-runtime safety.
+
+The documentation base is deliberately digest-pinned. `--pull` retrieves that digest; it **cannot** advance the
+pin. When maintaining trust inputs, inspect the official Python 3.13 image manifest, update both its version
+and digest in `etc/docker/python/Dockerfile`, and update the default local tag in `bin/docs`. Check the actual
+OS bundle and pip-vendored certifi before using that base to retrieve packages. For the
+[emSign incident](https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576),
+certifi must be at least 2026.10.19 and pip at least 26.2.2; updating top-level certifi does not repair pip's
+separate vendor bundle. Keep unrelated documentation dependencies pinned.
+
+From the selected checkout, force package-install layers to run as well as pulling bases:
+
+```bash
+set -euo pipefail
+docker build --pull --no-cache -t fight-common ./etc/docker/php/
+docker build --pull --no-cache -t fight-common-docs-python-3.13.17 ./etc/docker/python/
+docker image inspect fight-common fight-common-docs-python-3.13.17 \
+  --format '{{.RepoTags}} {{.Id}} {{json .RepoDigests}}'
+docker run --rm --pull=never --network=none --read-only fight-common php -v
+```
+
+Inspect each trust store separately; the affected `emSign ECC Root CA - G3` root must be absent. This diagnostic
+prints bundle identities and rejects that root without contacting an untrusted TLS endpoint:
+
+```bash
+for image in fight-common fight-common-docs-python-3.13.17; do
+  docker run --rm -i --pull=never --network=none --read-only "$image" python3 - <<'PY'
+import hashlib
+import importlib.metadata
+import ssl
+
+paths = {"os": "/etc/ssl/certs/ca-certificates.crt"}
+for name in ("certifi", "pip._vendor.certifi"):
+    try:
+        module = __import__(name, fromlist=["where"])
+    except ImportError:
+        continue
+    print(name, module.__version__)
+    if name == "pip._vendor.certifi":
+        print("pip", importlib.metadata.version("pip"))
+    paths[name] = module.where()
+for name, path in paths.items():
+    with open(path, "rb") as bundle:
+        print(name, path, hashlib.sha256(bundle.read()).hexdigest())
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.load_verify_locations(cafile=path)
+    assert not any(value == "emSign ECC Root CA - G3"
+                   for cert in context.get_ca_certs()
+                   for rdn in cert["subject"]
+                   for key, value in rdn if key == "commonName"), name
+PY
+  if [ "$?" -ne 0 ]; then exit 1; fi
+done
+```
+
+Record image IDs, actual interpreter/certifi/pip versions, OS `ca-certificates` package provenance, bundle
+hashes, commands and exit results with the TASK evidence. The Dockerfiles reject known-affected inputs; do not
+remove those checks, disable TLS verification, or reuse an old image after a failed refresh. Unavailable fixed
+inputs or uncertain vendor backports are prerequisites to resolve, not successful maintenance. After the focused
+checks, run `./bin/docs validate` and the complete `./bin/build`; retain their exact results and warnings.
+
 ## Prepare the pull request
 
 Before the final commit or pull request:
 
 1. Verify every acceptance criterion with current evidence.
-2. Mark TASK implementation `done` once all implementation acceptance and required local verification are complete,
-   before publication. A green build alone is insufficient. Keep pending independent review explicit and record
-   review, publication, merge, release and deployment separately.
+2. Keep implementation awaiting independent Review or required QA non-terminal, with its next stage explicit.
+   Mark `done` only after independent acceptance and satisfied required QA (or justified overall N/A), plus required
+   verification. Authorized Land normally records that closeout. Preserve historical completion meanings and
+   record publication, merge, release and deployment separately.
 3. Update the TASK metadata and PR link, preserving dependency edges as history.
 4. Run `./bin/planning-check --write` to refresh Board, parent, index, and Roadmap tables.
 5. Run the read-only `./bin/planning-check`, inspect the complete diff, and satisfy `./bin/build` or Testing's
@@ -134,13 +219,17 @@ criterion requires revise. Review does not repair, change status, publish or mer
 acceptance only through the proven mechanical-reconciliation bridge in Delivery; semantic or uncertain changes
 need renewed independent review.
 
-After independent acceptance, authorized land opens the feature pull request against `develop` with title
-`TASK-NNNNN — <TASK title>`; preserve an established PR identity. The hosted Tests workflow runs the complete
-pre-submit gate; the documentation workflow builds and validates the generated site. Both are required delivery
-checks on the final published head, not pre-publication review prerequisites. A queued, skipped, cancelled,
-warning-bearing, or no-step job is not passing evidence. Pending delivery does not invalidate local acceptance;
-record it honestly and retain required resources. The repository's `planning/agents/project-profile.md` owns
-these delivery requirements.
+Independent QA follows `docs/engineering/standards/QA.md` and writes the canonical base-worktree report at
+`.runs/qa/<TASK-ID>/qa.md`. PASS, FAIL, INCOMPLETE and justified N/A have distinct meanings; missing prerequisites
+are not a pass, and no UI does not mean no QA. Confirmed defects return to Work, then fresh Review and affected QA.
+
+After independent acceptance and satisfied QA, authorized Land opens the feature pull request against `develop`
+with title `TASK-NNNNN — <TASK title>` and the Common PR body template; preserve an established PR identity.
+The hosted Tests workflow runs the complete pre-submit gate; the documentation workflow validates the generated
+site. Their results are advisory unless an accepted TASK or actual host rule requires them. Disclose failed,
+missing or skipped jobs and their cause without calling them passed. A demonstrated product defect still requires
+repair; required delivery proof retains resources when pending. The repository's
+`planning/agents/project-profile.md` owns these requirements. Human review/merge remains separate.
 
 Commit, push, pull-request creation, merge, deployment, and cleanup are distinct effects. Perform only the effects
 that have been explicitly authorized.
@@ -174,7 +263,7 @@ Use the pinned documentation runtime:
 ./bin/docs validate
 ```
 
-`preview` serves the local site at `127.0.0.1:8000`. `build` creates the disposable, ignored `site/` artifact.
+`preview` allocates a loopback port by default; set `FIGHT_COMMON_DOCS_PORT` for an explicit port and inspect the selected project with `./bin/runtime docker ps`. `build` creates the disposable, ignored `site/` artifact.
 `validate` performs the strict render and current artifact checks. Review changed routes in the supported viewport
 and color-scheme combinations before treating the documentation as accepted.
 

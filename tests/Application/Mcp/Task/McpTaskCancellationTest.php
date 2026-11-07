@@ -1,0 +1,114 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\Common\Application\Mcp\Task;
+
+use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\McpDiagnostics;
+use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
+use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
+use Fight\Common\Application\Mcp\Task\McpTaskCancellation;
+use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
+use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
+use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
+use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
+use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
+use Fight\Common\Application\Messaging\Command\CommandBus;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
+use Fight\Test\Common\TestCase\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
+
+#[CoversClass(McpTaskCancellation::class)]
+final class McpTaskCancellationTest extends UnitTestCase
+{
+    public function test_that_real_method_records_intent_without_read_or_input_capability_and_returns_bounded_empty_ack(): void
+    {
+        $fixture = $this->fixture(); $fixture->create(); $fixture->readAllowed = false;
+        $method = new McpTaskCancellation($fixture->commandBus, 'scope', 'caller');
+        $reply = $method->handle(self::request(['taskId' => TaskFixture::ID]));
+        self::assertSame(['resultType' => 'complete'], $reply->toArray());
+        self::assertNotNull($fixture->cancellation()->get('cancellation'));
+        self::assertSame(2, $fixture->cancellation()->get('version'));
+        self::assertSame(['resultType' => 'complete'], $method->handle(self::request(['taskId' => TaskFixture::ID]))->toArray());
+        self::assertSame(2, $fixture->cancellation()->get('version'));
+        self::assertSame('complete', $reply->withMetadata(['public' => 'é"'])->toArray()['resultType']);
+        $this->expectException(DomainException::class);
+        $reply->withMetadata(['public' => str_repeat('é"', 128)]);
+    }
+
+    public function test_that_per_request_capabilities_and_bounded_parameter_shapes_precede_mutation_and_disclosure(): void
+    {
+        $fixture = $this->fixture(); $fixture->create(); $method = new McpTaskCancellation($fixture->commandBus, 'scope', 'caller');
+        $valid = ['taskId' => TaskFixture::ID];
+        $this->failure(fn () => $method->handle(self::request($valid, method: 'tasks/update')), -32601);
+        foreach ([[], ['extensions' => (object) []]] as $capabilities) {
+            $error = $this->failure(fn () => $method->handle(self::request($valid, $capabilities)), -32021);
+            self::assertEquals(['extensions' => ['io.modelcontextprotocol/tasks' => StrictJson::fromObject()]], $error['data']['requiredCapabilities']);
+        }
+        foreach ([[], ['taskId' => 1], ['taskId' => null], ['taskId' => 'guessed'], ['taskId' => str_repeat('é', 1024)], ['taskId' => str_repeat('a', 33)], $valid + ['reason' => 'private reason'], $valid + ['status' => 'cancelled'], ['taskId' => str_repeat('f', 32)]] as $bad) {
+            $this->failure(fn () => $method->handle(self::request($bad)), -32602);
+        }
+        self::assertSame(1, $fixture->get()->get('version'));
+        $fixture->cancelAllowed = false; $this->failure(fn () => $method->handle(self::request($valid)), -32602);
+        $fixture->cancelAllowed = true; $fixture->cancel(); $fixture->cancelAllowed = false;
+        $this->failure(fn () => $method->handle(self::request($valid)), -32602);
+        $commandBus = $this->mock(CommandBus::class); $commandBus->shouldReceive('execute')->once()->andThrow(new TaskConflict());
+        $this->failure(fn () => (new McpTaskCancellation($commandBus, 'scope', 'caller'))->handle(self::request($valid)), -32602);
+    }
+
+    public function test_that_internal_failures_propagate_to_central_safe_diagnostics_instead_of_success_or_invalid_identity(): void
+    {
+        $commandBus = $this->mock(CommandBus::class); $failure = new RuntimeException('private storage failure');
+        $commandBus->shouldReceive('execute')->once()->andThrow($failure);
+        try { (new McpTaskCancellation($commandBus, 'scope', 'caller'))->handle(self::request(['taskId' => TaskFixture::ID])); self::fail('Internal failure must not acknowledge'); }
+        catch (RuntimeException $actual) { self::assertSame($failure, $actual); }
+    }
+
+    public function test_that_real_method_internal_failure_is_sanitized_by_the_existing_semantic_responder_with_complete_task_composition(): void
+    {
+        $failure = new RuntimeException('private database detail');
+        $commandBus = $this->mock(CommandBus::class); $commandBus->shouldReceive('execute')->once()->andThrow($failure);
+        $taskCapability = new McpTasks($this->fixture()->queryBus, $commandBus, 'scope', 'caller');
+        $toolRegistry = new McpToolRegistry([]); $availability = $this->mock(McpToolAvailability::class);
+        $diagnostics = $this->mock(McpDiagnostics::class); $diagnostics->shouldReceive('record')->once()->with($failure);
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
+            $taskCapability, new McpToolInvocation(new McpToolInvoker($toolRegistry, $availability, taskCapability: $taskCapability)),
+            new McpToolDiscovery($toolRegistry, $availability, str_repeat('key-', 16))
+        ]);
+        self::assertArrayHasKey('io.modelcontextprotocol/tasks', $capabilityRegistry->advertisedCapabilities()['extensions']);
+        $reply = (new McpResponder($capabilityRegistry, diagnostics: $diagnostics))->respond(json_encode([
+            'jsonrpc' => '2.0', 'id' => 'cancel-failed', 'method' => 'tasks/cancel', 'params' => [
+                'taskId' => TaskFixture::ID, '_meta' => [McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28', McpRequestMetadata::CLIENT_CAPABILITIES_KEY => (object) ['extensions' => (object) ['io.modelcontextprotocol/tasks' => (object) []]]]
+            ]
+        ], JSON_THROW_ON_ERROR));
+        self::assertSame(['jsonrpc' => '2.0', 'id' => 'cancel-failed', 'error' => ['code' => -32603, 'message' => 'Internal error.']], $reply->toArray());
+        self::assertStringNotContainsString('private', $reply->toJson());
+    }
+
+    public static function request(array $parameters, ?array $capabilities = null, string $method = 'tasks/cancel'): McpRequest
+    {
+        return new McpRequest('request-1', $method, $parameters, McpRequestMetadata::fromObject(StrictJson::fromObject([
+            McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28',
+            McpRequestMetadata::CLIENT_CAPABILITIES_KEY => StrictJson::fromObject($capabilities ?? ['extensions' => (object) ['io.modelcontextprotocol/tasks' => (object) []]])
+        ])));
+    }
+
+    private function fixture(): TaskFixture { $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]); (new DbalTaskSchema())->install($connection); return new TaskFixture($connection); }
+    private function failure(callable $operation, int $code): array
+    {
+        try { $operation(); self::fail('Expected protocol rejection'); }
+        catch (McpProtocolException $failure) { $error = $failure->protocolError()->toArray(); self::assertSame($code, $error['code']); self::assertStringNotContainsString('private', json_encode($error)); return $error; }
+    }
+}

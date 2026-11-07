@@ -107,8 +107,21 @@ request it or run the canonical gate when necessary to establish acceptance. Foc
 Report counts, warnings, skips, incomplete runs and limitations. Never treat a partial log as a pass. Apply the
 [local-acceptance boundary](Testing.md#local-acceptance-and-hosted-delivery) in public and private repositories
 alike: missing hosted CI or a PR does not make a criterion Unverified when local proof and acceptance evidence
-suffice. Accepted review routes to authorized `land`; required hosted checks are post-publication delivery
-obligations. Do not silently replace required local proof with hosted success.
+suffice. Accepted review routes to applicable independent QA, then authorized `land`; explicitly required hosted delivery
+checks remain post-publication obligations. Do not silently replace required local proof with hosted success.
+
+## QA handoff
+
+After technical acceptance, assess [QA applicability](QA.md#scope-and-independence). Record affected observable
+contracts, useful adversarial scenarios or criterion-specific N/A reasons. Libraries and executable instructions
+can need QA without a UI; technical acceptance is not QA PASS. Current QA FAIL overrides an older technical
+accept when it demonstrates a defect; QA INCOMPLETE routes to its actual prerequisite. Do not invent repairs for
+missing evidence or rewrite independent QA reports. Follow accepted TASK exclusions, including TASK-00172's
+no-requalification boundary for existing shared workflows.
+
+Keep the TASK non-terminal while required QA is pending. Satisfied QA or justified overall N/A routes to authorized
+Land, which records administrative closeout and delivery without another independent review solely for metadata.
+Follow the [shared handoff rules](../../../planning/agents/shared-workflows.md#handoffs) with the actual target.
 
 ## Canonical durable handoff
 

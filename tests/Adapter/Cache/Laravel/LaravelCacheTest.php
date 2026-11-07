@@ -34,29 +34,29 @@ final class LaravelCacheTest extends UnitTestCase
 
     public function test_that_read_passes_the_requested_ttl_to_the_native_repository(): void
     {
-        /** @var MockInterface|Repository $repository */
-        $repository = $this->mock(Repository::class);
-        $repository->shouldReceive('get')->once()->with('key', \Mockery::type('object'))->andReturnUsing(
+        /** @var MockInterface|Repository $cacheRepository */
+        $cacheRepository = $this->mock(Repository::class);
+        $cacheRepository->shouldReceive('get')->once()->with('key', \Mockery::type('object'))->andReturnUsing(
             static fn (string $key, object $sentinel): object => $sentinel
         );
-        $repository->shouldReceive('put')->once()->with(
+        $cacheRepository->shouldReceive('put')->once()->with(
             'key',
             ['fight-common.laravel-cache.value' => 'loader-value'],
             300
         )->andReturn(true);
 
-        $cache = new LaravelCache($repository);
+        $cache = new LaravelCache($cacheRepository);
 
         self::assertSame('loader-value', $cache->read('key', fn (): string => 'loader-value', 300));
     }
 
     public function test_that_read_returns_an_existing_legacy_repository_value(): void
     {
-        /** @var MockInterface|Repository $repository */
-        $repository = $this->mock(Repository::class);
-        $repository->shouldReceive('get')->once()->with('key', \Mockery::type('object'))->andReturn('legacy-value');
+        /** @var MockInterface|Repository $cacheRepository */
+        $cacheRepository = $this->mock(Repository::class);
+        $cacheRepository->shouldReceive('get')->once()->with('key', \Mockery::type('object'))->andReturn('legacy-value');
 
-        $cache = new LaravelCache($repository);
+        $cache = new LaravelCache($cacheRepository);
 
         self::assertSame('legacy-value', $cache->read('key', function (): never {
             self::fail('The loader must not be called for a cache hit.');
@@ -65,13 +65,13 @@ final class LaravelCacheTest extends UnitTestCase
 
     public function test_that_read_translates_repository_failures(): void
     {
-        /** @var MockInterface|Repository $repository */
-        $repository = $this->mock(Repository::class);
-        $repository->shouldReceive('get')->once()->with('key', \Mockery::type('object'))->andThrow(
+        /** @var MockInterface|Repository $cacheRepository */
+        $cacheRepository = $this->mock(Repository::class);
+        $cacheRepository->shouldReceive('get')->once()->with('key', \Mockery::type('object'))->andThrow(
             new Exception('provider error')
         );
 
-        $cache = new LaravelCache($repository);
+        $cache = new LaravelCache($cacheRepository);
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('provider error');
@@ -99,11 +99,11 @@ final class LaravelCacheTest extends UnitTestCase
 
     public function test_that_mutating_failures_are_translated_to_cache_exceptions(): void
     {
-        /** @var MockInterface|Repository $repository */
-        $repository = $this->mock(Repository::class);
-        $repository->shouldReceive('forget')->once()->with('key')->andThrow(new Exception('provider error'));
+        /** @var MockInterface|Repository $cacheRepository */
+        $cacheRepository = $this->mock(Repository::class);
+        $cacheRepository->shouldReceive('forget')->once()->with('key')->andThrow(new Exception('provider error'));
 
-        $cache = new LaravelCache($repository);
+        $cache = new LaravelCache($cacheRepository);
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('provider error');
@@ -113,11 +113,11 @@ final class LaravelCacheTest extends UnitTestCase
 
     public function test_that_clear_failures_are_translated_to_cache_exceptions(): void
     {
-        /** @var MockInterface|Repository $repository */
-        $repository = $this->mock(Repository::class);
-        $repository->shouldReceive('flush')->once()->andThrow(new Exception('provider error'));
+        /** @var MockInterface|Repository $cacheRepository */
+        $cacheRepository = $this->mock(Repository::class);
+        $cacheRepository->shouldReceive('flush')->once()->andThrow(new Exception('provider error'));
 
-        $cache = new LaravelCache($repository);
+        $cache = new LaravelCache($cacheRepository);
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('provider error');

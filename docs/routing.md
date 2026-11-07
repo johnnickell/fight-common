@@ -66,15 +66,15 @@ Wraps `Symfony\Component\Routing\Generator\UrlGeneratorInterface`. Translates Sy
 use Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-$inner = new UrlGeneratorInterface(/* ... */);
-$generator = new SymfonyUrlGenerator($inner);
+$symfonyUrlGenerator = new UrlGeneratorInterface(/* ... */);
+$urlGenerator = new SymfonyUrlGenerator($symfonyUrlGenerator);
 
 // Relative path
-$generator->generate('user_show', ['id' => 5]);
+$urlGenerator->generate('user_show', ['id' => 5]);
 // → /user/5
 
 // Absolute URL with query
-$generator->generate('search', ['q' => 'hello'], ['page' => 2], absolute: true);
+$urlGenerator->generate('search', ['q' => 'hello'], ['page' => 2], absolute: true);
 // → https://example.com/search/hello?page=2
 ```
 
@@ -124,7 +124,7 @@ Catch `UrlGenerationException` to handle any URL generation failure:
 use Fight\Common\Application\Routing\Exception\UrlGenerationException;
 
 try {
-    $url = $generator->generate('user_show', ['id' => 5]);
+    $url = $urlGenerator->generate('user_show', ['id' => 5]);
 } catch (UrlGenerationException $e) {
     // handle error
 }

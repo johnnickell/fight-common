@@ -26,21 +26,21 @@ class QueryFilterCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(QueryPipeline::class);
+        $queryPipelineDefinition = $container->findDefinition(QueryPipeline::class);
         $taggedServices = $container->findTaggedServiceIds('common.query_filter', true);
 
-        foreach ($taggedServices as $id => $tags) {
-            $serviceDefinition = $container->getDefinition($id);
+        foreach ($taggedServices as $filterServiceId => $tags) {
+            $serviceDefinition = $container->getDefinition($filterServiceId);
 
             $serviceClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
             $reflection = new ReflectionClass($serviceClass);
 
             if (!$reflection->implementsInterface(QueryFilter::class)) {
-                $message = sprintf('Service "%s" must implement interface "%s"', $id, QueryFilter::class);
+                $message = sprintf('Service "%s" must implement interface "%s"', $filterServiceId, QueryFilter::class);
                 throw new Exception($message);
             }
 
-            $definition->addMethodCall('addFilter', [new Reference($id)]);
+            $queryPipelineDefinition->addMethodCall('addFilter', [new Reference($filterServiceId)]);
         }
     }
 }

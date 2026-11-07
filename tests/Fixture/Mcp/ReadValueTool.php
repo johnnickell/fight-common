@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Fixture\Mcp;
 
 use Fight\Common\Application\Attribute\Validation;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
@@ -15,7 +15,7 @@ use Fight\Test\Common\Domain\Serialization\SampleQuery;
 
 final readonly class ReadValueTool implements McpTool
 {
-    public function __construct(private QueryBus $queries) {}
+    public function __construct(private QueryBus $queryBus) {}
 
     #[McpToolInfo(
         name: 'value.read',
@@ -30,7 +30,7 @@ final readonly class ReadValueTool implements McpTool
         if ($progress->isCancelled()) {
             return McpToolOutput::structured((object) ['value' => '']);
         }
-        $result = $this->queries->fetch(new SampleQuery($input->get('id')));
+        $result = $this->queryBus->fetch(new SampleQuery($input->get('id')));
         $progress->report(1, 1, 'Read');
 
         return McpToolOutput::structured((object) ['value' => $result['value']]);

@@ -5,38 +5,27 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Auth;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Mcp\Operation\AiOperation as McpAiOperation;
 use JsonSerializable;
 
 /**
  * Class AiOperation
  *
- * @deprecated since 1.2, will be removed in 2.0. MCP/AI operation tooling will be
- * redesigned as a future feature with proper architectural boundaries.
+ * @deprecated since 1.2, removal remains reserved for 2.0
+ * Use the equally deprecated Mcp\Operation\AiOperation while migrating legacy AI integrations.
  */
 final readonly class AiOperation implements JsonSerializable
 {
-    private const array KNOWN_ACTIONS = [
-        'health_check',
-        'clear_cache',
-        'run_migration',
-        'deploy'
-    ];
-
     /**
      * Constructs AiOperation
      *
      * @param string $action
      * @param array<string, mixed> $payload
-     *
-     * @throws DomainException When the action is unknown
      */
     private function __construct(
         private string $action,
         private array $payload
     ) {
-        if (!in_array($this->action, self::KNOWN_ACTIONS, true)) {
-            throw new DomainException(sprintf('Unknown AI operation action: %s', $this->action));
-        }
     }
 
     /**
@@ -48,11 +37,9 @@ final readonly class AiOperation implements JsonSerializable
      */
     public static function fromArray(array $data): static
     {
-        if (!isset($data['action'])) {
-            throw new DomainException('Missing required field: action');
-        }
+        $operation = McpAiOperation::fromArray($data);
 
-        return new static($data['action'], $data['payload'] ?? []);
+        return new static($operation->action(), $operation->payload());
     }
 
     /**
@@ -62,13 +49,7 @@ final readonly class AiOperation implements JsonSerializable
      */
     public static function fromJson(string $json): static
     {
-        $data = json_decode($json, true);
-
-        if (!is_array($data)) {
-            throw new DomainException('Invalid JSON payload for AI operation');
-        }
-
-        return static::fromArray($data);
+        return static::fromArray(McpAiOperation::fromJson($json)->toArray());
     }
 
     /**

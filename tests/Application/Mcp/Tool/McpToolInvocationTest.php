@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
-use Fight\Common\Adapter\Http\Mcp\McpHeaderValidator;
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpRequestMirrors;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Http\McpRequestMirrors;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
@@ -42,19 +42,19 @@ final class McpToolInvocationTest extends UnitTestCase
             public function isAvailable(McpToolInfo $tool): bool { return $this->allowed; }
         };
         $invocation = new McpToolInvocation(new McpToolInvoker($registry, $availability));
-        $headers = new McpHeaderValidator(new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
+        $headerValidator = new McpHeaderValidator(new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
             new McpToolDiscovery($registry, $availability, str_repeat('x', 32)), $invocation,
         ]));
         $arguments = (object) ['account' => (object) ['region' => 'west']];
         $base = ['MCP-Protocol-Version' => ['2026-07-28'], 'Mcp-Method' => ['tools/call']];
         $request = $this->request('mirrored', $arguments);
-        self::assertSame('mirrored', $headers->validate($request, $base + ['Mcp-Name' => ['mirrored'], 'Mcp-Param-Region' => ['west']]));
-        self::assertSame('echo', $headers->validate($this->request('echo', $arguments), $base + ['Mcp-Name' => ['echo']]));
+        self::assertSame('mirrored', $headerValidator->validate($request, $base + ['Mcp-Name' => ['mirrored'], 'Mcp-Param-Region' => ['west']]));
+        self::assertSame('echo', $headerValidator->validate($this->request('echo', $arguments), $base + ['Mcp-Name' => ['echo']]));
         self::assertSame(0, $tool->calls);
         self::assertNull($registry->definition('absent'));
         self::assertSame([], $registry->mirrorsFor('absent'));
         try {
-            $headers->validate($request, $base + ['Mcp-Name' => ['mirrored']]);
+            $headerValidator->validate($request, $base + ['Mcp-Name' => ['mirrored']]);
             self::fail('A selected Tool must validate its declared header.');
         } catch (McpProtocolException $failure) {
             self::assertSame(-32020, $failure->protocolError()->toArray()['code']);
@@ -63,7 +63,7 @@ final class McpToolInvocationTest extends UnitTestCase
         $failures = [];
         foreach (['mirrored', 'absent'] as $name) {
             try {
-                $headers->validate($this->request($name, $arguments), $base + ['Mcp-Name' => [$name]]);
+                $headerValidator->validate($this->request($name, $arguments), $base + ['Mcp-Name' => [$name]]);
                 self::fail('Unavailable and missing Tools must conceal equally.');
             } catch (McpProtocolException $failure) {
                 $failures[] = $failure->protocolError()->toArray();

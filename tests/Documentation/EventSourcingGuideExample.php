@@ -6,17 +6,20 @@ namespace Fight\Test\Common\Documentation;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreSchema;
+use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreTables;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStoreSchema;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStoreSchema;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorder;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorderSchema;
+use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureTables;
 use Fight\Common\Adapter\EventSourcing\Logging\LoggingPublicationFailureRecorder;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass;
 use Fight\Common\Application\EventSourcing\EventPublicationRunner;
 use Fight\Common\Application\EventSourcing\ProjectionRunner;
 use Fight\Common\Application\EventSourcing\Projector;
@@ -55,24 +58,58 @@ final readonly class EventSourcingGuideExample
      *     projection_checkpoint: int,
      *     dispatched_names: list<string>,
      *     publication_cursor: int,
-     *     publication_failures: int
+     *     publication_failures: int,
+     *     handler_failures: int,
+     *     table_counts: array<string, int>,
+     *     global_position: int
      * }
      */
-    public static function run(): array
+    public static function run(bool $configured = false): array
     {
-        [$connection, $eventStore, $repository] = self::createPersistenceServices();
-        [$firstOrderId, $reloaded, $secondOrderId] = self::persistOrders($repository);
+        $projectionCheckpointStore = null;
+        $publicationCursorStore = null;
+        $failureRecorder = null;
+        $failureTables = new DbalPublicationFailureTables();
+        $tableNames = [
+            'event_store_events', 'event_store_global_position', 'projection_checkpoints',
+            'publication_cursors', 'publication_failures', 'publication_handler_failures',
+        ];
+        if ($configured) {
+            [$connection, $eventStore, $orderRepository, $projectionCheckpointStore, $publicationCursorStore, $failureRecorder, $failureTables]
+                = self::createConfiguredPersistenceServices();
+            $tableNames = [
+                'orders_events', 'orders_position', 'orders_projection_progress',
+                'orders_publication_progress', 'orders_publication_errors', 'orders_handler_errors',
+            ];
+        } else {
+            [$connection, $eventStore, $orderRepository] = self::createPersistenceServices();
+        }
+        [$firstOrderId, $reloaded, $secondOrderId] = self::persistOrders($orderRepository);
         [$projection, $projectionCheckpoint] = self::projectOrders(
             $connection,
             $eventStore,
             $firstOrderId,
             $secondOrderId,
+            $projectionCheckpointStore,
         );
         [$dispatchedNames, $publicationCursor, $publicationFailures] = self::publishEvents(
             $connection,
             $eventStore,
+            $publicationCursorStore,
+            $failureRecorder,
+            $failureTables,
         );
+        $platform = $connection->getDatabasePlatform();
+        $tableCounts = [];
+        foreach ($tableNames as $name) {
+            $table = new DbalTableName($name);
+            $tableCounts[$name] = (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table->quoted($platform));
+        }
+        $positionTableSql = new DbalTableName($tableNames[1])->quoted($platform);
+        $handlerTableSql = $failureTables->handlerFailureTable()->quoted($platform);
         self::verifySymfonyExamples();
+        self::verifyConfiguredStorage();
+        self::verifyConfiguredCheckpoints();
 
         return [
             'aggregate_name' => $reloaded->name(),
@@ -85,6 +122,11 @@ final readonly class EventSourcingGuideExample
             'dispatched_names' => $dispatchedNames,
             'publication_cursor' => $publicationCursor,
             'publication_failures' => $publicationFailures,
+            'handler_failures' => (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$handlerTableSql),
+            'table_counts' => $tableCounts,
+            'global_position' => (int) $connection->fetchOne(
+                'SELECT position FROM '.$positionTableSql.' WHERE singleton = 1',
+            ),
         ];
     }
 
@@ -99,36 +141,36 @@ final readonly class EventSourcingGuideExample
         $eventMapper = new EventMapper([new OrdersEventMappingProvider()]);
         // --8<-- [end:manual-mapper]
         $eventStore = new DbalEventStore($connection, $eventMapper);
-        $repository = new EventSourcedRepository(
+        $orderRepository = new EventSourcedRepository(
             $eventStore,
             new AggregateDefinition('orders', Order::class),
         );
         // --8<-- [end:event-store-composition]
 
-        return [$connection, $eventStore, $repository];
+        return [$connection, $eventStore, $orderRepository];
     }
 
     /**
-     * @param EventSourcedRepository $repository
+     * @param EventSourcedRepository $orderRepository
      *
      * @return array{OrderId, Order, OrderId}
      */
-    private static function persistOrders(EventSourcedRepository $repository): array
+    private static function persistOrders(EventSourcedRepository $orderRepository): array
     {
         // --8<-- [start:persist-reload]
         $firstOrderId = OrderId::generate();
         $firstOrder = Order::place($firstOrderId, 'Original name');
         $firstOrder->rename('Current name');
-        $repository->save($firstOrder);
+        $orderRepository->save($firstOrder);
 
-        $reloaded = $repository->find($firstOrderId);
+        $reloaded = $orderRepository->find($firstOrderId);
 
         if (!$reloaded instanceof Order) {
             throw new RuntimeException('The documented order must reload from its event stream.');
         }
 
         $secondOrderId = OrderId::generate();
-        $repository->save(Order::place($secondOrderId, 'Second order'));
+        $orderRepository->save(Order::place($secondOrderId, 'Second order'));
         // --8<-- [end:persist-reload]
 
         return [$firstOrderId, $reloaded, $secondOrderId];
@@ -142,19 +184,24 @@ final readonly class EventSourcingGuideExample
         DbalEventStore $eventStore,
         OrderId $firstOrderId,
         OrderId $secondOrderId,
+        ?DbalProjectionCheckpointStore $projectionCheckpointStore = null,
     ): array {
+        if (null === $projectionCheckpointStore) {
+            // --8<-- [start:default-checkpoint-storage]
+            (new DbalProjectionCheckpointStoreSchema())->install($connection);
+            $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection);
+            // --8<-- [end:default-checkpoint-storage]
+        }
         // --8<-- [start:projection-composition]
-        (new DbalProjectionCheckpointStoreSchema())->install($connection);
         $orderSummaryWriter = new InMemoryOrderSummaryWriter();
         $orderSummaryProjector = new OrderSummaryProjector($orderSummaryWriter);
-        $checkpointStore = new DbalProjectionCheckpointStore($connection);
-        $projectionRunner = new ProjectionRunner($eventStore, $checkpointStore);
+        $projectionRunner = new ProjectionRunner($eventStore, $projectionCheckpointStore);
         $projectionRunner->run($orderSummaryProjector, 100);
         // --8<-- [end:projection-composition]
 
         self::runProjectionWorker(
             static fn(): bool => true,
-            $checkpointStore,
+            $projectionCheckpointStore,
             $projectionRunner,
             $orderSummaryProjector,
         );
@@ -162,18 +209,33 @@ final readonly class EventSourcingGuideExample
         $orderSummaryWriter->upsertIfNewer($firstOrderId->toString(), 'Stale first order', 1);
         $orderSummaryWriter->upsertIfNewer($secondOrderId->toString(), 'Stale second order', 2);
 
-        $checkpoint = $checkpointStore->load($orderSummaryProjector->name());
-        self::resetProjection($checkpointStore);
+        $checkpoint = $projectionCheckpointStore->load($orderSummaryProjector->name());
+        self::resetProjection($projectionCheckpointStore);
 
         return [$orderSummaryWriter->state(), $checkpoint];
     }
 
     /** @return array{list<string>, int, int} */
-    private static function publishEvents(Connection $connection, DbalEventStore $eventStore): array
-    {
+    private static function publishEvents(
+        Connection $connection,
+        DbalEventStore $eventStore,
+        ?DbalPublicationCursorStore $publicationCursorStore = null,
+        ?DbalPublicationFailureRecorder $durableFailureRecorder = null,
+        DbalPublicationFailureTables $failureTables = new DbalPublicationFailureTables(),
+    ): array {
+        if (null === $publicationCursorStore) {
+            // --8<-- [start:default-cursor-storage]
+            (new DbalPublicationCursorStoreSchema())->install($connection);
+            $publicationCursorStore = new DbalPublicationCursorStore($connection);
+            // --8<-- [end:default-cursor-storage]
+        }
+        if (null === $durableFailureRecorder) {
+            // --8<-- [start:default-failure-storage]
+            (new DbalPublicationFailureRecorderSchema())->install($connection);
+            $durableFailureRecorder = new DbalPublicationFailureRecorder($connection);
+            // --8<-- [end:default-failure-storage]
+        }
         // --8<-- [start:publication-composition]
-        (new DbalPublicationCursorStoreSchema())->install($connection);
-        (new DbalPublicationFailureRecorderSchema())->install($connection);
         $dispatchedNames = [];
         $eventDispatcher = new SimpleEventDispatcher();
         $recordName = static function (EventMessage $message) use (&$dispatchedNames): void {
@@ -190,14 +252,12 @@ final readonly class EventSourcingGuideExample
             static fn(): never => throw new RuntimeException('Documented subscriber failure.'),
         );
 
-        $cursorStore = new DbalPublicationCursorStore($connection);
-        $durableFailureRecorder = new DbalPublicationFailureRecorder($connection);
         $failureRecorder = new LoggingPublicationFailureRecorder($durableFailureRecorder, new NullLogger());
         $publicationRunner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
             $eventDispatcher,
-            $cursorStore,
+            $publicationCursorStore,
             $failureRecorder,
         );
         // --8<-- [end:publication-composition]
@@ -207,9 +267,67 @@ final readonly class EventSourcingGuideExample
 
         return [
             $dispatchedNames,
-            $cursorStore->load('orders.subscribers'),
-            (int) $connection->fetchOne('SELECT COUNT(*) FROM publication_failures'),
+            $publicationCursorStore->load('orders.subscribers'),
+            (int) $connection->fetchOne(
+                'SELECT COUNT(*) FROM '.$failureTables->failureTable()->quoted($connection->getDatabasePlatform()),
+            ),
         ];
+    }
+
+    /**
+     * @return array{Connection, DbalEventStore, EventSourcedRepository, DbalProjectionCheckpointStore,
+     *     DbalPublicationCursorStore, DbalPublicationFailureRecorder, DbalPublicationFailureTables}
+     */
+    private static function createConfiguredPersistenceServices(): array
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $eventMapper = new EventMapper([new OrdersEventMappingProvider()]);
+        // --8<-- [start:configured-six-table-composition]
+        $eventTables = new DbalEventStoreTables(
+            eventTable: 'orders_events',
+            globalPositionTable: 'orders_position',
+        );
+        $checkpointTable = new DbalTableName('orders_projection_progress');
+        $cursorTable = new DbalTableName('orders_publication_progress');
+        $failureTables = new DbalPublicationFailureTables(
+            failureTable: 'orders_publication_errors',
+            handlerFailureTable: 'orders_handler_errors',
+        );
+        // Explicit deployment actions, not implicit runtime migrations.
+        (new DbalEventStoreSchema(tables: $eventTables))->install($connection);
+        (new DbalProjectionCheckpointStoreSchema(table: $checkpointTable))->install($connection);
+        (new DbalPublicationCursorStoreSchema(table: $cursorTable))->install($connection);
+        (new DbalPublicationFailureRecorderSchema(tables: $failureTables))->install($connection);
+        $eventStore = new DbalEventStore(connection: $connection, eventMapper: $eventMapper, tables: $eventTables);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore(connection: $connection, table: $checkpointTable);
+        $publicationCursorStore = new DbalPublicationCursorStore(connection: $connection, table: $cursorTable);
+        $failureRecorder = new DbalPublicationFailureRecorder(connection: $connection, tables: $failureTables);
+        // --8<-- [end:configured-six-table-composition]
+        $orderRepository = new EventSourcedRepository($eventStore, new AggregateDefinition('orders', Order::class));
+
+        return [$connection, $eventStore, $orderRepository, $projectionCheckpointStore, $publicationCursorStore, $failureRecorder, $failureTables];
+    }
+
+    private static function verifyConfiguredStorage(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $eventMapper = new EventMapper([new OrdersEventMappingProvider()]);
+        // --8<-- [start:configured-event-storage]
+        $tables = new DbalEventStoreTables(
+            eventTable: 'orders_events',
+            globalPositionTable: 'orders_position',
+        );
+        (new DbalEventStoreSchema(tables: $tables))->install($connection);
+        $eventStore = new DbalEventStore(
+            connection: $connection,
+            eventMapper: $eventMapper,
+            tables: $tables,
+        );
+        // --8<-- [end:configured-event-storage]
+        self::persistOrders(new EventSourcedRepository(
+            $eventStore,
+            new AggregateDefinition('orders', Order::class),
+        ));
     }
 
     private static function configureSymfonyContainer(ContainerBuilder $container): void
@@ -257,27 +375,44 @@ final readonly class EventSourcingGuideExample
 
     private static function runProjectionWorker(
         callable $shutdownRequested,
-        DbalProjectionCheckpointStore $checkpointStore,
+        DbalProjectionCheckpointStore $projectionCheckpointStore,
         ProjectionRunner $projectionRunner,
         OrderSummaryProjector $orderSummaryProjector,
     ): void {
         // --8<-- [start:projection-worker]
         while (!$shutdownRequested()) {
-            $before = $checkpointStore->load($orderSummaryProjector->name());
+            $before = $projectionCheckpointStore->load($orderSummaryProjector->name());
 
             $projectionRunner->run($orderSummaryProjector, 100);
 
-            if ($before === $checkpointStore->load($orderSummaryProjector->name())) {
+            if ($before === $projectionCheckpointStore->load($orderSummaryProjector->name())) {
                 usleep(250_000);
             }
         }
         // --8<-- [end:projection-worker]
     }
 
-    private static function resetProjection(DbalProjectionCheckpointStore $checkpointStore): void
+    private static function verifyConfiguredCheckpoints(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        // --8<-- [start:configured-checkpoints]
+        $checkpointTable = new DbalTableName('orders_projection_progress');
+        $checkpointSchema = new DbalProjectionCheckpointStoreSchema(table: $checkpointTable);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore(connection: $connection, table: $checkpointTable);
+        // Configuration above performs no SQL. Install explicitly during deployment.
+        $checkpointSchema->install($connection);
+        $projectionCheckpointStore->save('orders.order-summary', 3);
+        // --8<-- [end:configured-checkpoints]
+        $reopenedCheckpointStore = new DbalProjectionCheckpointStore($connection, $checkpointTable);
+        if (3 !== $reopenedCheckpointStore->load('orders.order-summary')) {
+            throw new RuntimeException('Configured checkpoint storage must preserve projector progress.');
+        }
+    }
+
+    private static function resetProjection(DbalProjectionCheckpointStore $projectionCheckpointStore): void
     {
         // --8<-- [start:projection-reset]
-        $checkpointStore->reset('orders.order-summary');
+        $projectionCheckpointStore->reset('orders.order-summary');
         // --8<-- [end:projection-reset]
     }
 }

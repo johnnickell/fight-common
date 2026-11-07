@@ -18,11 +18,14 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
  */
 final readonly class MessengerEventDispatcher implements AsynchronousEventDispatcher
 {
+    private SenderInterface $messageSender;
+
     /**
      * Constructs MessengerEventDispatcher
      */
-    public function __construct(private SenderInterface $sender)
+    public function __construct(SenderInterface $sender)
     {
+        $this->messageSender = $sender;
     }
 
     /**
@@ -42,7 +45,7 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
      */
     public function dispatch(EventMessage $eventMessage): void
     {
-        $this->sender->send(new Envelope($eventMessage));
+        $this->messageSender->send(new Envelope($eventMessage));
     }
 
     /**

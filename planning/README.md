@@ -3,6 +3,8 @@
 This directory is the committed source of truth for Fight Common planning.
 
 - [Conventions](CONVENTIONS.md): hierarchy, templates, lifecycle, generated views, and archive operations.
+- [Shared workflows](agents/shared-workflows.md): Common's binding for installed skills, stage handoffs and evidence.
+- [Independent QA](../docs/engineering/standards/QA.md): behavioral assessment after Review and before completion/Land.
 - [TASK Board](tasks/BOARD.md): current work, priority, blockers, and PR links.
 - [Roadmap](ROADMAP.md): strategy, current EPICs, and a separate planning frontier for decomposition.
 - [EPICs](epics/README.md): business destinations.

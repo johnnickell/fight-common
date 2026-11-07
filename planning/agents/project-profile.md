@@ -20,7 +20,20 @@ transaction contracts; no application-only namespace or blanket external-effect 
 
 `deptrac.php` and `deptrac.runtime.php` enforce these boundaries. Source namespace is `Fight\Common\`, tests `Fight\Test\Common\`, and release tooling `Fight\Release\`. Tests mirror the source paths. Inspect Composer's actual autoload configuration for release tooling locations.
 
+For aggregate placement, value classification/inheritance, handler/repository/transaction ownership and the finite
+package exceptions, follow [Architecture](../../docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces).
+[Descriptive naming](../../docs/engineering/standards/Naming.md#variables-properties-and-parameters) applies throughout
+project-owned code while protecting released named parameters. These approved rules precede TASK-00184 through
+TASK-00192; current MCP lifecycle services, combined stores, Tool locations and value types do not yet all conform.
+The current source map in CONTEXT and component docs is not an exemption or a claim of completed refactoring.
+
 Value objects are immutable, validate construction, and use named public factories such as `fromString()`/`fromArray()`; invalid values use DomainException as appropriate to their contract. Specifications extend CompositeSpecification and implement `isSatisfiedBy(mixed $candidate): bool`, composing with `and()`/`or()`/`not()`. Typed collections use `ArrayList::of()` and `HashTable::of()` according to their actual signatures.
+
+Compatibility is against tagged releases, not earlier development commits. Never-released additions remain
+provisional until first tagged: revise their APIs, payloads and schemas directly without backward-compatibility
+code, aliases, deprecations or migrations for prior development snapshots. Keep current validation/integrity checks
+and actually released API guarantees intact. John explicitly confirmed this rule in
+[TASK-00148's correction](../tasks/00148-TASK.md#current-correction--user-amendment-after-publication).
 
 CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::trigger()`. Follow the existing MessageId, Meta and timestamp contracts. Deprecated public APIs remain supported for at least one released minor before removal in the next major. Preserve intentional extensibility of public base classes; final-by-default does not make a reusable abstract/base contract final. Retain framework-required entity mutability/proxy compatibility.
 
@@ -28,7 +41,9 @@ CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::tr
 
 ### Local-first acceptance and publication
 
-John confirmed this workflow on 2026-09-28: **work → local verification → independent review → land**.
+The current workflow is **work → local verification → independent Review → independent QA → authorized Land →
+human merge**. [TASK-00172](../tasks/00172-TASK.md) adopts Agent OS QA and the later completion checkpoint;
+the 2026-09-28 local-first decision remains intact.
 Fight Common is public, but visibility does not add a pre-publication acceptance gate. A valid local build receipt
 and sufficient behavior evidence permit independent acceptance without a hosted run or PR. Work and review do
 not push or create PRs to obtain CI; publication belongs to an explicitly authorized land operation.
@@ -44,8 +59,9 @@ accepted TASK requirement or an actual host-enforced rule may still require a ho
 and satisfy it rather than inventing or bypassing it. The main-only Docs deploy job is not a feature-PR check.
 No agent approval, merge, release, certification or deployment authority follows from this discretion.
 
-TASK-00115's completion convention records implementation done before independent review, with that review pending
-explicitly. Ordinary land requires independent acceptance and applicable QA before marking a PR ready;
+TASK-00172 supersedes TASK-00115's implementation-complete `done` convention prospectively: implementation stays
+non-terminal until independent Review acceptance and required QA are satisfied. Historical records retain their
+original meaning. Ordinary land requires independent acceptance and applicable QA before marking a PR ready;
 truthful administrative completion/PR metadata may follow the accepted candidate without making the agent's
 readiness conditional on optional hosted CI. Preserve the accepted candidate, later administrative closeout,
 observed hosted results and human merge decision as distinct facts under
@@ -56,16 +72,31 @@ local-evidence equivalence assessment.
 
 `./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's local-acceptance boundary regardless of repository visibility; optional hosted results are reported after publication, with any specifically required hosted check treated according to its accepted scope or actual host rule. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
 
+The build validates record-derived Board/Roadmap routing both before expensive preparation and at completion;
+these checks stay offline and never rewrite records. Land additionally runs the mandatory live
+[delivery pre-submit and final-handoff checks](shared-workflows.md#delivery-pre-submit-and-final-handoff).
+They verify current PR metadata, not hosted CI success, and are not technical-acceptance prerequisites for Work/Review.
+Land closes the accepted TASK, eligible parents and applicable current Board/Roadmap/README/docs during delivery,
+records the verified PR URL as publication history, and retires eligible owned local Git/Docker/storage resources.
+No delivery marker/table, persistent merge queue or recurring post-merge planning chore remains. This Common
+policy overrides provider marker examples; direct exact owned-PR/default/base/head checks remain mandatory.
+
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 
-Tooling runs in the project's `fight-common` PHP container. For focused, noninteractive checks from the selected checkout:
+Tooling uses the selected checkout's native Compose project. Follow [local tooling](../../docs/engineering/LOCAL_TOOLING.md)
+for startup, explicit main/worktree selection, cached gate evidence and guarded retirement. From the selected checkout:
 
 ```bash
-docker run --rm -v "$PWD:/app:delegated" -w /app fight-common \
-  php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
+./bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
+./bin/phpstan
+./bin/rector
 ```
 
-Use the same container pattern for PHPStan/Rector when appropriate. Inspect `./bin/*` before selecting them: interactive helpers may allocate a TTY or rebuild the image. Long detached gates must produce a complete log and explicit exit status; do not interpret timeout output as completion.
+The PHPStan wrapper supplies the existing 512 MiB per-process limit, including parallel workers; this is not a
+container allocation or concurrency limit. Normal builds validate planning freshly and reuse only verified
+application receipts with matching inputs, runtime, artifacts and original logs; use `./bin/build --force` for
+fresh execution. Composer preparation retains the dependency policy above. Long detached gates must produce
+a complete log and explicit exit status; timeout output never establishes completion.
 
 The coding-standard authority is `src/Standards/Phpcs/ruleset.xml` with the project's PHPCS composition. Fight Common must demonstrate its own strict conventions: root `phpcs.xml` enables multiline docblocks, checks declaration docblock alignment and ignores PHPCS suppression annotations. Repair violations instead of adding exclusions, lowering diagnostic severity, suppressing warnings or narrowing the scanned paths to make a gate pass. Changes to the published consumer defaults remain subject to [ADR 0004](../adr/0004-coding-standard-compatibility.md). Unit tests use the established UnitTestCase and Mockery helpers. Test methods follow `test_that_<subject>_<condition>()`, with `self::assert...`. Direct unit tests have `#[CoversClass(Target::class)]`; qualifying integration/journey tests may use `#[CoversNothing]`, never to hide missing direct coverage. Every PHPUnit test class carries explicit coverage metadata. Follow each suite's actual base-class contract.
 
@@ -106,21 +137,30 @@ the remaining supported range permits the public replacement. No automatic suppo
 
 ## Planning and Git
 
-Read [CONVENTIONS.md](../CONVENTIONS.md). EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
+Read [CONVENTIONS.md](../CONVENTIONS.md). Shared skills and every delegated Build role also read the
+[shared workflow binding](shared-workflows.md) for target substitutions, authority, handoffs and evidence.
+EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
-After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.
+Routing uses offline read-only `./bin/planning-check`; historical publication checkpoints do not create current
+merge actions or require historical PR scans. [Publication closeout](../CONVENTIONS.md#publication-closeout)
+belongs to Land for its exact subject, not recurring Work/planning intake reconciliation. After authorized record
+changes, run `./bin/planning-check --write`, then the ordinary check; both stay offline and are not live PR evidence.
+Review/QA do not change records. Archive only on explicit request, with an inspected
+`./bin/archive-planning` dry run before apply.
 
 New TASK branches use `feature/task-NNNNN-<slug>` from develop to develop with merge commits; new TASK PR titles use `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities and release/patch conventions. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.
 
-TASK `done` records implementation acceptance and required local verification before publication; record pending
-independent review and all delivery outcomes separately. Use the single [Review catalog and canonical handoff](../../docs/engineering/standards/Review.md).
+TASK `done` requires implementation acceptance, required verification, independent Review acceptance and
+satisfied required [QA](../../docs/engineering/standards/QA.md), including justified overall N/A. Keep pending
+Review/QA explicit on a non-terminal TASK and record delivery separately. Use the single
+[Review catalog and canonical handoff](../../docs/engineering/standards/Review.md).
 One independent reviewer may conduct both passes; material contributors cannot accept their work. Preserve legacy
 report history and use [Delivery's provenance bridge](../../docs/engineering/standards/Delivery.md#reconciling-reviewed-revisions)
 for proven mechanical reconciliation, not semantic drift.
 
 ## Runtime, runs and delivery
 
-Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Use ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical review reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
+Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Place isolated source checkouts outside `.runs/`. Use ignored `.runs/worktrees/` for coordination scratch, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical Review and QA reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. The [binding](shared-workflows.md#ignored-evidence) adds prospective Build/task-run locations without relocating legacy evidence. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
 
 No persistent HTTP runtime or LocalDevelopment enrollment is asserted by this adoption. Library-focused checks need no feature URL. Any later HTTP runtime/worktree integration must use the shared operator's documented enrollment procedure; record the actual portable operator contract when adopted.
 

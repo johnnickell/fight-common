@@ -26,21 +26,25 @@ class TemplateHelperCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(TemplateEngine::class);
+        $templateEngineDefinition = $container->findDefinition(TemplateEngine::class);
         $taggedServices = $container->findTaggedServiceIds('common.template_helper');
 
-        foreach ($taggedServices as $id => $tags) {
-            $serviceDefinition = $container->getDefinition($id);
+        foreach ($taggedServices as $helperServiceId => $tags) {
+            $serviceDefinition = $container->getDefinition($helperServiceId);
 
             $serviceClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
             $reflection = new ReflectionClass($serviceClass);
 
             if (!$reflection->implementsInterface(TemplateHelper::class)) {
-                $message = sprintf('Service "%s" must implement interface "%s"', $id, TemplateHelper::class);
+                $message = sprintf(
+                    'Service "%s" must implement interface "%s"',
+                    $helperServiceId,
+                    TemplateHelper::class
+                );
                 throw new Exception($message);
             }
 
-            $definition->addMethodCall('addHelper', [new Reference($id)]);
+            $templateEngineDefinition->addMethodCall('addHelper', [new Reference($helperServiceId)]);
         }
     }
 }

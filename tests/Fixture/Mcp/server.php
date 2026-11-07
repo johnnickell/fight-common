@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Fight\Common\Adapter\Http\CodeIgniter\McpResponse;
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
-use Fight\Common\Adapter\Http\Symfony\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
 use Fight\Test\Common\Fixture\Mcp\ProgressTool;
@@ -58,9 +58,9 @@ if ($composition === 'slim') {
     $app->post('/mcp', fn(ServerRequestInterface $request) => $fixture->handler->handle($request));
     $response = $app->handle($request);
 } elseif ($composition === 'yii') {
-    $collector = new RouteCollector();
-    $collector->addRoute(Route::post('/mcp')->action(fn(ServerRequestInterface $request) => $fixture->handler->handle($request)));
-    $router = new Router(new UrlMatcher(new RouteCollection($collector)), $factory,
+    $routeCollector = new RouteCollector();
+    $routeCollector->addRoute(Route::post('/mcp')->action(fn(ServerRequestInterface $request) => $fixture->handler->handle($request)));
+    $router = new Router(new UrlMatcher(new RouteCollection($routeCollector)), $factory,
         new MiddlewareFactory(new Container()), new CurrentRoute());
     $response = $router->process($request, $fixture->handler);
 } else {
@@ -74,14 +74,14 @@ try {
     } elseif ($composition === 'laravel') {
         // Laravel's stream callback yields the same native Symfony StreamedResponse, not eventStream's sentinel.
         $emitter->prepare($response);
-        $views = new class implements Factory {
+        $viewFactory = new class implements Factory {
             public function exists($view) {} public function file($path, $data = [], $mergeData = []) {}
             public function make($view, $data = [], $mergeData = []) {} public function share($key, $value = null) {}
             public function composer($views, $callback) {} public function creator($views, $callback) {}
             public function addNamespace($namespace, $hints) {} public function replaceNamespace($namespace, $hints) {}
         };
         $redirector = new Illuminate\Routing\Redirector(new Illuminate\Routing\UrlGenerator(new Illuminate\Routing\RouteCollection(), Illuminate\Http\Request::create('/')));
-        $native = new ResponseFactory($views, $redirector)->stream(fn() => $emitter->emitBody($response), $response->getStatusCode(), $response->getHeaders());
+        $native = new ResponseFactory($viewFactory, $redirector)->stream(fn() => $emitter->emitBody($response), $response->getStatusCode(), $response->getHeaders());
         $native->send();
     } elseif ($composition === 'codeigniter') {
         require __DIR__.'/codeigniter.php';

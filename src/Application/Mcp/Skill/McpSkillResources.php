@@ -28,6 +28,7 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
      * @var array<string, McpResourceInfo>
      */
     private array $resources;
+    private StreamFactoryInterface $streamFactory;
 
     /**
      * Constructs McpSkillResources
@@ -41,9 +42,10 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
     public function __construct(
         iterable $revisions,
         private McpSkillAvailability $availability,
-        private StreamFactoryInterface $streams,
+        StreamFactoryInterface $streams,
         int $maxResources = 10000
     ) {
+        $this->streamFactory = $streams;
         if ($maxResources < 1 || $maxResources > 1000000) {
             throw new DomainException('Skill Resource catalogs require a finite positive file budget.');
         }
@@ -134,12 +136,12 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
         }
 
         $file = $this->owners[$resource->uri()]->file($resource->uri());
-        $stream = $this->streams->createStream($file->bytes);
+        $stream = $this->streamFactory->createStream($file->bytes());
 
-        if ($file->text) {
-            return McpResourceContent::text($resource, $stream, $file->digest);
+        if ($file->text()) {
+            return McpResourceContent::text($resource, $stream, $file->digest());
         }
 
-        return McpResourceContent::binary($resource, $stream, $file->digest);
+        return McpResourceContent::binary($resource, $stream, $file->digest());
     }
 }

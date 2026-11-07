@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Fixture\Mcp;
 
-use Fight\Common\Adapter\Http\Mcp\DenyAllMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Adapter\Mcp\Http\DenyAllMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
@@ -35,13 +35,13 @@ final class ProgressEndpoint implements McpDiagnostics, McpInvocationGuard, McpT
     public function __construct(public ProgressTool $tool, bool $progressive = true)
     {
         $factory = new HttpFactory();
-        $tools = new McpToolRegistry([$tool]);
-        $registry = new McpCapabilityRegistry(new McpServerInfo('Progress fixture', '1'), [
-            new McpToolDiscovery($tools, $this, str_repeat('fixture-key-', 4)),
-            new McpToolInvocation(new McpToolInvoker($tools, $this,
+        $toolRegistry = new McpToolRegistry([$tool]);
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Progress fixture', '1'), [
+            new McpToolDiscovery($toolRegistry, $this, str_repeat('fixture-key-', 4)),
+            new McpToolInvocation(new McpToolInvoker($toolRegistry, $this,
                 failures: new McpToolFailureMap([RuntimeException::class => 'Unavailable.']))),
         ]);
-        $this->handler = new McpRequestHandler($registry, new DenyAllMcpOriginPolicy(), $this,
+        $this->handler = new McpRequestHandler($capabilityRegistry, new DenyAllMcpOriginPolicy(), $this,
             new McpResponseFactory($factory, $factory, $this), progressive: $progressive);
     }
 

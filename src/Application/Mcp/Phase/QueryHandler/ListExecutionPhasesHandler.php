@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Application\Mcp\Phase\QueryHandler;
+
+use Fight\Common\Application\Mcp\Phase\Data\PhasePage;
+use Fight\Common\Application\Mcp\Phase\Service\PhaseReader;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Application\Messaging\Query\QueryHandler;
+use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
+
+/**
+ * Class ListExecutionPhasesHandler
+ */
+final readonly class ListExecutionPhasesHandler implements QueryHandler
+{
+    /**
+     * Constructs ListExecutionPhasesHandler
+     */
+    public function __construct(
+        private ExecutionReadAdmission $executionReadAdmission,
+        private PhaseReader $phaseReader
+    ) {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function queryRegistration(): string
+    {
+        return ListExecutionPhases::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handle(QueryMessage $queryMessage): ?PhasePage
+    {
+        /**
+         * @var ListExecutionPhases $query
+         */
+        $query = $queryMessage->payload();
+        $access = $this->executionReadAdmission->currentAccess($query->execution()->selection());
+
+        return $this->phaseReader->list($query, $access);
+    }
+}

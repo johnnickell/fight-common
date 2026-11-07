@@ -37,13 +37,13 @@ final class OAuthHttpTest extends UnitTestCase
         $factory = new HttpFactory();
         $metadata = OAuthFixture::metadata();
         $handler = new OAuthMetadataHandler($metadata, new OAuthResponseFactory($factory, $factory));
-        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl));
+        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl()));
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
         self::assertSame($metadata->toJson(), (string) $response->getBody());
         self::assertFalse($response->hasHeader('Set-Cookie'));
         foreach (['POST', 'HEAD', 'OPTIONS'] as $method) {
-            $response = $handler->handle(new ServerRequest($method, $metadata->metadataUrl));
+            $response = $handler->handle(new ServerRequest($method, $metadata->metadataUrl()));
             self::assertSame(405, $response->getStatusCode());
             self::assertSame('GET', $response->getHeaderLine('Allow'));
             self::assertSame('', (string) $response->getBody());
@@ -56,7 +56,7 @@ final class OAuthHttpTest extends UnitTestCase
         $issuers = ['https://second.test/tenant', OAuthFixture::ISSUER];
         $metadata = OAuthResourceMetadata::fromConfiguration(OAuthFixture::RESOURCE, $issuers, OAuthScopeSet::fromArray([]));
         $handler = new OAuthMetadataHandler($metadata, new OAuthResponseFactory($factory, $factory));
-        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl));
+        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl()));
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
         self::assertSame([
@@ -70,8 +70,8 @@ final class OAuthHttpTest extends UnitTestCase
     public function test_that_challenges_preserve_distinct_statuses_all_scopes_and_public_safety(OAuthFailure $failure, int $status, ?string $error): void
     {
         $factory = new HttpFactory();
-        $responses = new OAuthResponseFactory($factory, $factory, 'consumer "realm" \\ scope');
-        $response = $responses->rejection($failure, OAuthFixture::metadata(), OAuthScopeSet::fromArray(['write', 'read']));
+        $oauthResponseFactory = new OAuthResponseFactory($factory, $factory, 'consumer "realm" \\ scope');
+        $response = $oauthResponseFactory->rejection($failure, OAuthFixture::metadata(), OAuthScopeSet::fromArray(['write', 'read']));
         self::assertSame($status, $response->getStatusCode());
         self::assertSame('', (string) $response->getBody());
         self::assertSame('no-store', $response->getHeaderLine('Cache-Control'));

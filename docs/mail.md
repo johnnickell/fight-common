@@ -119,17 +119,17 @@ final readonly class MailService implements MailTransport, MailFactory
 ```php-inline
 class WelcomeEmailService
 {
-    public function __construct(private MailService $mailer) {}
+    public function __construct(private MailService $mailService) {}
 
     public function send(User $user): void
     {
-        $message = $this->mailer->createMessage()
+        $message = $this->mailService->createMessage()
             ->setSubject('Welcome!')
             ->addTo($user->email(), $user->name())
             ->addFrom('noreply@example.com')
             ->addContent('<h1>Welcome</h1>', MailMessage::CONTENT_TYPE_HTML);
 
-        $this->mailer->send($message);
+        $this->mailService->send($message);
     }
 }
 ```

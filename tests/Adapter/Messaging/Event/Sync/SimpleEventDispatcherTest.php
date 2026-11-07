@@ -20,27 +20,27 @@ use TypeError;
 #[CoversClass(SimpleEventDispatcher::class)]
 class SimpleEventDispatcherTest extends UnitTestCase
 {
-    private SimpleEventDispatcher $dispatcher;
+    private SimpleEventDispatcher $eventDispatcher;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->dispatcher = new SimpleEventDispatcher();
+        $this->eventDispatcher = new SimpleEventDispatcher();
     }
 
     public function test_that_trigger_wraps_event_and_dispatches_to_handlers(): void
     {
         $received = [];
         $key = ClassName::underscore(SampleDispatchEvent::class);
-        $this->dispatcher->addHandler(
+        $this->eventDispatcher->addHandler(
             $key,
-            function (EventMessage $m) use (&$received): void {
-                $received[] = $m->payload();
+            function (EventMessage $eventMessage) use (&$received): void {
+                $received[] = $eventMessage->payload();
             }
         );
 
         $event = new SampleDispatchEvent();
-        $this->dispatcher->trigger($event);
+        $this->eventDispatcher->trigger($event);
 
         self::assertCount(1, $received);
         self::assertSame($event, $received[0]);
@@ -49,16 +49,16 @@ class SimpleEventDispatcherTest extends UnitTestCase
     public function test_that_dispatch_calls_handlers_for_event_type_and_all_events(): void
     {
         $calls = [];
-        $this->dispatcher->addHandler(
+        $this->eventDispatcher->addHandler(
             ClassName::underscore(SampleDispatchEvent::class),
             function () use (&$calls): void { $calls[] = 'event'; }
         );
-        $this->dispatcher->addHandler(
+        $this->eventDispatcher->addHandler(
             ClassName::underscore(AllEvents::class),
             function () use (&$calls): void { $calls[] = 'all'; }
         );
 
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertSame(['event', 'all'], $calls);
     }
@@ -78,18 +78,18 @@ class SimpleEventDispatcherTest extends UnitTestCase
         $eventType = ClassName::underscore(SampleDispatchEvent::class);
         $allEvents = ClassName::underscore(AllEvents::class);
 
-        $this->dispatcher->addHandler($eventType, [$objectHandler, 'onEvent'], 30);
-        $this->dispatcher->addHandler($eventType, __NAMESPACE__ . '\\sample_failing_dispatch_handler', 20);
-        $this->dispatcher->addHandler($eventType, [StaticFailureDispatchHandler::class, 'onEvent'], 17);
-        $this->dispatcher->addHandler($eventType, $invokableHandler, 15);
-        $this->dispatcher->addHandler(
+        $this->eventDispatcher->addHandler($eventType, [$objectHandler, 'onEvent'], 30);
+        $this->eventDispatcher->addHandler($eventType, __NAMESPACE__ . '\\sample_failing_dispatch_handler', 20);
+        $this->eventDispatcher->addHandler($eventType, [StaticFailureDispatchHandler::class, 'onEvent'], 17);
+        $this->eventDispatcher->addHandler($eventType, $invokableHandler, 15);
+        $this->eventDispatcher->addHandler(
             $eventType,
             static function (): void {
                 FailureDispatchCallLog::record('event-success');
             },
             10,
         );
-        $this->dispatcher->addHandler(
+        $this->eventDispatcher->addHandler(
             $allEvents,
             static function () use ($closureFailure): void {
                 FailureDispatchCallLog::record('closure');
@@ -97,7 +97,7 @@ class SimpleEventDispatcherTest extends UnitTestCase
             },
             20,
         );
-        $this->dispatcher->addHandler(
+        $this->eventDispatcher->addHandler(
             $allEvents,
             static function (): void {
                 FailureDispatchCallLog::record('all-success');
@@ -106,7 +106,7 @@ class SimpleEventDispatcherTest extends UnitTestCase
         );
 
         try {
-            $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+            $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
             self::fail('Dispatch should report the collected handler failures.');
         } catch (EventDispatchFailed $failed) {
             self::assertSame(
@@ -138,7 +138,7 @@ class SimpleEventDispatcherTest extends UnitTestCase
 
     public function test_that_dispatch_with_no_handlers_does_nothing(): void
     {
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
         self::assertTrue(true);
     }
 
@@ -152,14 +152,14 @@ class SimpleEventDispatcherTest extends UnitTestCase
                 return [SampleDispatchEvent::class => 'onEvent'];
             }
 
-            public function onEvent(EventMessage $m): void
+            public function onEvent(EventMessage $eventMessage): void
             {
                 $this->called = true;
             }
         };
 
-        $this->dispatcher->register($subscriber);
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->register($subscriber);
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertTrue($subscriber->called);
     }
@@ -174,14 +174,14 @@ class SimpleEventDispatcherTest extends UnitTestCase
                 return [SampleDispatchEvent::class => ['onEvent', 10]];
             }
 
-            public function onEvent(EventMessage $m): void
+            public function onEvent(EventMessage $eventMessage): void
             {
                 $this->called = true;
             }
         };
 
-        $this->dispatcher->register($subscriber);
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->register($subscriber);
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertTrue($subscriber->called);
     }
@@ -196,19 +196,19 @@ class SimpleEventDispatcherTest extends UnitTestCase
                 return [SampleDispatchEvent::class => [['onFirst', 10], ['onSecond']]];
             }
 
-            public function onFirst(EventMessage $m): void
+            public function onFirst(EventMessage $eventMessage): void
             {
                 $this->calls[] = 'first';
             }
 
-            public function onSecond(EventMessage $m): void
+            public function onSecond(EventMessage $eventMessage): void
             {
                 $this->calls[] = 'second';
             }
         };
 
-        $this->dispatcher->register($subscriber);
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->register($subscriber);
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertContains('first', $subscriber->calls);
         self::assertContains('second', $subscriber->calls);
@@ -224,15 +224,15 @@ class SimpleEventDispatcherTest extends UnitTestCase
                 return [SampleDispatchEvent::class => 'onEvent'];
             }
 
-            public function onEvent(EventMessage $m): void
+            public function onEvent(EventMessage $eventMessage): void
             {
                 $this->called = true;
             }
         };
 
-        $this->dispatcher->register($subscriber);
-        $this->dispatcher->unregister($subscriber);
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->register($subscriber);
+        $this->eventDispatcher->unregister($subscriber);
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertFalse($subscriber->called);
     }
@@ -247,15 +247,15 @@ class SimpleEventDispatcherTest extends UnitTestCase
                 return [SampleDispatchEvent::class => ['onEvent', 10]];
             }
 
-            public function onEvent(EventMessage $m): void
+            public function onEvent(EventMessage $eventMessage): void
             {
                 $this->called = true;
             }
         };
 
-        $this->dispatcher->register($subscriber);
-        $this->dispatcher->unregister($subscriber);
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->register($subscriber);
+        $this->eventDispatcher->unregister($subscriber);
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertFalse($subscriber->called);
     }
@@ -270,20 +270,20 @@ class SimpleEventDispatcherTest extends UnitTestCase
                 return [SampleDispatchEvent::class => [['onFirst', 10], ['onSecond']]];
             }
 
-            public function onFirst(EventMessage $m): void
+            public function onFirst(EventMessage $eventMessage): void
             {
                 $this->callCount++;
             }
 
-            public function onSecond(EventMessage $m): void
+            public function onSecond(EventMessage $eventMessage): void
             {
                 $this->callCount++;
             }
         };
 
-        $this->dispatcher->register($subscriber);
-        $this->dispatcher->unregister($subscriber);
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->register($subscriber);
+        $this->eventDispatcher->unregister($subscriber);
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertSame(0, $subscriber->callCount);
     }
@@ -291,9 +291,9 @@ class SimpleEventDispatcherTest extends UnitTestCase
     public function test_that_add_handler_and_get_handlers_return_it(): void
     {
         $handler = function (): void {};
-        $this->dispatcher->addHandler('some_event', $handler);
+        $this->eventDispatcher->addHandler('some_event', $handler);
 
-        $handlers = $this->dispatcher->getHandlers('some_event');
+        $handlers = $this->eventDispatcher->getHandlers('some_event');
 
         self::assertCount(1, $handlers);
         self::assertSame($handler, $handlers[0]);
@@ -301,55 +301,55 @@ class SimpleEventDispatcherTest extends UnitTestCase
 
     public function test_that_get_handlers_returns_empty_for_unknown_type(): void
     {
-        self::assertSame([], $this->dispatcher->getHandlers('no_such_event'));
+        self::assertSame([], $this->eventDispatcher->getHandlers('no_such_event'));
     }
 
     public function test_that_get_handlers_with_null_returns_all_registered(): void
     {
-        $this->dispatcher->addHandler('event_a', function (): void {});
-        $this->dispatcher->addHandler('event_b', function (): void {});
+        $this->eventDispatcher->addHandler('event_a', function (): void {});
+        $this->eventDispatcher->addHandler('event_b', function (): void {});
 
-        $all = $this->dispatcher->getHandlers();
+        $all = $this->eventDispatcher->getHandlers();
 
         self::assertCount(2, $all);
     }
 
     public function test_that_get_handlers_null_returns_empty_when_nothing_registered(): void
     {
-        self::assertSame([], $this->dispatcher->getHandlers());
+        self::assertSame([], $this->eventDispatcher->getHandlers());
     }
 
     public function test_that_has_handlers_returns_false_initially(): void
     {
-        self::assertFalse($this->dispatcher->hasHandlers());
-        self::assertFalse($this->dispatcher->hasHandlers('some_event'));
+        self::assertFalse($this->eventDispatcher->hasHandlers());
+        self::assertFalse($this->eventDispatcher->hasHandlers('some_event'));
     }
 
     public function test_that_has_handlers_returns_true_after_registration(): void
     {
-        $this->dispatcher->addHandler('my_event', function (): void {});
+        $this->eventDispatcher->addHandler('my_event', function (): void {});
 
-        self::assertTrue($this->dispatcher->hasHandlers());
-        self::assertTrue($this->dispatcher->hasHandlers('my_event'));
-        self::assertFalse($this->dispatcher->hasHandlers('other_event'));
+        self::assertTrue($this->eventDispatcher->hasHandlers());
+        self::assertTrue($this->eventDispatcher->hasHandlers('my_event'));
+        self::assertFalse($this->eventDispatcher->hasHandlers('other_event'));
     }
 
     public function test_that_remove_handler_is_no_op_for_unknown_event(): void
     {
-        $this->dispatcher->removeHandler('nonexistent', function (): void {});
-        self::assertFalse($this->dispatcher->hasHandlers());
+        $this->eventDispatcher->removeHandler('nonexistent', function (): void {});
+        self::assertFalse($this->eventDispatcher->hasHandlers());
     }
 
     public function test_that_remove_handler_removes_specific_handler(): void
     {
         $handler1 = function (): void {};
         $handler2 = function (): void {};
-        $this->dispatcher->addHandler('my_event', $handler1);
-        $this->dispatcher->addHandler('my_event', $handler2);
+        $this->eventDispatcher->addHandler('my_event', $handler1);
+        $this->eventDispatcher->addHandler('my_event', $handler2);
 
-        $this->dispatcher->removeHandler('my_event', $handler1);
+        $this->eventDispatcher->removeHandler('my_event', $handler1);
 
-        $handlers = $this->dispatcher->getHandlers('my_event');
+        $handlers = $this->eventDispatcher->getHandlers('my_event');
         self::assertCount(1, $handlers);
         self::assertSame($handler2, $handlers[0]);
     }
@@ -357,23 +357,23 @@ class SimpleEventDispatcherTest extends UnitTestCase
     public function test_that_remove_handler_cleans_up_empty_priority_and_event(): void
     {
         $handler = function (): void {};
-        $this->dispatcher->addHandler('my_event', $handler);
+        $this->eventDispatcher->addHandler('my_event', $handler);
 
-        $this->dispatcher->removeHandler('my_event', $handler);
+        $this->eventDispatcher->removeHandler('my_event', $handler);
 
-        self::assertFalse($this->dispatcher->hasHandlers('my_event'));
-        self::assertSame([], $this->dispatcher->getHandlers());
+        self::assertFalse($this->eventDispatcher->hasHandlers('my_event'));
+        self::assertSame([], $this->eventDispatcher->getHandlers());
     }
 
     public function test_that_handlers_are_sorted_by_priority_descending(): void
     {
         $calls = [];
         $key = ClassName::underscore(SampleDispatchEvent::class);
-        $this->dispatcher->addHandler($key, function () use (&$calls): void { $calls[] = 'low'; }, 0);
-        $this->dispatcher->addHandler($key, function () use (&$calls): void { $calls[] = 'high'; }, 10);
-        $this->dispatcher->addHandler($key, function () use (&$calls): void { $calls[] = 'mid'; }, 5);
+        $this->eventDispatcher->addHandler($key, function () use (&$calls): void { $calls[] = 'low'; }, 0);
+        $this->eventDispatcher->addHandler($key, function () use (&$calls): void { $calls[] = 'high'; }, 10);
+        $this->eventDispatcher->addHandler($key, function () use (&$calls): void { $calls[] = 'mid'; }, 5);
 
-        $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertSame(['high', 'mid', 'low'], $calls);
     }
@@ -383,12 +383,12 @@ class SimpleEventDispatcherTest extends UnitTestCase
         $handler1 = function (): void {};
         $handler2 = function (): void {};
 
-        $this->dispatcher->addHandler('my_event', $handler1);
-        $this->dispatcher->getHandlers('my_event');
+        $this->eventDispatcher->addHandler('my_event', $handler1);
+        $this->eventDispatcher->getHandlers('my_event');
 
-        $this->dispatcher->addHandler('my_event', $handler2, 5);
+        $this->eventDispatcher->addHandler('my_event', $handler2, 5);
 
-        $handlers = $this->dispatcher->getHandlers('my_event');
+        $handlers = $this->eventDispatcher->getHandlers('my_event');
 
         self::assertCount(2, $handlers);
         self::assertSame($handler2, $handlers[0]);

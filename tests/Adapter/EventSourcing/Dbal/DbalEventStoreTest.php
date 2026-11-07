@@ -61,7 +61,7 @@ final class DbalEventStoreTest extends EventStoreConformanceTestCase
         $connection->shouldReceive('fetchOne')
             ->once()
             ->with(
-                'SELECT COUNT(*) FROM event_store_events WHERE aggregate_name = ? AND aggregate_identifier = ?',
+                'SELECT COUNT(*) FROM "event_store_events" WHERE aggregate_name = ? AND aggregate_identifier = ?',
                 ['order', 'order-42'],
             )
             ->andReturn(1);
@@ -94,7 +94,7 @@ final class DbalEventStoreTest extends EventStoreConformanceTestCase
         $connection->shouldReceive('fetchAssociative')
             ->once()
             ->with(
-                'SELECT aggregate_name, aggregate_identifier, stream_version FROM event_store_events WHERE message_id = ?',
+                'SELECT aggregate_name, aggregate_identifier, stream_version FROM "event_store_events" WHERE message_id = ?',
                 ['6ba7b847-9dad-11d1-80b4-00c04fd430c8'],
             )
             ->andReturn([
@@ -105,7 +105,7 @@ final class DbalEventStoreTest extends EventStoreConformanceTestCase
         $connection->shouldReceive('fetchAssociative')
             ->once()
             ->with(
-                'SELECT aggregate_name, aggregate_identifier, stream_version FROM event_store_events WHERE message_id = ?',
+                'SELECT aggregate_name, aggregate_identifier, stream_version FROM "event_store_events" WHERE message_id = ?',
                 ['6ba7b848-9dad-11d1-80b4-00c04fd430c8'],
             )
             ->andReturn([
@@ -144,14 +144,14 @@ final class DbalEventStoreTest extends EventStoreConformanceTestCase
         $connection->shouldReceive('fetchOne')
             ->once()
             ->with(
-                'SELECT COUNT(*) FROM event_store_events WHERE aggregate_name = ? AND aggregate_identifier = ?',
+                'SELECT COUNT(*) FROM "event_store_events" WHERE aggregate_name = ? AND aggregate_identifier = ?',
                 ['order', 'order-42'],
             )
             ->andReturn(0);
         $connection->shouldReceive('fetchOne')
             ->once()
             ->with(
-                'SELECT message_id FROM event_store_events WHERE message_id = ?',
+                'SELECT message_id FROM "event_store_events" WHERE message_id = ?',
                 ['6ba7b843-9dad-11d1-80b4-00c04fd430c8'],
             )
             ->andReturn('6ba7b843-9dad-11d1-80b4-00c04fd430c8');

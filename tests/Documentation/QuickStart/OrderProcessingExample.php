@@ -56,27 +56,33 @@ final class OrderProcessingExample
             Item::create('FILTERS', 700, 2),
         );
 
-        $carts = new InMemoryShoppingCartRepository($cart);
-        $orders = new InMemoryOrderRepository();
-        $payments = new FakePaymentProcessor(
+        $shoppingCartRepository = new InMemoryShoppingCartRepository($cart);
+        $orderRepository = new InMemoryOrderRepository();
+        $paymentProcessor = new FakePaymentProcessor(
             PaymentReference::fromString('PAYMENT-1001'),
             PaymentStatus::SUCCEEDED,
         );
-        $unitOfWork = new DemoTransactionalUnitOfWork([$orders]);
-        $fulfillment = new FakeFulfillmentRequester();
+        $transactionalUnitOfWork = new DemoTransactionalUnitOfWork([$orderRepository]);
+        $fulfillmentRequester = new FakeFulfillmentRequester();
 
-        $router = new InMemoryCommandRouter();
-        $commands = new RoutingCommandBus($router);
-        $events = new SimpleEventDispatcher();
-        $events->register(new OrderProcessedSubscriber($commands));
-        $router->registerHandlers([
-            ProcessOrder::class => new ProcessOrderHandler($carts, $orders, $payments, $unitOfWork, $events),
-            FulfillOrder::class => new FulfillOrderHandler($orders, $payments, $fulfillment),
+        $commandRouter = new InMemoryCommandRouter();
+        $commandBus = new RoutingCommandBus($commandRouter);
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->register(new OrderProcessedSubscriber($commandBus));
+        $commandRouter->registerHandlers([
+            ProcessOrder::class => new ProcessOrderHandler(
+                $shoppingCartRepository,
+                $orderRepository,
+                $paymentProcessor,
+                $transactionalUnitOfWork,
+                $eventDispatcher
+            ),
+            FulfillOrder::class => new FulfillOrderHandler($orderRepository, $paymentProcessor, $fulfillmentRequester),
         ]);
         // --8<-- [end:order-processing-composition]
 
         // --8<-- [start:dispatch-process-order]
-        $commands->execute(
+        $commandBus->execute(
             new ProcessOrder(
                 $customerId,
                 $orderId,
@@ -85,13 +91,13 @@ final class OrderProcessingExample
         );
         // --8<-- [end:dispatch-process-order]
 
-        $order = $orders->get($orderId);
+        $order = $orderRepository->get($orderId);
 
-        if ($fulfillment->requestedOrders() !== [$order]) {
+        if ($fulfillmentRequester->requestedOrders() !== [$order]) {
             throw new \LogicException('The Quick Start fulfillment request was not recorded exactly once.');
         }
 
-        return new OrderProcessingResult($order, $payments, $fulfillment);
+        return new OrderProcessingResult($order, $paymentProcessor, $fulfillmentRequester);
     }
 }
 
@@ -99,8 +105,8 @@ final readonly class OrderProcessingResult
 {
     public function __construct(
         private Order $order,
-        private FakePaymentProcessor $payments,
-        private FakeFulfillmentRequester $fulfillment,
+        private FakePaymentProcessor $paymentProcessor,
+        private FakeFulfillmentRequester $fulfillmentRequester,
     ) {
     }
 
@@ -120,12 +126,12 @@ final readonly class OrderProcessingResult
 
     public function payments(): FakePaymentProcessor
     {
-        return $this->payments;
+        return $this->paymentProcessor;
     }
 
     public function fulfillment(): FakeFulfillmentRequester
     {
-        return $this->fulfillment;
+        return $this->fulfillmentRequester;
     }
 }
 
@@ -458,11 +464,11 @@ interface PaymentProcessor
 final readonly class ProcessOrderHandler implements CommandHandler
 {
     public function __construct(
-        private ShoppingCartRepository $carts,
-        private OrderRepository $orders,
-        private PaymentProcessor $payments,
-        private TransactionalUnitOfWork $unitOfWork,
-        private EventDispatcher $events,
+        private ShoppingCartRepository $shoppingCartRepository,
+        private OrderRepository $orderRepository,
+        private PaymentProcessor $paymentProcessor,
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private EventDispatcher $eventDispatcher,
     ) {
     }
 
@@ -479,16 +485,16 @@ final readonly class ProcessOrderHandler implements CommandHandler
             throw new \LogicException('ProcessOrderHandler received an unsupported command.');
         }
 
-        $cart = $this->carts->getForCustomer($command->customerId);
-        $paymentReference = $this->payments->process($cart->total(), $command->paymentMethod);
+        $cart = $this->shoppingCartRepository->getForCustomer($command->customerId);
+        $paymentReference = $this->paymentProcessor->process($cart->total(), $command->paymentMethod);
 
-        $this->unitOfWork->commitTransactional(
+        $this->transactionalUnitOfWork->commitTransactional(
             function () use ($command, $cart, $paymentReference): void {
-                $this->orders->save(Order::fromCart($command->orderId, $cart, $paymentReference));
+                $this->orderRepository->save(Order::fromCart($command->orderId, $cart, $paymentReference));
             },
         );
 
-        $this->events->trigger(new OrderProcessed($command->orderId));
+        $this->eventDispatcher->trigger(new OrderProcessed($command->orderId));
     }
 }
 // --8<-- [end:process-order-handler]
@@ -499,7 +505,7 @@ final readonly class ProcessOrderHandler implements CommandHandler
 // --8<-- [start:order-processed-subscriber]
 final readonly class OrderProcessedSubscriber implements EventSubscriber
 {
-    public function __construct(private CommandBus $commands)
+    public function __construct(private CommandBus $commandBus)
     {
     }
 
@@ -516,7 +522,7 @@ final readonly class OrderProcessedSubscriber implements EventSubscriber
             throw new \LogicException('OrderProcessedSubscriber received an unsupported event.');
         }
 
-        $this->commands->execute(new FulfillOrder($event->orderId));
+        $this->commandBus->execute(new FulfillOrder($event->orderId));
     }
 }
 // --8<-- [end:order-processed-subscriber]
@@ -530,9 +536,9 @@ interface FulfillmentRequester
 final readonly class FulfillOrderHandler implements CommandHandler
 {
     public function __construct(
-        private OrderRepository $orders,
-        private PaymentProcessor $payments,
-        private FulfillmentRequester $fulfillment,
+        private OrderRepository $orderRepository,
+        private PaymentProcessor $paymentProcessor,
+        private FulfillmentRequester $fulfillmentRequester,
     ) {
     }
 
@@ -549,15 +555,15 @@ final readonly class FulfillOrderHandler implements CommandHandler
             throw new \LogicException('FulfillOrderHandler received an unsupported command.');
         }
 
-        $order = $this->orders->get($command->orderId);
+        $order = $this->orderRepository->get($command->orderId);
 
-        if ($this->payments->status($order->paymentReference()) !== PaymentStatus::SUCCEEDED) {
+        if ($this->paymentProcessor->status($order->paymentReference()) !== PaymentStatus::SUCCEEDED) {
             throw new PaymentNotSuccessful(
                 sprintf('Payment %s is not successful.', $order->paymentReference()->toString()),
             );
         }
 
-        $this->fulfillment->request($order);
+        $this->fulfillmentRequester->request($order);
     }
 }
 // --8<-- [end:fulfill-order-handler]
@@ -665,8 +671,8 @@ final class DemoTransactionalUnitOfWork implements TransactionalUnitOfWork
         }
 
         $snapshots = [];
-        foreach ($this->repositories as $repository) {
-            $snapshots[] = $repository->snapshot();
+        foreach ($this->repositories as $transactionalState) {
+            $snapshots[] = $transactionalState->snapshot();
         }
 
         $this->active = true;
@@ -674,8 +680,8 @@ final class DemoTransactionalUnitOfWork implements TransactionalUnitOfWork
         try {
             return $operation();
         } catch (\Throwable $failure) {
-            foreach ($this->repositories as $index => $repository) {
-                $repository->restore($snapshots[$index]);
+            foreach ($this->repositories as $index => $transactionalState) {
+                $transactionalState->restore($snapshots[$index]);
             }
 
             throw $failure;

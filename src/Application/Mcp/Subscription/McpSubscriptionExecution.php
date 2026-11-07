@@ -1,0 +1,540 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Application\Mcp\Subscription;
+
+use Closure;
+use Fight\Common\Application\Mcp\McpDiagnostics;
+use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
+use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Messaging\Query\QueryBus;
+use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
+use RuntimeException;
+use Throwable;
+
+/**
+ * Class McpSubscriptionExecution
+ *
+ * @internal Single-use cooperative execution, paused at each actual framed write boundary
+ */
+final class McpSubscriptionExecution
+{
+    private const string META = 'io.modelcontextprotocol/subscriptionId';
+    private const array CHANGES = [
+        'mcp.tools.list_changed'     => ['toolsListChanged', 'notifications/tools/list_changed'],
+        'mcp.prompts.list_changed'   => ['promptsListChanged', 'notifications/prompts/list_changed'],
+        'mcp.resources.list_changed' => ['resourcesListChanged', 'notifications/resources/list_changed'],
+        'mcp.resources.updated'      => ['resourceSubscriptions', 'notifications/resources/updated']
+    ];
+
+    private bool $cancelled = false;
+    private bool $started = false;
+    private int $checks = 0;
+    private int $expiresAt = 0;
+
+    /**
+     * Constructs McpSubscriptionExecution
+     *
+     * @phpstan-param list<string> $supported
+     */
+    public function __construct(
+        private readonly int|string $requestId,
+        private readonly McpSubscriptionFilter $requested,
+        private readonly array $supported,
+        private readonly QueryBus $queryBus,
+        private readonly McpSubscriptionStore $subscriptionStore,
+        private readonly McpSubscriptionAdmission $subscriptionAdmission,
+        private readonly NoticeSelection $selection,
+        private readonly int $lifetimeSeconds,
+        private readonly int $waitMicroseconds,
+        private readonly int $maxFrameBytes,
+        private readonly ?McpTasks $taskCapability = null,
+        private readonly ?McpTaskDisclosureGuard $taskDisclosureGuard = null
+    ) {
+    }
+
+    /**
+     * Sets cancellation for subsequent disclosure without interrupting consumer work or retracting sent bytes
+     */
+    public function cancel(): void
+    {
+        $this->cancelled = true;
+    }
+
+    /**
+     * Runs one bounded live follow without deleting or acknowledging retained notices
+     *
+     * @phpstan-param callable(string): void $emit
+     * @phpstan-param null|callable(McpSubscriptionDelivery): void $schedule
+     */
+    public function run(callable $emit, McpDiagnostics $diagnostics, ?callable $schedule = null): void
+    {
+        if ($this->started) {
+            return;
+        }
+
+        $this->started = true;
+        $deliver = $schedule ?? static function (McpSubscriptionDelivery $delivery) use ($emit): void {
+            $delivery->send($emit);
+        };
+        $id = bin2hex(random_bytes(16));
+        $owner = bin2hex(random_bytes(16));
+        $opened = false;
+        $deadline = hrtime(true) + $this->lifetimeSeconds * 1000000000;
+        if ($this->shouldStop($deadline)) {
+            return;
+        }
+
+        try {
+            $subscriber = Notice::reference($this->subscriptionAdmission->subscriber());
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            $accepted = $this->accepted($subscriber);
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            // Even an unsupported/denied request may acknowledge an empty subset, without revealing why.
+            $notices = array_intersect(
+                array_keys($accepted),
+                ['toolsListChanged', 'promptsListChanged', 'resourcesListChanged', 'resourceSubscriptions']
+            ) !== [];
+            $batch = $notices ? $this->batch(null, true) : null;
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            $now = time();
+            $this->expiresAt = $now + 5;
+            $this->subscriptionStore->open($id, $owner, [
+                'subscriber' => $subscriber,
+                'selection'  => $this->selection->toArray(),
+                'requested'  => $this->requested->toArray(),
+                'accepted'   => $accepted
+            ], $now, $this->expiresAt);
+            $opened = true;
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            $this->requireFreshness();
+            if ($accepted !== $this->accepted($subscriber)) {
+                throw new RuntimeException('Subscription permission changed during opening.');
+            }
+
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            // Admission may outlast tracking or lose its row; opening permission alone is not a live lease.
+            $this->renew($id, $owner);
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            $acknowledged = false;
+            $acknowledge = function (callable $write) use (
+                $accepted,
+                $subscriber,
+                $id,
+                $owner,
+                $deadline,
+                &$acknowledged
+            ): void {
+                $states = [];
+                if ($accepted !== $this->accepted($subscriber, $states)) {
+                    throw new RuntimeException('Subscription permission changed during opening.');
+                }
+
+                $this->requireFreshness();
+                if ($this->shouldStop($deadline)) {
+                    return;
+                }
+
+                $this->disclose($subscriber, $states, function () use (
+                    $write,
+                    $accepted,
+                    $id,
+                    $owner,
+                    $deadline,
+                    &$acknowledged
+                ): void {
+                    if ($this->shouldStop($deadline)) {
+                        return;
+                    }
+
+                    if ($this->taskCapability !== null) {
+                        $this->renew($id, $owner);
+                    }
+
+                    if (!$this->shouldStop($deadline)) {
+                        $write($this->frame([
+                            'jsonrpc' => '2.0',
+                            'method'  => 'notifications/subscriptions/acknowledged',
+                            'params'  => [
+                                '_meta'         => [self::META => $this->requestId],
+                                'notifications' => (object) $accepted
+                            ]
+                        ]));
+                        $acknowledged = true;
+                    }
+                });
+            };
+            if ($this->taskCapability !== null) {
+                $deliver(new McpSubscriptionDelivery($acknowledge));
+            } else {
+                $acknowledge($emit);
+            }
+
+            if (!$acknowledged) {
+                return;
+            }
+
+            $continuation = $batch?->continuation();
+            $revisions = [];
+            while (!$this->shouldStop($deadline)) {
+                $this->renew($id, $owner);
+                if ($this->shouldStop($deadline)) {
+                    break;
+                }
+
+                foreach ($accepted['taskIds'] ?? [] as $taskId) {
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $this->renew($id, $owner);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    // Schedule work, not an authorized snapshot: the transport invokes this at its byte handoff.
+                    $deliver(new McpSubscriptionDelivery(function (callable $write) use (
+                        $taskId,
+                        $subscriber,
+                        $id,
+                        $owner,
+                        $deadline,
+                        &$revisions
+                    ): void {
+                        $state = $this->task($taskId, $subscriber);
+                        $revision = $state['_meta'][McpTasks::REVISION];
+                        $previous = $revisions[$taskId] ?? null;
+                        if ($previous !== null) {
+                            if (
+                                $previous->get('scope') !== $revision->get('scope')
+                                || $previous->get('value') > $revision->get('value')
+                            ) {
+                                throw new RuntimeException('Task comparison requires restart.');
+                            }
+                        }
+
+                        $this->disclose($subscriber, [$taskId => $state], function () use (
+                            $write,
+                            $state,
+                            $revision,
+                            $previous,
+                            $taskId,
+                            $id,
+                            $owner,
+                            $deadline,
+                            &$revisions
+                        ): void {
+                            if ($this->shouldStop($deadline)) {
+                                return;
+                            }
+
+                            $this->renew($id, $owner);
+                            if ($this->shouldStop($deadline)) {
+                                return;
+                            }
+
+                            // Coalescing suppresses duplicate bytes, never current authority/readiness checks.
+                            if ($previous !== null && $previous->get('value') === $revision->get('value')) {
+                                return;
+                            }
+
+                            $state['_meta'][self::META] = $this->requestId;
+                            if (
+                                $write($this->frame([
+                                    'jsonrpc' => '2.0', 'method' => 'notifications/tasks', 'params' => $state
+                                ]))
+                            ) {
+                                $revisions[$taskId] = $revision;
+                            }
+                        });
+                    }));
+                }
+
+                $batch = $notices ? $this->batch($continuation) : null;
+                foreach ($batch?->notices() ?? [] as $view) {
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $this->renew($id, $owner);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $message = $this->notification($view->notice(), $accepted, $subscriber);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    if ($message !== null) {
+                        $this->renew($id, $owner);
+                        if ($this->shouldStop($deadline)) {
+                            break;
+                        }
+
+                        // Tracking callbacks may wait or change current policy; they are not a disclosure lease.
+                        $message = $this->notification($view->notice(), $accepted, $subscriber);
+                        $this->requireFreshness();
+                        if ($this->shouldStop($deadline)) {
+                            break;
+                        }
+
+                        if ($message !== null) {
+                            $emit($this->frame($message));
+                        }
+                    }
+                }
+
+                $continuation = $batch?->continuation();
+                if (!$this->shouldStop($deadline)) {
+                    // A finite transport comment permits idle disconnect observation without a new MCP event.
+                    usleep($this->waitMicroseconds);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $this->renew($id, $owner);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $emit(": keepalive\n\n");
+                }
+            }
+
+            if (!$this->cancelled) {
+                $this->finish($id, $owner);
+                $opened = false;
+                // Expiry may complete an acknowledged stream, but callbacks can still cancel that final write.
+                if ($this->cancelled) {
+                    return;
+                }
+
+                $emit($this->frame([
+                    'jsonrpc' => '2.0',
+                    'id'      => $this->requestId,
+                    'result'  => [
+                        'resultType' => 'complete',
+                        '_meta'      => [self::META => $this->requestId]
+                    ]
+                ]));
+            }
+        } catch (Throwable $throwable) {
+            $this->diagnose($diagnostics, $throwable);
+            // No successful completion on source, tracking, permission or framing failure.
+        } finally {
+            if ($opened) {
+                try {
+                    $this->subscriptionStore->close($id, $owner, time());
+                } catch (Throwable $failure) {
+                    $this->diagnose($diagnostics, $failure);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the complete current accepted subset with independent Task Query authorization
+     *
+     * @phpstan-param array<string, array<string, mixed>> $states
+     *
+     * @return array<string, mixed>
+     */
+    private function accepted(string $subscriber, array &$states = []): array
+    {
+        return $this->requested->accepted(
+            $this->supported,
+            $this->subscriptionAdmission,
+            $subscriber,
+            $this->taskCapability,
+            $states
+        );
+    }
+
+    /**
+     * Executes a consumer-guarded bounded byte handoff without caching a decision or yielding under protection
+     *
+     * @phpstan-param array<string, array<string, mixed>> $states
+     * @phpstan-param Closure(): void $write
+     */
+    private function disclose(string $subscriber, array $states, Closure $write): void
+    {
+        if ($this->taskCapability === null) {
+            $write();
+
+            return;
+        }
+
+        if ($this->taskDisclosureGuard === null) {
+            throw new RuntimeException('Task disclosure guard unavailable.');
+        }
+
+        $action = new McpDisclosureAction($write);
+        try {
+            $this->taskDisclosureGuard->run($subscriber, $states, $action->invoke(...));
+        } finally {
+            $action->finish();
+        }
+    }
+
+    /**
+     * Returns freshly authorized full state immediately before framing without arbitrary notice publication
+     *
+     * @return array<string, mixed>
+     */
+    private function task(string $id, string $subscriber): array
+    {
+        if (!$this->subscriptionAdmission->allows($subscriber, 'taskIds', $id, null)) {
+            throw new RuntimeException('Task delivery unavailable.');
+        }
+
+        $state = $this->taskCapability?->current($id);
+        if ($state === null) {
+            throw new RuntimeException('Task delivery unavailable.');
+        }
+
+        return $state;
+    }
+
+    /**
+     * Completes owned tracking before graceful output without treating callbacks as a permission lease
+     */
+    private function finish(string $id, string $owner): void
+    {
+        $this->renew($id, $owner);
+        $this->subscriptionStore->close($id, $owner, time());
+        $this->requireFreshness();
+    }
+
+    /**
+     * Validates ownership and freshness across a returned tracking callback without reviving an expired lease
+     */
+    private function renew(string $id, string $owner): void
+    {
+        $this->requireFreshness();
+        $now = time();
+        $expires = $now + 5;
+        $this->subscriptionStore->heartbeat($id, $owner, $now, $expires);
+        $this->expiresAt = $expires;
+        $this->requireFreshness();
+    }
+
+    /**
+     * Validates the independent technical lease after cooperative callbacks return
+     */
+    private function requireFreshness(): void
+    {
+        if (time() >= $this->expiresAt) {
+            throw new RuntimeException('Subscription tracking freshness lost.');
+        }
+    }
+
+    /**
+     * Records a bounded work check while observing cancellation and monotonic lifetime
+     *
+     * @phpstan-impure
+     */
+    private function shouldStop(int $deadline): bool
+    {
+        ++$this->checks;
+
+        return $this->cancelled || hrtime(true) >= $deadline || $this->checks > 12000;
+    }
+
+    /**
+     * Returns a qualified shared Query batch or fails instead of presenting uncertainty as health
+     */
+    private function batch(?string $continuation, bool $start = false): NoticeRecoveryBatch
+    {
+        $batch = $this->queryBus->fetch(new RecoverNotices($this->selection, $continuation, startAtCurrent: $start));
+        if (!$batch instanceof NoticeRecoveryBatch || $batch->status() !== 'complete') {
+            // Conservative loss/incomplete/uncertain assessment requires polling/reload, never silent dropping.
+            throw new RuntimeException('Live notice continuity is unavailable.');
+        }
+
+        return $batch;
+    }
+
+    /**
+     * Creates only supported standard metadata after fresh complete-signal permission
+     *
+     * @phpstan-param array<string, mixed> $accepted
+     *
+     * @return array<string, mixed>|null
+     */
+    private function notification(Notice $notice, array $accepted, string $subscriber): ?array
+    {
+        $change = self::CHANGES[$notice->toArray()['type']] ?? null;
+        if ($change === null || !isset($accepted[$change[0]])) {
+            return null;
+        }
+
+        [$filter, $method] = $change;
+        $uri = null;
+        if ($filter === 'resourceSubscriptions') {
+            $uri = $notice->metadata()->toArray()['mcp/uri'] ?? null;
+            if (!is_string($uri) || !in_array($uri, $accepted[$filter], true)) {
+                return null;
+            }
+        }
+
+        if (!$this->subscriptionAdmission->allows($subscriber, $filter, $uri, $notice)) {
+            return null;
+        }
+
+        $params = ['_meta' => [self::META => $this->requestId]];
+        if ($uri !== null) {
+            $params['uri'] = $uri;
+        }
+
+        return ['jsonrpc' => '2.0', 'method' => $method, 'params' => $params];
+    }
+
+    /**
+     * Creates one bounded actual JSON and SSE frame including escaped correlation metadata
+     *
+     * @param array<string, mixed> $message
+     */
+    private function frame(array $message): string
+    {
+        $frame = 'data: '.json_encode($message, JSON_THROW_ON_ERROR)."\n\n";
+        if (strlen($frame) > $this->maxFrameBytes) {
+            throw new RuntimeException('Live MCP frame exceeds bounds.');
+        }
+
+        return $frame;
+    }
+
+    /**
+     * Records private failures only through the consumer redaction-aware sink
+     */
+    private function diagnose(McpDiagnostics $diagnostics, Throwable $failure): void
+    {
+        try {
+            $diagnostics->record($failure);
+        } catch (Throwable) {
+            // Diagnostics cannot become wire output or prevent owned closure.
+        }
+    }
+}

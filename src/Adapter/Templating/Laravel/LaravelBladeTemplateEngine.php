@@ -23,14 +23,16 @@ final class LaravelBladeTemplateEngine implements TemplateEngine
      * @var array<string, TemplateHelper>
      */
     private array $helpers = [];
+    private readonly ViewFactory $viewFactory;
 
     /**
      * Constructs LaravelBladeTemplateEngine
      */
     public function __construct(
-        private readonly ViewFactory $view,
+        ViewFactory $view,
         private readonly string $templatesPath
     ) {
+        $this->viewFactory = $view;
     }
 
     /**
@@ -43,7 +45,7 @@ final class LaravelBladeTemplateEngine implements TemplateEngine
         }
 
         try {
-            return $this->view->make($this->viewName($template), $data)->render();
+            return $this->viewFactory->make($this->viewName($template), $data)->render();
         } catch (Throwable $throwable) {
             throw new TemplatingException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
@@ -88,7 +90,7 @@ final class LaravelBladeTemplateEngine implements TemplateEngine
         }
 
         $this->helpers[$name] = $helper;
-        $this->view->share($name, $helper);
+        $this->viewFactory->share($name, $helper);
     }
 
     /**

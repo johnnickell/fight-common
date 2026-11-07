@@ -103,10 +103,10 @@ final class RedisHealthCheck implements HealthCheck
     public function check(): HealthResult
     {
         try {
-            $start = hrtime(true);
+            $startedAtNanoseconds = hrtime(true);
             $this->redis->ping();
-            $ms = round((hrtime(true) - $start) / 1e6, 2);
-            return new HealthResult('redis', HealthStatus::healthy(), "ping {$ms}ms");
+            $elapsedMilliseconds = round((hrtime(true) - $startedAtNanoseconds) / 1e6, 2);
+            return new HealthResult('redis', HealthStatus::healthy(), "ping {$elapsedMilliseconds}ms");
         } catch (\Throwable $e) {
             return new HealthResult('redis', HealthStatus::unhealthy(), $e->getMessage());
         }
@@ -153,7 +153,7 @@ Application\Observability\MetricsCollector
 ```php
 use Fight\Common\Adapter\Observability\Metrics\StatsDMetricsCollector;
 
-$metrics = new StatsDMetricsCollector(
+$metricsCollector = new StatsDMetricsCollector(
     host: 'statsd.internal',
     port: 8125,
     prefix: 'myapp'
@@ -177,12 +177,12 @@ use Fight\Common\Adapter\Messaging\Command\MetricsCommandFilter;
 use Fight\Common\Adapter\Messaging\Query\MetricsQueryFilter;
 
 // Command pipeline
-$commandPipeline = new CommandPipeline($routingBus);
-$commandPipeline->addFilter(new MetricsCommandFilter($metrics));
+$commandPipeline = new CommandPipeline($routingCommandBus);
+$commandPipeline->addFilter(new MetricsCommandFilter($metricsCollector));
 
 // Query pipeline
-$queryPipeline = new QueryPipeline($routingBus);
-$queryPipeline->addFilter(new MetricsQueryFilter($metrics));
+$queryPipeline = new QueryPipeline($routingQueryBus);
+$queryPipeline->addFilter(new MetricsQueryFilter($metricsCollector));
 ```
 
 Symfony DI:
@@ -204,12 +204,12 @@ Implement `MetricsCollector` and forward to any backend — Prometheus, InfluxDB
 ```php
 final class PrometheusMetricsCollector implements MetricsCollector
 {
-    public function __construct(private CollectorRegistry $registry, private string $ns = '') {}
+    public function __construct(private CollectorRegistry $collectorRegistry, private string $metricNamespace = '') {}
 
     public function increment(string $metric, array $tags = []): void
     {
-        $counter = $this->registry->getOrRegisterCounter(
-            $this->ns, str_replace('.', '_', $metric), $metric, array_keys($tags)
+        $counter = $this->collectorRegistry->getOrRegisterCounter(
+            $this->metricNamespace, str_replace('.', '_', $metric), $metric, array_keys($tags)
         );
         $counter->incBy(1, array_values($tags));
     }
@@ -261,7 +261,15 @@ Domain\Observability\AuditRepository
 `getBetween()` retains native `DateTimeImmutable` parameters and **inclusive** endpoints. The Doctrine adapter
 translates this to `e.timestamp >= :from AND e.timestamp <= :to` with the supplied values. The optional
 [InstantRange](../values/index.md#half-open-instantrange) is half-open and does not change this repository contract or
-implicitly convert to audit bounds. Controlled adapter tests prove query translation, not database execution.
+implicitly convert to audit bounds. Direct unit tests retain query-translation proof;
+`DoctrineMappedStorageIntegrationTest` additionally exercises actual XML mapping, persist/flush, a reopened
+connection/EntityManager, actor/action/inclusive-time queries, pagination and existing Doctrine types on SQLite.
+
+`DoctrineAuditRepository` defaults to `audit_entries` through the existing ORM XML mapping. Consumers retain native
+mapping/metadata overrides; no DBAL naming object or ordinary-name restriction applies. `add()` schedules persistence,
+not a flush/commit or an automatically atomic audit/business transaction. Changed mappings do not migrate history,
+create storage or fall back to defaults. See [native ORM table selection](../../table-names.md#native-orm-authority-for-nonce-and-audit-tables)
+for type registration, schema/runtime agreement, missing-storage behavior and consumer responsibilities.
 
 ### Built-in adapters
 
@@ -302,9 +310,9 @@ $auditLog = new LoggingAuditLog($logger, LogLevel::INFO);
 
 // Production: implement AuditLog backed by AuditRepository
 $auditLog = new class($auditRepository) implements AuditLog {
-    public function __construct(private AuditRepository $repo) {}
+    public function __construct(private AuditRepository $auditRepository) {}
     public function record(AuditEntry $entry): void {
-        $this->repo->add($entry);
+        $this->auditRepository->add($entry);
     }
 };
 ```

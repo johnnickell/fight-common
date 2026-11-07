@@ -18,14 +18,14 @@ final class QueuedEventMessageTest extends UnitTestCase
     public function test_that_handle_reconstitutes_the_complete_event_message(): void
     {
         $message = EventMessage::create(new QueuedEventMessageTestEvent('event-73'));
-        $dispatcher = $this->mock(SynchronousEventDispatcher::class);
-        $dispatcher->shouldReceive('dispatch')->once()->withArgs(static function (EventMessage $actual) use ($message): bool {
+        $eventDispatcher = $this->mock(SynchronousEventDispatcher::class);
+        $eventDispatcher->shouldReceive('dispatch')->once()->withArgs(static function (EventMessage $actual) use ($message): bool {
             self::assertSame($message->arraySerialize(), $actual->arraySerialize());
 
             return true;
         });
 
-        (new QueuedEventMessage($message))->handle(new EventMessageHandler($dispatcher));
+        (new QueuedEventMessage($message))->handle(new EventMessageHandler($eventDispatcher));
     }
 }
 

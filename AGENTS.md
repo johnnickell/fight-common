@@ -1,5 +1,23 @@
 # Fight engineering instructions
 
+## Work routing
+
+For “What's next?”, `next`, or an unqualified `/ask-matt`, go straight to the [Board](planning/tasks/BOARD.md)
+before general project orientation. Read its current human decision and active work; otherwise select the first
+executable ready TASK in Board order. Use the [Wayfinder index](planning/wayfinder/README.md) for map status and current frontier pointers.
+Follow [lightweight work routing](planning/CONVENTIONS.md#lightweight-work-routing) for validation,
+bounded evidence reads and planning handoffs. Recommend and stop; load execution guidance when work is invoked.
+This routing path does not require reading README, architecture, full project context, task history or receiving skills.
+
+## Project guidance
+
+For execution or substantive planning changes, load the applicable guidance below. The read-only routing
+path above takes precedence over broad orientation reads; it does not waive engineering or delivery rules.
+
+For Docker preparation/teardown, isolated worktrees, guarded source removal and build-cache evidence, follow
+[local tooling](docs/engineering/LOCAL_TOOLING.md). Use normal `./bin/build` for fresh planning and qualified
+application reuse; use `--force` for deliberate fresh application execution.
+
 **Scope:** these are shared engineering conventions. Read the project-specific instructions alongside them. All referenced guidance must be available in the checkout; no private skill installation is required.
 
 **Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, CONTEXT.md, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
@@ -15,6 +33,8 @@
 | Write or review React/TypeScript | [Frontend](docs/engineering/standards/Frontend.md) |
 | Implement or verify behavior | [Testing](docs/engineering/standards/Testing.md) |
 | Review or assess readiness | [Review](docs/engineering/standards/Review.md) |
+| Challenge reviewed behavior | [QA](docs/engineering/standards/QA.md) |
+| Use shared skills or delegate workflow roles | [Shared workflow binding](planning/agents/shared-workflows.md) |
 | Worktrees, runtime, PRs, merge, release, deploy | [Delivery](docs/engineering/standards/Delivery.md) and the actual project profile/runbooks |
 | Change these standards or adopt them elsewhere | [Governance](docs/engineering/standards/Governance.md) |
 
@@ -22,9 +42,9 @@
 
 **Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover meaningful product behavior, including the shipped coding standard and framework contracts. Preserve existing release tests/probes without adding packaging or release-process tests in any suite; see Testing and the project inventory. Use local build receipts for pre-publication acceptance in public and private repositories alike; hosted CI is not a review prerequisite. Any required hosted delivery checks occur after land publishes. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
 
-**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. The normal workflow is work → local verification → independent review → authorized land; land owns push/PR publication. A local commit or accepted review grants no publication, merge, release, or deployment permission.
+**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. The normal workflow is work → local verification → independent review → independent QA → authorized land → human merge; land owns push/PR publication. Explicit Build invocation delegates those stages through PR publication under the [binding](planning/agents/shared-workflows.md); a recommendation does not. A local commit or accepted review grants no publication, merge, release, or deployment permission.
 
-**Complete and review:** TASK `done` means implementation acceptance and required local verification, before PR publication; a green build alone is insufficient. Keep pending independent review explicit and record delivery separately. Review uses the independent Spec/Standards accept-or-revise contract in [Review](docs/engineering/standards/Review.md), never builder self-approval.
+**Complete and review:** TASK `done` requires implementation acceptance, required verification, independent Review acceptance and satisfied required QA (or justified overall N/A). Keep implementation awaiting Review/QA non-terminal with its next stage explicit. Record publication, merge, release and deployment separately. Review uses the independent Spec/Standards accept-or-revise contract in [Review](docs/engineering/standards/Review.md); [QA](docs/engineering/standards/QA.md) owns behavioral dispositions. Builders cannot independently accept or pass their own work. Preserve historical completion records.
 
 **Persist:** records own durable decisions and acceptance. Ignored `.runs` subfolders own coordination, review handoffs, logs, and screenshots. Preserve useful evidence through landing and remove only resources demonstrably owned by the work.
 
@@ -32,4 +52,10 @@
 
 ## Fight Common project binding
 
-Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.
+Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. Land owns
+[publication closeout](planning/CONVENTIONS.md#publication-closeout): accepted TASK/eligible-parent/current-doc
+closure, exact live owned-PR/default/base/head verification and eligible local Git/Docker/storage retirement.
+Human merge and open-PR remote heads remain separate. There is no tracked delivery marker/table, persistent
+pending-merge queue or recurring post-merge planning chore; preserve historical acceptance/publication and reports.
+Planning checks stay offline; routing, Review and QA remain read-only. Real uncertainty holds the affected action.
+This local policy overrides provider marker examples. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.

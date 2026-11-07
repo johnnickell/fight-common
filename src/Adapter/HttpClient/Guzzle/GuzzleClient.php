@@ -17,11 +17,14 @@ use Psr\Http\Message\ResponseInterface;
  */
 final readonly class GuzzleClient implements HttpClient
 {
+    private ClientInterface $httpClient;
+
     /**
      * Constructs GuzzleClient
      */
-    public function __construct(private ClientInterface $client)
+    public function __construct(ClientInterface $client)
     {
+        $this->httpClient = $client;
     }
 
     /**
@@ -54,7 +57,7 @@ final readonly class GuzzleClient implements HttpClient
      */
     public function sendAsync(RequestInterface $request, array $options = []): Promise
     {
-        $promise = $this->client->sendAsync($request, $options);
+        $promise = $this->httpClient->sendAsync($request, $options);
 
         return new GuzzlePromise($promise, $request);
     }

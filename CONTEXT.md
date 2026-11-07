@@ -4,6 +4,56 @@ This project is a shared PHP library for applications using Hexagonal Architectu
 
 This file records how terms are used inside this library. Public APIs, documentation, tickets, and ADRs should use these meanings consistently.
 
+## Approved aggregate correction and current source
+
+[Architecture](docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) owns the approved
+aggregate layout, value-object inheritance, handler ownership, adapter destinations and finite package exceptions.
+[Naming](docs/engineering/standards/Naming.md#variables-properties-and-parameters) owns descriptive collaborator
+names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
+2026-11-02 decision; TASK-00184 implements execution transaction separation, TASK-00185 implements Task
+repository/transaction separation, TASK-00186 implements Notice repository/recovery separation and TASK-00187
+implements Task handler ownership, TASK-00188 implements Task disclosure projection, TASK-00189 implements
+Task identity/value contracts and TASK-00190 implements execution/Notice value and identity correction.
+TASK-00191 aligns aggregate Application and DBAL homes and moves concrete Query-to-Tool presentation to Adapter.
+TASK-00192's codebase-wide descriptive-name pass has independent Review acceptance and required QA PASS at
+`3c112387f943bc715cba7dd9063e4d1652d740a1`. Dispatcher/factory/backend, registry/transaction-manager,
+subscription-composition, execution-query-bus, Resource-provider, Notice record-support, validator/View-factory,
+Skill-provider/availability and Tool-availability supplier corrections preserve their stated released exceptions.
+Land owns the later mechanical integration with configurable tables and publication; the TASK completion record
+and durable ignored delivery receipt distinguish the accepted snapshot from integration/delivery results. The
+[naming inventory and retained contracts](docs/maintenance/descriptive-variable-names.md) distinguish corrected
+private/provisional collaborators from exact released named-parameter, saved-state and extension exceptions.
+Complete token/path accounting is coverage evidence, not proof of semantic naming completeness. The
+[source-linked classification](docs/maintenance/evidence-domain-values.md) accounts for the affected roots,
+values, native enums, messages and ports. Scoped SessionId/PhaseId/NoticeId repository arguments prevent
+role interchange while preserving exact component fields; ObservationIdentity composes the unchanged UUID value
+with its producer namespace. Structured values explicitly retain their array JSON, occurrences retain supplied
+precision, and protected value encodings remain trusted-only. Aggregate Application homes now mirror Domain;
+DBAL persistence uses `Adapter\Mcp\Persistence\{Aggregate}\Dbal`.
+
+An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
+or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
+state, while Application read DTOs describe use-case results. Immutability alone does not choose among them.
+The Event Sourcing-specific “Aggregate root” term later in this file refers to that capability's reference base,
+not a universal base for ordinary aggregates.
+
+The descriptions below record current APIs, including Task handler-owned use cases, aggregate-aligned execution
+Application homes, concrete Adapter Tools and Application-owned Task disclosure projection. TASK-00187
+removes the three provisional Task lifecycle coordinators; each handler injects only its operation-specific capabilities.
+ObservationRecorder remains unchanged. Task and Notice separate Domain repository persistence from transaction
+ownership; Notice also has Application-owned coherent recovery reads. TASK-00188 separates Task disclosure
+projection/encoding into Application while Domain retains atomic lifecycle ordering. Concrete execution/Notice
+Tools and their schemas/input/public-output mapping live under `Adapter\Mcp\Tool\{Aggregate}`; shared execution
+presentation support uses `Tool\Execution`, without forwarding shells. MCP DBAL persistence/readers live under
+`Adapter\Mcp\Persistence\{Aggregate}\Dbal`; real cross-aggregate schema/serialization/read support uses
+`Persistence\Execution\Dbal`. Execution injects the existing transaction contract directly, with reusable
+DBAL mechanics separated from execution schema locking/failure translation. Consumer policy, stored/wire behavior
+and release bridges remain binding. Observation admission belongs to `Application\Mcp\Observation\Service`;
+no removed inward transaction subtype returns. The
+foundation canonical names and released aliases described below are already implemented by TASK-00181; they are
+not pending aggregate refactors. Their retained root runtime declarations preserve released identity, not an
+alternative aggregate placement rule or a requirement to turn immutable protocol data into Domain value objects.
+
 ## Architectural language
 
 | Term | Meaning in Fight Common |
@@ -78,16 +128,30 @@ Commands use `execute()` for payloads and `dispatch()` for messages. Queries use
 
 ## Persistence and validation
 
+**Physical table selection:** Common's current source inventory comprises nineteen DBAL tables and two ORM-mapped
+tables, including schema/state, sequence, comparison and lock-bearing storage. The
+[complete table inventory and composition guide](docs/table-names.md) accounts for each default/configuration route,
+schema/runtime/read/removal path and supplier. DBAL selections use the shared ordinary-name boundary; nonce/audit
+retain native ORM metadata and the configured Doctrine quote strategy, without retroactive DBAL restrictions.
+`DoctrineNonceRepository` uses that strategy/platform for raw-SQL consume and expired purge; audit persist/DQL uses
+native ORM resolution with unchanged custom types, pagination and inclusive timestamp bounds. Real native ORM tests
+exercise defaults, full/individual overrides, quoted tables, populated-default isolation, connection reopen and
+missing selected storage/no fallback; nonce quoting/schema execution also runs on MySQL/PostgreSQL. Mapping alone
+never installs, renames, copies or migrates replay memory/history. Framework/provider backend tables, consumer read
+models and test fixtures remain separately owned. This finite package evidence is not deployed-consumer or release
+qualification; independent acceptance stays in the owning TASK/reports.
+
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Repository** | A domain-oriented collection boundary for retrieving and persisting domain records without exposing infrastructure details. |
 | **Pagination** | An immutable request for page, page size, offset, limit, and normalized field ordering. Opt-in `Pagination::strict()` resolves null defaults, requires positive bounds and ASC/DESC strings, and rejects unrepresentable integer offsets with DomainException before multiplication. Native PHP parameter typing remains distinct from value validation. The deprecated legacy constructor retains permissive defaults/normalization without runtime warnings during minor migration; its negative-bound/overflow limitations are not repaired. Consumers own field eligibility, SQL safety, authorization and provider/query policy. |
-| **Result set** | A typed page of records plus page and total-count metadata. |
-| **Unit of work** | The application transaction boundary used to commit work and run a callable transactionally. A closed unit of work is terminally unable to accept another operation; a rolled-back transaction does not by itself mean the unit of work is closed. |
+| **Result set** | A typed page of records plus metadata. Opt-in `ResultSet::strict()` requires positive page/size, nonnegative total and count no greater than size or total, rejecting with DomainException. Exact integer ceiling division supports native limits without offsets; zero total retains one page. Empty, partial and out-of-range pages (even nonempty) remain valid under local bounds. Existing `itemType()` returns the supplied list's declared scalar/class/interface/object type or dynamic null, including empty lists; method-level generics preserve record inference. Both paths retain the exact mutable list/record identities and output shape, so later caller/records() mutations remain visible and can invalidate initial bounds without updating metadata. Arrayable is required only by JSend projection, not construction. Legacy construction remains permissive with float limitations, without new deprecation/notices or automatic adoption. Native PHP typing/coercion remains distinct from value validation. No count/row snapshot, query, offset, I/O, permission or permanent validation guarantee is implied; consumers own request agreement, scope/ordering, safe presentation, provider limits and consistency. See [repository contracts](docs/repositories.md#strict-result-construction). |
+| **Unit of work** | The application transaction boundary used to run a callable transactionally and return its result. The DBAL-only adapter uses one explicitly composed Connection, rejects caller/nested transactions and auto-commit-off mode before callback without interference or mode changes, commits default lazy connections without extra setup, rethrows callback failures after confirmed rollback and remains reusable. Unconfirmed begin/commit/rollback closes it and raises `DbalTransactionOutcomeUncertain`, preserving the initial private cause; best-effort cleanup cannot prove a lost commit acknowledgment rolled back. Reconcile with a fresh connection using capability-owned retry rules. ORM/framework adapters retain their existing contracts. A closed unit of work is terminally unable to accept another operation; a confirmed rollback does not by itself mean it is closed. |
 | **Required audit record** | Secret-free durable evidence required for a classified sensitive command to succeed. The protected mutation and its required audit record commit atomically; a later projection of that evidence is derived state rather than the authoritative audit record. |
 | **Input data** | Untrusted field data entering validation. |
 | **Validation rule** | A reusable predicate such as length, range, format, type, or required-field behavior. |
 | **Validator** | A component that applies a specification to a validation context and may add field errors. |
+| **Validation construction** | Internal `Application\Validation\Internal\ValidatorFactory` owns rule selection, string argument conversion and required/single/equal/same-field specification assembly. Existing coordinator convenience methods delegate to it; parsed service rules reach the same owner through those existing registrations on the supplied coordinator. Parser output and public setup/signatures remain unchanged; this is no consumer factory, options bag or plugin contract. |
 | **Validation coordinator** | The component that runs one invocation's queued validators in a fresh context and produces one `ValidationResult`. It discards the queue on normal and exceptional exits; explicit `resetValidators()` discards pending work without execution. ValidationService also clears the same supplied coordinator when input/rule preparation fails. Sequential reuse retains original throwables and ordinary results, not stale rules/errors; it promises neither reentrancy nor rollback of consumer validator effects, and confers no authorization or public-safe diagnostics. |
 | **Application failure** | An opt-in transport-neutral `Application\Error\Exception\ApplicationException` category explicitly chosen by a consumer use case. Eleven extensible categories describe authentication required, permission denied, intentional resource absence/gone, state conflict, failed precondition, generic invalid input, rule violation, rate limiting, unexpected server error and temporary service unavailability. Ordinary message/code/cause are private diagnostics; only rate limiting and service unavailability carry optional nonnegative integer retry-delay seconds, not retry permission or HTTP metadata. Existing structured ValidationException and Domain failures stay separate; no automatic mapping, safe HTTP handling, transaction/rollback promise or mandatory migration follows from the new types. |
 | **Validation result** | Either passed application data or failed error data; data and errors are mutually exclusive states. |
@@ -101,7 +165,7 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | Capability | Canonical terms |
 | --- | --- |
 | **Observability** | A **health check** produces one `HealthResult`; a **health report** aggregates results and their worst status. A **metric** is a measured counter, gauge, or timing. An **audit entry** records actor, action, timestamp, and context. |
-| **Authentication and security** | An **authenticator** validates a request. A **request service** signs one. A **nonce** is a one-time replay-prevention value and is consumed atomically. Password hashing and token encoding are separate security ports. |
+| **Authentication and security** | An **authenticator** validates a request. A **request service** signs one. A **nonce** is a one-time replay-prevention value and is consumed atomically. HMAC construction retains historical canonical `1.1.0` `nonces:`, later `nonceRepository:` and fourth positional injection: null/omission selects no storage, one non-null object is retained, the same object twice consumes once, and distinct non-null objects reject before effects. No repository means no replay protection. Password hashing and token encoding are separate security ports. |
 | **OAuth resource server** | A policy-free boundary around a consumer-owned protected resource. Common renders configured metadata, extracts one header-only Bearer credential, supplies complete validation requirements to a consumer validator, independently checks normalized claims and effective scopes, and hands only validated claims to consumer authentication composition before dispatch. Consumers own cryptography, trusted issuer-bound keys and rotation, scope hierarchies, principal resolution, routes and authorization. It is neither token issuance nor signature-only JWT decoding. |
 | **OAuth effective scopes** | A trusted case-sensitive set returned by the consumer validator after intrinsic token validation and any issuer-defined hierarchy expansion. Common checks every current-operation scope before handoff; missing scope is 403, not invalid-token 401 or a business permission decision. |
 | **Scheduler** | A **job** has a name, schedule, executable command or callable, and runtime policy. The **scheduler** determines which jobs are due and prevents overlapping execution with a lock. |
@@ -114,21 +178,23 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **JSend envelope** | A framework-neutral semantic representation of one JSend `success`, `fail`, or `error` result. It owns JSend data, message, code, and serialization but not HTTP status, headers, or a framework-native response. A controller chooses the HTTP outcome and a native response adapter converts the envelope. |
 | **Registry service** | A service such as `StorageService` or `FileTransferService` that selects a named port implementation. It is not itself the storage or transport backend. |
 | **MCP semantic responder** | An Application-level service that decodes one MCP JSON-RPC request, validates shared protocol rules, runs `server/discover` or one registered capability, and returns one semantic JSON-RPC response. Capabilities may opt into `McpMetadataAwareCapability` to receive the responder's actual central result metadata per request for pre-disclosure serving budgets; ordinary `McpCapability` handling remains unchanged. The metadata is not an authorization context, and final identity merging remains with the responder. It is not an HTTP endpoint, authenticator, authorizer, or framework response factory. |
-| **Guarded MCP HTTP endpoint** | A PSR-15 handler on a consumer-owned route that validates a supplied Origin, POST negotiation, the complete transport mirror set, and a consumer invocation guard before semantic dispatch. It returns direct JSON through PSR-17 factories by default; explicit progressive composition selects a request-scoped SSE body for token-bearing tools/call requests after the same safeguards. It records unexpected failures through consumer-supplied redaction-aware diagnostics and introduces no route, principal, authorization policy or session. |
+| **Guarded MCP HTTP endpoint** | Canonical `Adapter\Mcp\Http\McpRequestHandler` is a PSR-15 handler on a consumer-owned route that validates a supplied Origin, POST negotiation, the complete transport mirror set, and a consumer invocation guard before semantic dispatch. It returns direct JSON through PSR-17 factories by default; explicit progressive composition selects a request-scoped SSE body for token-bearing tools/call requests after the same safeguards. It records unexpected failures through consumer-supplied redaction-aware diagnostics and introduces no route, principal, authorization policy or session. |
 | **MCP request bounds** | `McpRequestLimits` shares a finite encoded-byte budget (default 1 MiB; configurable 1–64 MiB) and PHP JSON parsing depth (default 512; configurable 1–512) between the decoder and guarded endpoint. HTTP reads use bounded chunks and one-byte lookahead before decoding; actual bytes, not declared lengths, govern acceptance. Excess HTTP input is empty 413; excessive depth/malformed JSON keeps the safe parse error, while broken/no-progress streams use sanitized central diagnostics. Direct string decoding rejects oversized inputs before parsing but cannot undo prior allocation. Consumers retain upstream buffering, admission, timeouts, authentication and complete-body stream responsibility. This deliberately narrows oversized-input acceptance without changing in-budget call shapes or policy ownership. |
 | **MCP invocation guard** | A required consumer-implemented decision receiving only the validated method and optional standard operation name. Consumers own caller identity, keys, thresholds, exemptions and storage. Denial is HTTP 429 with Common-defined JSON-RPC code `429`, message `Invocation limit exceeded.`, and no diagnostic data; that code is not assigned by MCP. |
 | **MCP transport mirror** | A case-insensitive HTTP field name whose case-sensitive decoded value must agree with its exact body property path. Common validates protocol version, method, applicable name/URI, and every registered custom declaration before dispatch, including Base64 UTF-8, safe integer, Boolean, absent/null and duplicate-value behavior. Tool registration compiles statically reachable primitive input-schema annotations; the guarded HTTP boundary selects only the available named Tool's declarations before custom-header comparison. Invocation rechecks availability without caching authority. |
-| **MCP capability** | An explicit consumer-registered handler that owns a bounded set of MCP methods, capability advertisement, outer-parameter validation, and semantic result construction. Standard methods must advertise their matching standard capability family, and an advertised standard family requires its mandatory anchor method; discovery definitions and server identity contain JSON-safe Unicode values at composition. Subscription-driven notification flags remain false in this foundation until a later subscription contract can prove delivery behavior. Custom extensions remain explicit. The capability registry does not automatically expose ordinary Actions or CQRS handlers. |
+| **MCP capability** | An explicit consumer-registered handler that owns a bounded set of MCP methods, capability advertisement, outer-parameter validation, and semantic result construction. Standard methods must advertise their matching standard capability family, and an advertised standard family requires its mandatory anchor method; discovery definitions and server identity contain JSON-safe Unicode values at composition. Subscription-driven flags remain false by default; explicit request-scoped `McpSubscriptions` registry composition derives enabled Tool/Resource and explicitly optional Prompt flags from its actual guarded live path and requires the corresponding serving families. Arbitrary consumer-declared true claims still reject. Custom extensions remain explicit. The capability registry does not automatically expose ordinary Actions or CQRS handlers. |
+| **MCP composition validation** | `McpCapabilityRegistry` remains the single trusted construction boundary. Internal `Application\Mcp\Composition\McpCompositionValidator` owns complete Skills/readable Resources wiring, exact shared Task/Tool instances, rejection of consumer-declared true subscription flags and activation from the actual supplied subscription composition. Generic method/mirror indexing, standard family/anchor validation, JSON definitions and extension merging stay with the registry. Consumers gain no validator API or setup sequence; capabilities cannot self-certify global consistency. Extraction preserves real feature coupling and performs no provider enumeration, Tool execution, persistence or authorization. |
+| **MCP Prompt serving** | Explicit `Application\\Mcp\\Prompt\\McpPromptDiscovery` snapshots a bounded catalog of immutable `McpPromptInfo` metadata from consumer `McpPrompt` providers without constructing bodies. Fresh `McpPromptAvailability` filters before bytewise list pagination and independently before direct get; declared bounded string arguments validate before only the selected provider runs. Complete immutable `McpPromptOutput` accepts user/assistant text or validated Resource-link messages, never embedded bodies, interaction or execution. Authenticated stateless cursors bind only visible metadata and serving parameters; private zero-TTL hints grant no access. Finite definition/catalog/argument/output/result and actual complete encoded-response budgets include current central metadata and envelope escaping. Static content needs no Query; application-backed content uses shared QueryBus authorization. Links trigger no fetch, Skill activation, Tool/model work, Command or event; later Resource reads authorize independently. Consumers own identity, current policy, content and runtime; hosts own message approval/use. See [Prompts](docs/mcp-prompts.md) for APIs, numeric limits, failures, compatibility and guarded HTTP evidence. |
 | **MCP Resource metadata provider** | An explicitly composed `Application\Mcp\Resource\McpResourceProvider` yields fresh immutable descriptors in strictly increasing bytewise exact-URI order, without content reads or full-corpus materialization. Common merges streams and rejects duplicate ownership, unsorted/invalid output and exceeded budgets, including hidden descriptors. The discovery port has no content method or URI-to-path/network fallback. Its optional `McpReadableResourceProvider` subtype adds exact metadata lookup and authorized lazy opening on the same provider object without changing existing implementations. |
-| **MCP Resource discovery** | One `McpResourceDiscovery` owns `resources/list` and empty complete `resources/templates/list` through the existing guarded endpoint. Current consumer availability filters before pagination. Fixed bounded authenticated cursors bind visible metadata, catalog scope and page size, not a principal or concealed catalog. Empty cursor restarts; only absent `nextCursor` marks completion. Conservative private/zero-TTL defaults and validated finite scan/metadata/page/result limits do not confer authority. Its default composition remains discovery-only; explicitly supplied `McpResourceReadLimits` adds exact `resources/read` on the same providers and availability boundary. Templates/subscriptions remain deferred; conformance evidence is scenario-specific. |
+| **MCP Resource discovery** | One `McpResourceDiscovery` owns `resources/list` and empty complete `resources/templates/list` through the existing guarded endpoint. Current consumer availability filters before pagination. Fixed bounded authenticated cursors bind visible metadata, catalog scope and page size, not a principal or concealed catalog. Empty cursor restarts; only absent `nextCursor` marks completion. Conservative private/zero-TTL defaults and validated finite scan/metadata/page/result limits do not confer authority. Its default composition remains discovery-only; explicitly supplied `McpResourceReadLimits` adds exact `resources/read` on the same providers and availability boundary. Templates remain deferred; separately composed subscriptions match exact currently permitted Resource URIs without reading them. Conformance evidence is scenario-specific. |
 | **MCP Resource read** | An opt-in exact all-provider lookup independent of listing membership, followed by fresh availability before opening one selected `McpResourceContent` stream. Conflicting ownership and inconsistent metadata fail; unknown and denied identities share safe invalid parameters. Bounded text preserves UTF-8/CRLF bytes; binary uses Base64; empty files remain one content item. Read-enabled listing and lookup validate the complete worst-case encoded read budget, including the current responder's actual central metadata, before advertising descriptors or opening content. Raw and final encoded guards remain independent, and Common closes returned streams on success/failure. URI identity is never normalized into a storage target; consumers retain storage containment, timeouts and version guarantees. No content/permission cache or authorization-by-URI is introduced. |
 | **MCP Skill revision** | A bounded immutable snapshot of an explicitly supplied complete file set, with one root `SKILL.md`, all supporting members and one exact raw-byte SHA-256/size manifest. `McpSkillRevision` validates structure, safe parsed JSON frontmatter and serving budgets once; reads retain original bytes and routine discovery does not rehash the corpus. Consumers own bounded acquisition, completeness of their source export, unique revision addresses, atomic publication and retention. It is not a catalog store or a currently advertised Skills extension. |
 | **MCP Skill Resource provider** | `McpSkillResources` contributes validated revision files to the existing Resource capability through optional `McpProtectedResourceProvider`. Common checks provider-owned whole-Skill availability in addition to general Resource policy before disclosure/opening, while concealed metadata still participates in ownership/budget validation. Only selected files receive streams; optional Resource digest verification rejects changed bytes. Neutral complete entries contain no principal or file content; templates/scripts/nested Skills are never executed or activated. Explicit `McpSkillDiscovery` composition adds complete list/get; Resource-only use remains independent. |
 | **MCP Skill discovery** | `McpSkillDiscovery` owns complete `skills/list` and exact `skills/get` over the same immutable `McpSkillResources` and readable Resource capability. Construction validates supplied immutable entries and wiring without enumerating external Resource providers. Admitted list/get validates the current complete shared Resource catalog before disclosure, including hidden descriptors. Fresh whole-Skill and general member availability filter before bytewise URI ordering and atomic count/byte pages; direct get never requires listing membership. Bounded authenticated cursors contain no authority or concealed catalog, and stale cursors restart safely. Complete entry/read/result budgets include actual central metadata; no content is reopened or rehashed for discovery. Conservative private cache hints do not authorize reuse across callers. The registry composes distinct extension IDs, rejects conflicting same-ID settings and requires complete Skills/Resources composition. Directory RPC, subscriptions, execution and real Pi qualification remain excluded. |
 | **MCP Tool** | An explicitly supplied `Application\Mcp\Tool\McpTool` implementation whose `handle(ApplicationData, McpProgressReporter): McpToolOutput|McpInputRequired` method declares exactly one `McpToolInfo` attribute. This explicitly approved pre-release widening permits the interactive subtype; non-interactive implementations retain their narrower complete-output return. Registration validates identity, description and the documented bounded JSON Schema 2020-12 declaration profile without scanning Actions, hydrating payloads or invoking the Tool. The selected-Tool invoker schema-checks exactly the arguments, applies method-level Validation rules through ValidationService, and supplies only validated ApplicationData plus a no-op reporter to non-streaming calls. |
-| **MCP Tool availability** | A consumer-owned request-scoped decision receiving only immutable `McpToolInfo`. Discovery reevaluates it before bytewise canonical-name ordering and pagination; invocation shares the same decision and applies it before argument validation. HTTP mirror selection also checks current availability so hidden and unknown Tools reject identically. Common neither receives a principal nor replaces business authorization. |
+| **MCP Tool availability** | A consumer-owned request-scoped decision receiving only immutable `McpToolInfo`. Discovery reevaluates it before bytewise canonical-name ordering and pagination; invocation shares the same decision and applies it before argument validation. HTTP mirror selection also checks current availability so hidden and unknown Tools reject identically. Common neither receives a principal nor replaces business authorization. Tool-list callback failures, including supplied protocol exceptions, are wrapped as unexpected failures for one central diagnostic attempt retaining the original cause and generic -32603/Internal error output; Common-owned cursor/parameter rejections stay intentional. |
 | **MCP Tool discovery** | The explicit `tools/list` capability returning only available definitions with zero/private cache defaults. Consumer-keyed authenticated cursors bind to the visible catalog and page size, contain no concealed registration data, and reject after relevant catalog changes. Explicit cache overrides remain consumer policy. |
-| **MCP Tool output** | A complete consumer-projected JSON value with compatible text, exposed through immutable `Domain\Value\Basic\StrictJson` from `structuredContent()` and preserving object/list distinctions. The schema accessors and definition arrays on `McpToolInfo` likewise contain StrictJson values; attribute declarations remain arrays and discovery preserves its JSON wire representation. Construction rejects object keys beginning with U+0000 because PHP cannot represent them in object-mode JSON decoding. It is semantic output, not a protocol envelope, partial result or authorization decision. An opt-in `structuredWithResourceLinks()` attaches validated `McpResourceInfo` metadata as standard `resource_link` content items after the matching text, without making link possession a read grant or changing structured schema validation. Invocation checks structured output against the declared bounded schema profile before emitting a complete result; consumers still own public-safe projection. |
+| **MCP Tool output** | A complete consumer-projected JSON value with compatible text, exposed through immutable `Domain\Value\Basic\StrictJson` from `structuredContent()` and preserving object/list distinctions. The schema accessors and definition arrays on `McpToolInfo` likewise contain StrictJson values; attribute declarations remain arrays and discovery preserves its JSON wire representation. Construction rejects object keys beginning with U+0000 because PHP cannot represent them in object-mode JSON decoding. It is semantic output, not a protocol envelope, partial result or authorization decision. An opt-in `structuredWithResourceLinks()` attaches validated `McpResourceInfo` metadata as standard `resource_link` content items after the matching text, without making link possession a read grant or changing structured schema validation. Invocation checks structured output against the declared bounded schema profile before emitting a complete result; consumers still own public-safe projection. Native outputs saved by v1.3.0/v1.4.0 retain their identity, content/text/links and read an absent later response budget as null/unbounded; present current bounds survive native round trips and still enforce overflow. Native unserialization remains trusted-only. |
 | **MCP progress reporter** | The unchanged request-progress port for public-safe numeric/status work and cooperative cancellation observation, never Tool result content. Invocation defaults to a fresh NullMcpProgressReporter that validates nondecreasing progress, emits nothing and never reports cancellation. A bound request execution supplies live, strictly increasing finite progress with the exact string/integer token. The default direct-JSON HTTP composition still rejects progress-token calls; explicitly enabled progressive composition uses the HTTP emitter for live SSE and observed-disconnect cancellation. |
 | **MCP Tool execution** | The internal request-scoped Application lifecycle that dispatches one decoded tools/call through the semantic responder, delivers ordered progress before one complete final response, and suppresses later output after outer-adapter cancellation. Completion closes reporting before final delivery. Live reporter violations, including malformed argument types, remain terminal even when caught or mapped by a Tool; unexpected failures are diagnosed once and sanitized. Cancellation is advisory, never forced interruption, command rollback or a notifications/cancelled message. Its ordered delivery and invocation-binding seams remain internal. The HTTP pull stream pauses execution at each frame until the emitter flushes it; controlled Application transcripts alone are not live HTTP evidence. |
 | **MCP progressive HTTP delivery** | Explicit opt-in response-mode selection plus a lazy single-use PSR event stream and concrete PHP-SAPI emitter. Each progress frame crosses the write/flush boundary before Tool work resumes; observed client closure closes that request's body and resumes work cooperatively with cancelled reporting. Symfony/Laravel share native StreamedResponse translation, CodeIgniter uses a native send-phase adapter, and Yii/Slim use the shared PSR emitter. Package proof uses PHP cli-server with output buffering/compression disabled and a raw socket client; it is not a starter receipt or a guarantee for another server/proxy. |
@@ -136,7 +202,463 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **MCP destructive confirmation** | A consumer-designated `McpInputRequired::confirmation()` interaction binds a dedicated random identity and confirmation mode into the protected state. The consumer implements `McpConfirmationStore` to issue without overwrite and atomically consume one exact unexpired full-state digest before affirmative `resume()`. Any decline/cancel retires the whole interaction without resume or bus dispatch. Replays, losing contenders and store failures reject safely. Consumption persists across failures, cancellation and disconnect; admission is at most once, not atomic with the business mutation or a rollback guarantee. Concrete persistence, approval language, authorization and destructive classification remain consumer-owned. Ordinary state never uses the store. |
 | **MCP Tool failure mapping** | An exact failure-class-to-constant-public-text registration applied only during selected Tool execution. Schema/rule rejection uses fixed safe text; unclassified, output, metadata and availability failures become generic internal errors and are diagnosed once at the central semantic or HTTP boundary. No exception message is automatically public. |
 | **MCP Tool envelope metadata** | Opt-in, request-scoped command/query filter enrichment while one validated available Tool executes: canonical `fight.mcp/tool`, fresh `fight.mcp/correlation`, and explicitly allowlisted scalar namespaced audit fields projected by the consumer. It preserves payload and envelope identity and clears on every exit. It is not a principal, authorization decision, raw request or durable audit record. |
-| **MCP request metadata** | Bounded protocol context supplied under `_meta`: protocol version, client capabilities/information, and progress token. StrictJson owns immutable JSON shape; metadata keys, defined fields, present trace context, and schema-permitted implementation icon sources are validated as protocol inputs, including RFC 2397 Base64 image data whose raw media components use RFC 2396 URL characters or valid percent escapes, whose decoded subtype and parameter attributes are RFC 2045 MIME tokens, and whose parameter values may use correctly escaped tspecial-bearing or quoted-string forms. Schema-permitted empty strings and open objects are retained. It is neither a credential nor a principal and does not convey authorization policy. |
+| **MCP request metadata** | Bounded protocol context supplied under `_meta`: protocol version, client capabilities/information, and progress token. StrictJson owns immutable JSON shape; metadata keys, defined fields, present trace context, and schema-permitted implementation icon sources are validated as protocol inputs, including RFC 2397 Base64 image data whose raw media components use RFC 2396 URL characters or valid percent escapes, whose decoded subtype and parameter attributes are RFC 2045 MIME tokens, and whose parameter values may use correctly escaped tspecial-bearing or quoted-string forms. Schema-permitted empty strings and open objects are retained. `McpRequestMetadata::fromObject()` remains the single construction boundary; internal `Application\Mcp\Protocol\McpTraceContextGrammar` owns trace/baggage syntax and `Application\Mcp\Protocol\McpImplementationInfoGrammar` owns implementation descriptor fields with their website/icon URI, MIME and encoding rules. These untagged implementation details move directly without root aliases or deprecations; public metadata uses the canonical `Application\Mcp\Protocol\McpRequestMetadata` name; its released root spelling remains functional under TASK-00181's documentation-only old-name deprecation. They are not consumer validators or new setup steps. It is neither a credential nor a principal and does not convey authorization policy. |
+
+MCP-specific HTTP and native response adapters are grouped under `Adapter\Mcp\Http`, `Adapter\Mcp\Symfony` and
+`Adapter\Mcp\CodeIgniter`. Their nine released `Adapter\Http` names remain functional, final and deprecated in
+PHPDoc/documentation only throughout 1.x, planned to first ship in v1.5.0 (not yet released). Canonical service parents are non-final solely for these compatibility
+subclasses, not consumer extension; the final Origin value retains a separate legacy implementation to preserve
+factory identity and serialized state. Internal HTTP helpers move directly without public aliases. See the
+[complete adapter migration map](docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility).
+All agent-owned classes present on develop also live beneath `Mcp`: Domain uses direct `Session`, `Phase`,
+`Observation`, `Activity`, `Detail`, `Usage`, `Value`, `Notice`, `Task` and `Subscription` concept branches;
+Application and adapters retain cohesive capability branches. Provisional tracking paths move directly without
+snapshot aliases. Legacy AI payload/webhook APIs gain equally deprecated `Mcp\Operation` homes while their
+released `Auth` names remain supported with their original 1.2 deprecation and 2.0 sunset. This does not revive
+or register retired AI Tools, or change MCP method or Tool identifiers, schema, admission or delivery. Durable Task-input
+additions use these same canonical Mcp homes as described below. Existing stateless forms/confirmation remain unchanged. Generic
+infrastructure keeps its ownership. See the [complete namespace map](docs/mcp-namespaces.md).
+This bounded move does not change protocol, security or delivery contracts.
+
+The 19 released MCP foundation declarations now have preferred public homes: `Capability` owns the capability
+contracts/registry, `Protocol` owns request/metadata/limits/decoding/results/responses/errors/server identity,
+`Protocol\Exception` owns the rejection signal, `Http` owns inward policies/guards/mirrors, and `Tool` owns the
+progress port. `McpResponder` and `McpDiagnostics` stay at root, not deprecated. Seventeen canonical aliases retain
+the released runtime declarations, preserving exact factory/reflection identities, finality, both consumer type
+directions, catches and saved-value scopes. Root implementation files remain compatibility owners, not a consumer
+inheritance API. Only the relocated root spellings are deprecated in documentation; canonical aliases and untagged
+internals are not. First deprecation is planned to ship in v1.5.0, not yet released; removal needs separate future-major authorization
+and the released-minor window. See the [complete foundation map](docs/maintenance/mcp-foundation-namespaces.md).
+
+The [consolidated deprecation inventory](docs/maintenance/deprecations.md) preserves already-released v1.2/v1.4
+history alongside these planned v1.5.0 groups, including all four default-only schema TABLES constants. A released
+v1.5.0 may satisfy the one-minor window before separately authorized v2.0.0 work; no mandatory v1.6.0, actual
+removal, release date or support retirement follows. Retain alias/runtime owners, serializer predecessors,
+container/queue migration and final-1.x support obligations. ResultSet legacy construction is not deprecated.
+
+## Execution observation language
+
+**Protected MCP execution inspection:** Two additional explicit opt-in `Adapter\Mcp\Tool\Detail` Tools
+(`execution.messages`, `execution.detail`) fetch `ListCapturedMessages`/`GetCapturedDetail` through the ordinary
+QueryBus and the same guarded endpoint, independently of safe Tool registration. Fresh Tool availability never
+replaces separate current DetailReadAdmission metadata/body grants on each page/chunk. Exact full relationship
+selection grants no authority; denied/unknown/mismatched identities share null. Typed projections retain content
+types, Base64 byte coordinates, empty versus missing/expired/partial capture and live ordering/continuation without
+a snapshot, retention lease or complete-output inference. Message pages default 1/32 with 1,024-byte initial chunks;
+individual chunks allow offset 0–65,536 and length 1–4,096. Matching text, schemas and the existing 262,144-byte
+projection/1,048,576-byte complete encoded-response limits apply; overflow/errors are sanitized, not successful
+empty data. No mutation/event, new policy/endpoint or optional capability dependency is introduced. See
+[MCP execution inspection](docs/mcp-execution-inspection.md#protected-detail-opt-in-and-compatibility) for wiring,
+exact schemas, permission seams and the two additive final public classes' compatibility classification.
+
+**Safe MCP execution inspection:** Five explicit opt-in `Adapter\Mcp\Tool\{Session,Phase,Observation}` Tools (`execution.summarize`,
+`execution.list`, `execution.get`, `execution.phases`, `execution.activity`) call the shared Queries through
+`QueryBus::fetch()`, preserving typed safe results, full-selection totals, live pages, current trusted admission,
+recording-time/full-UUID order and source precision. Tool availability is independent and fresh. No protected
+bodies, mutations, events or extra MCP capability dependency is introduced. Exact schemas and the 262,144-byte
+projection limit supplement application validation; opt-in `McpToolOutput::boundedStructured()` retains a
+1,048,576-byte complete JSON-RPC success-response bound through text duplication/escaping, request identity and
+actual central metadata. Overflow uses the existing sanitized failure path, not truncation or empty success.
+Existing unbounded Tool output remains unchanged. See [MCP execution inspection](docs/mcp-execution-inspection.md)
+for composition, catalog, schemas, bounds, null/empty meanings and compatibility.
+
+| Term | Meaning in Fight Common |
+| --- | --- |
+| **Authorized execution overview** | Opt-in `Domain\Mcp\Session\Query` summary/list payloads describe Session inspection; `Application\Mcp\Session\QueryHandler` coordinates them. `Read` is a technical responsibility, not an aggregate boundary. Application Session `Service` owns `ExecutionReadAdmission`, `ExecutionReader` and typed `ExecutionAccess` project/session constraints; `Data` owns the safe `ExecutionPage`, `ExecutionSummary` and `ExecutionView` results. Current consumer-supplied grants are intersected with finite `ExecutionSelection` before DBAL counts/rows. `SummarizeExecutions` scans the full authorized retained selection in bounded batches, counting sessions once, choosing latest session-observation outcome and preserving exact usage groups by metric/unit/provenance with explicit missing/completeness counts. `ListExecutions` uses `Pagination::strict()` plus finite bounds and fixed fields, ordered by latest retained recording time then bytewise project/session. `Domain\Mcp\Usage\UsageTotal` owns compatible measurement arithmetic beside `UsageMeasurement`. `Adapter\Mcp\Persistence\Session\Dbal\DbalExecutionReader` sits alongside the DBAL recording adapters without a separate `Reader` namespace and starts no transaction or business mutation; multi-statement responses and separate requests are live, not snapshots. Freshness describes persisted evidence encountered, never complete capture, Workflow authority or a global checkpoint. Protected bodies are never read. See [execution reads](docs/execution-reads.md) for limits, ordering, failure, composition and compatibility. |
+| **Selected execution / phases** | `Domain\Mcp\Session\Query\GetExecution` returns nullable Application Session `ExecutionInspection` with safe latest session timing/outcome and full currently permitted usage statistics, independent of phase pages. `Domain\Mcp\Phase\Query\ListExecutionPhases` and its Application Phase handler/`Service\PhaseReader` return nullable bounded live `Data\PhasePage`/`PhaseView` results through `Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseReader`. Both reuse fresh Session admission; optional project-scoped phase restrictions constrain overview/selected evidence, phase totals and exposed parents. Concealed/missing execution is the same null; an admitted execution with no matching phases has an empty page. Phase state excludes activity/detail completion; performing Agent, bounded distinct models and instrumentation producer remain distinct. `Application\Mcp\Observation\Data\ObservationView` exposes only observed timing/outcome and recording provenance. Latest phase order is recording time/full UUID/producer descending, with bytewise phase-ID ties; parent disclosure also requires consistent same-session current access. Models/usage are finite and explicit, missing completion/measurement is not success/zero, and separate statements/requests remain live. Neither a review label nor surrounding success establishes acceptance or Workflow authority. These selected summary/phase results contain no activity rows or protected bodies; activity browsing uses its separate Application port below. No mutation/events, new schema/index or frozen browsing session is introduced. |
+| **Recorded execution subjects** | Ordinary `Domain\Mcp\Session\Session` and `Domain\Mcp\Phase\Phase` aggregate roots own project-scoped identities and immutable consumer/session/parent/Agent/name/attempt relationships. Their individual Domain repositories retrieve and persist subjects independently; they are not a Workflow engine or an event-sourced graph. State-based relationship checks belong to the roots. Authorized summary/list payloads and selection belong to Domain Session, with dedicated Application Session read results rather than new aggregates or reporting methods on write repositories. Selected execution inspection reuses this Session read boundary; phase pages have a dedicated Application Phase read port. Activity browsing likewise has an Application Observation projection port, not reporting methods or caller grants on Domain repositories. |
+| **Safe phase activity inspection** | `Domain\Mcp\Observation\Query\ListPhaseActivity` and its Application Observation handler reuse fresh `ExecutionReadAdmission` to return nullable bounded `Data\ActivityPage`/`ActivityView` through `Service\ActivityReader` and `Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader`. Domain repositories remain aggregate collection/persistence contracts; this inward Application Observation port projects safe observations and permitted content-row presence, not replacement persistence, a new Activity aggregate or a second authorizer. Project/session/phase scope plus optional producer/full-UUID activity-browsing constraints apply before decoding; explicit detail-reference grants default to none and never grant bodies. Overview aggregate permission remains independently session/phase-scoped, not inferred from activity permission. Pages default 1/100, size at most 100, offset at most 1,000,000; only producer/kind/model exact filters and recorded_at ASC/DESC are supported. Scans use 100-row keyset batches and full matching totals, with at most 32 permitted references per activity and 1 MiB encoded response before failure. Full receipt microseconds/UUID/producer order is deterministic, not causal/commit/checkpoint order; occurrence preserves supplied precision. `Application\Mcp\Detail\Data\DetailReference` preserves capture and explicit absent/unavailable/expired markers; complete/partial is retained only on content-row presence, otherwise missing with unknown reason. No body column is read, no hidden-reference count is emitted, and retained means neither body validation nor permission/lease. Separate live statements/requests are not snapshots; removal/revocation can change later pages. Existing fixed read failures conceal public diagnostics; no writes/events, schema/index change, protected retrieval/removal, MCP/UI or Workflow authority is added. See [execution reads](docs/execution-reads.md#phase-activity-and-permitted-detail-references). |
+| **Execution observation** | Opt-in immutable version-one `Domain\Mcp\Observation\Observation` aggregate-root evidence about a session or phase, separate from authoritative Workflow state. It contains producer-scoped full UUID identity, project/session/consumer references, optional performing-Agent phase/parent/name/attempt, occurrence and nullable observed start/end times, explicit unknown/succeeded/failed/cancelled outcome and bounded namespaced scalar extensions. Missing completion is unknown, not success. Performing Agent and instrumentation producer are distinct. State is private and read through typed `id()`, `producerId()`, `session()`, `phase()`, timing, `outcome()` and `extensions()` and `detail()` accessors; session/phase references likewise expose typed methods rather than public properties. Activity observations use the same provisional version-one representation, ordinary root and phase Command, with existing phase/session relationships, precision-preserving occurrence and bounded usage; separately stored protected detail extends the same recording path, while protected inspection/removal use the separate Detail boundary below and automatic capture remains excluded. Safe summary/list Queries use the separate current-read boundary. |
+| **Phase activity / measured usage** | `Domain\Mcp\Activity\PhaseActivity` holds a consumer-owned namespaced kind, at most 512-byte safe UTF-8 summary, optional model reference and up to 32 unique metric measurements. Model, performing Agent and instrumentation producer are distinct. `UsageMeasurement` preserves exact nonnegative decimal strings, explicit unit/provenance and complete/partial/unknown/unavailable evidence; unknown/unavailable require null, measured zero is `"0"`, and absent usage is never zero. `Observation::forActivity()` creates version-one evidence; `ObservationOccurrence` retains zero through six supplied fractional digits in canonical UTC text. Activity cannot create its phase, certify review or advance Workflow state. The existing safe `ObservationRecorded` event contains references only, never activity text or measurements. Consumers own vocabulary, capture accuracy, redaction and billing; Common supplies no inference or protected-body channel. |
+| **Typed activity execution** | `Domain\Mcp\Activity\ActivityExecution::fromParts(?ActivityTarget, ActivityTiming, ActivityResult)` is an optional cohesive value on `PhaseActivity::create(..., execution: null)`/`execution()`, carried unchanged through existing recording, DBAL reconstruction, shared `ListPhaseActivity`/`ActivityView` and the final guarded `execution.activity` Tool. Four final readonly ValueObjects own closed structured JSON, canonical comparison and reconstruction. Target is null or bounded reference capability/name; timing independently retains nullable precision-preserving ObservationOccurrence start/end and nonnegative measured Duration (`elapsed` canonical microseconds plus `us`). Known reversed endpoints/negative elapsed reject; zero and independent wall/elapsed measurements are valid without inference. Result unknown/returned/threw/exited/cancelled carries only a safe bounded failure classification for threw or native integer exit code for exited, with incompatible fields null. Missing execution returns explicit null. Boundary result never establishes business commit, durable publication, Workflow completion or Review acceptance; top-level activity timing/outcome and latest-state exclusions remain unchanged. Exact facts participate in retained immutable retries with stable receipt/no redispatch and current admission first. This amends provisional version one directly without historical codecs, new ledger/Tool/transaction API, capture or adoption. Existing usage, response bounds, independent reference/body/removal grants, uncertainty and no-resurrection remain intact. Body removal retains safe execution metadata, not redacts it or application copies; unsupported lifecycle claims stay held. Consumers own safe classification, instrumentation and invocation attribution. See [typed facts](docs/execution-observations.md#typed-activity-execution-facts). |
+| **Recording Commands** | `Domain\Mcp\Observation\Command\RecordSessionObservation` and `RecordPhaseObservation` privately hold their validated observations and expose them through `observation()`. Their `toArray()`/`fromArray()` payloads use the current common version-one shape with nullable activity/detail; neither exposes a public payload property. `RecordProtectedDetail` separately pairs a safe detail observation with protected content; its serialized Command contains bodies and must not be logged as safe metadata. |
+| **Observation admission** | Consumer-owned current trusted producer/project/session/phase/parent permission decision, invoked by `ObservationRecorder` for every Command including retries before concealed relationship/content lookups. IDs, message metadata and phase names are not credentials or review authority. Matching retained content does not grant continued access. |
+| **Recorded observation** | Observation owns typed immutable submitted evidence plus its immutable UTC server recording time, preserving supplied microseconds and full UUID COMB representation. Time is not causal or commit order. Exact canonical version-one content, excluding recording time, deduplicates one producer/UUID key while retained; changed content conflicts. Session/phase subjects and parent relationships remain immutable. `ObservationRepository` returns recorded roots. The receipt-only RecordedObservation wrapper is removed; ObservationRecorded::fromRecorded() accepts the recorded root directly and reads its recording time. RecordedNotice remains distinct because its namespace-local commit position is substantive. |
+| **Recording transaction** | Application coordinators inject the existing `TransactionalUnitOfWork` directly, separately from the four Domain repositories; the never-tagged empty `RecordingTransaction` subtype is removed. `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork` owns reusable DBAL begin/commit/rollback and result/throwable propagation without ORM flush. `DbalRecordingTransaction` composes it and owns execution platform/schema validation, version-row serialization before admission/lookups through actual commit, and translation to `ObservationStorageFailed`. All four DBAL repositories share that execution boundary object and exact connection; a bare generic or unrelated active transaction cannot admit their writes. `Application\Mcp\Observation\Service\ObservationRecorder` coordinates admission, repository checks and writes behind one void Command operation. Session/phase and observation writes commit or roll back together, never in three independent commits. Caller transactions and unowned writes reject without affecting unrelated work. Uncertain begin/commit/rollback closes the boundary and never proves absence. No ORM flush, external-work transaction, Event Store positions or hidden transient retry is implied. |
+| **Protected capture/detail** | `Domain\Mcp\Detail\DetailCapture` supplies version-one kind (message/tool arguments/tool result/process output), lowercase parameter-free media type up to 128 bytes, explicit complete/partial/absent/unavailable/expired capture and an existing activity UUID. `Observation::forDetail()` binds it to the same producer/project/session/phase; details cannot create phases or activities. `ProtectedContent` alone owns protected UTF-8 body bytes (65,536 maximum; output segments 16,384), never safe summaries/extensions/events. Complete/partial require a body including empty; absence states require null. `OutputSegment` requires stream stdout/stderr/combined, index 0–1,000,000 and byte offset/end at most 2,147,483,647; no continuity/full-output inference. Consumers own capture/redaction and workflow authority. |
+| **Protected storage/removal boundary** | `ProtectedContentRepository` and `DbalProtectedContentRepository` are trusted recording storage, not public authorized Queries. The selected content table (default `fight_execution_contents`) stores body/comparison separately, FK-linked to safe detail identity; safe observations store capture metadata and an activity FK, no body/hash copy. Related effects share the existing recording transaction. A removed protected row is unavailable, never inferred expired; retained null-body rows preserve explicit absence markers. Capture completeness is historical metadata, not current availability. With safe identity retained, removed content raises `ProtectedContentRemoved` on matching-safe retries without body comparison/restoration; changed safe metadata conflicts. Removing identity too ends deduplication, permitting new admitted recording. Removal must share the serialization lock with retries; real three-database tests prove both lock orders. Public authorized reads/removal use the separate Detail Query/Command boundary, not recording admission; removal shares this transaction/serialization lock. |
+| **Committed observation fact** | Safe `Domain\Mcp\Observation\Event\ObservationRecorded` carries only observation, producer, project, session, nullable phase references and recording time through `id()`, `producerId()`, `projectId()`, `sessionId()`, `phaseId()` and `recordedAt()` over private state. Its serialized payload stays unchanged. New evidence triggers it after commit; matching retries never redispatch. `CommittedObservationDispatchFailed::event()` exposes the safe committed fact despite dispatch/subscriber failure; `ObservationStorageFailed::outcomeUncertain()` distinguishes storage uncertainty from rollback. Both exceptions keep their context private. No outbox, guaranteed replay or exactly-once delivery is promised. |
+| **Observation schema** | Adapter-owned `DbalObservationTables` independently selects state/lock, session, phase, observation and protected-content tables, defaulting to `fight_execution_schema`, `fight_execution_sessions`, `fight_execution_phases`, `fight_execution_observations` and `fight_execution_contents`. Omitted overrides retain their exact defaults. Explicit schema/recording-transaction composition shares this selection with all four repositories, including retry/reconstruction and protected-content removal. All four inspection readers accept the same optional `tables` selection alongside unchanged `connection` named construction; shared SQL uses it for joins, correlated subqueries, counts, finite traversal, protected-content presence and separately admitted body reads. Existing Query/Command buses and guarded safe/protected MCP Tools consume the actual configured recorder/readers; default and partial compositions preserve independent current recording, safe-read, body-read and removal grants, live projections and retained-identity/no-resurrection semantics. Separate connections/workers must receive the same explicit selection. The [five-table SQL inventory](docs/execution-observations.md#five-table-sql-inventory) accounts for schema, recording, repositories, readers and removal without duplicate suppliers. Shared `Adapter\Persistence\Doctrine\DbalTableName` validates ordinary ASCII names (1–63 characters) and supplies platform/schema quoting; the execution selection rejects case-insensitive table collisions; qualified names and implicit global configuration are unsupported. Configuration performs no DDL, migration, rename, transfer or default fallback. Tables are composed via public DBAL 4.4-compatible APIs. Composite FKs preserve same-project/session links. SQLite/MySQL/PostgreSQL are qualified; MySQL uses InnoDB and binary reference collation. Canonical UTC timestamp text and complete UUID strings avoid truncation. Schema one includes the recording-time/full-UUID index for all observation kinds. Exclusive idle `install()` creates or validates the current version-one namespace and required index; partial installations and unsupported versions reject. No development-format upgrades or resume paths are supplied. `compareRecordingTo()` agrees with descending SQL recording-time/full-UUID ordering when reversed, including random suffixes; equal keys across producer namespaces remain ties. These keys are not causality, commit order or stable visibility. Setup operations, capture/redaction, retention and access policy remain consumer-owned. |
+| **Protected detail inspection** | `Domain\Mcp\Detail\DetailSelection` and `Query\ListCapturedMessages`/`GetCapturedDetail` select one exact project/session/phase/producer/activity and optional detail/kind. Application Detail handlers freshly invoke distinct `Service\DetailReadAdmission` on every page/chunk; `DetailAccess` contains separate current metadata/body grants, never timeline authority. `Service\DetailReader` and `Adapter\Mcp\Persistence\Detail\Dbal\DbalDetailReader` project actual bounded SQLite/MySQL/PostgreSQL reads without changing Domain recording repositories. Metadata is SQL-constrained before decoding/counting, and body columns are read only for separately admitted returned details. `Data\MessagePage` has strict live 1/32 defaults, size at most 32, offset at most 1,000,000, recorded_at ASC/DESC only and first 1,024 bytes per permitted message. `CapturedDetail` returns the existing `DetailReference`, body permission and nullable `ContentChunk`; individual requests allow offset 0–65,536 and length 1–4,096 bytes. Base64 preserves arbitrary byte cuts through recorded UTF-8; concatenate decoded bytes before text interpretation. Exact end/empty capture has an empty final chunk; null means denied or unavailable according to metadata. Complete/partial capture is historical; missing rows have unknown reason and explicit absent/unavailable/expired markers survive. End of a segment proves neither complete output nor continuity. Recording microseconds/full UUID order is deterministic, not causal/commit/checkpoint order; occurrence retains original precision. Separate statements/requests are live with no permission cache, frozen snapshot or retention lease. Reads write/emit nothing; failures use existing fixed public text with private causes. No schema/index, recording, safe-read or consumer-policy change; optional MCP presentation uses these same Queries. Ordinary removal uses its independent boundary below. See [protected reads](docs/execution-protected-reads.md) for composition, bounds, representation, consumer ownership and compatibility. |
+
+**Authorized protected-detail removal:** `Domain\Mcp\Detail\Command\RemoveCapturedDetail` selects exactly
+one detail ID/kind under an exact `DetailSelection`. Application Detail `CommandHandler\RemoveCapturedDetailHandler`
+and `Service\DetailRemover` invoke independent current `DetailRemovalAdmission` inside recording's real-commit
+transaction before any lookup, including repeats. `DetailSelection::acceptsDetail()` and retained capture/activity
+relationships enforce scope. Read/reference/recording grants never authorize removal; consumers supply trusted
+current permission for the entire selection. Denied, missing and inconsistent identities share fixed
+`DetailRemovalRejected`. `ProtectedContentRepository::removeFor()`/DBAL delete only the protected body/comparison
+row; safe identity/capture/activity links and session/phase/usage evidence stay. Retained identity plus missing
+content is an admitted no-op; unknown identity rejects. Outer transactions reject before writes without touching
+caller work. The existing schema lock serializes recording/removal on SQLite/MySQL/PostgreSQL; rollback and uncertain
+commit retain existing failure categories. No removal event is emitted; a later consumer delivery failure cannot
+undo deletion. Protected/safe reads use actual presence: missing body means no chunk/available reference, unknown
+absence reason, while supplied expiry/absence markers survive. Reads are live without a page/chunk lease or
+retraction of earlier bytes. Retained safe identity blocks retry restoration (`ProtectedContentRemoved` for matching
+safe metadata; changed safe metadata conflicts). Deliberately purging identity ends deduplication, permitting a fresh
+explicit admitted recording, not hidden restoration. Identity purge, retention eligibility/holds, scheduling,
+archive/job recovery, external atomicity, MCP removal Tools and UI remain excluded/consumer-owned. Five opt-in
+public declarations and the provisional repository method are compatibility-classified against tags, not older
+development snapshots; no schema/index/dependency change. See [detail removal](docs/execution-detail-removal.md).
+
+See [execution observations](docs/execution-observations.md) for finite field/extension limits, composition,
+comparison, retained-record boundaries, schema installation and safe failure handling. All Execution additions remain
+provisional until tagged; compatibility is against tagged releases, not prior development commits. One current
+version-one payload includes nullable activity for session/phase evidence; unsupported versions still reject.
+No historical codecs, envelope aliases or development-format migrations are supplied. Existing released audit, CQRS,
+transactional unit-of-work and Event Store guarantees remain unchanged.
+
+## Durable asynchronous Task language
+
+`Domain\Mcp\Task\Task` owns coherent working/input_required/completed/failed/cancelled state, original immutable
+`TaskDefinition`, server millisecond timestamps, immutable creation-duration TTL, optional polling advice and a
+Task-local version fence. `TaskState` owns status-specific input/result/error invariants and finite encoded bounds.
+Final readonly `TaskId` extends ValueObject and implements Identifier for exact 32-lowercase-hex bytes, with bytewise
+same-type ordering and string JSON; it is not a UUID or authority. Actual aggregate selection still requires the
+separate exact trusted scope. Domain messages, repositories, committed reads, admissions and handles use typed IDs;
+wire/storage boundaries explicitly encode strings. `TaskDefinition`, `TaskState`, `TaskInputBatch` and ordered scoped
+`TaskSelection` extend ValueObject with same-concrete-type equality/hash and validated structured-JSON reconstruction.
+Their JSON remains structured, with protected context, nested object/list/null/empty/numeric and source-order distinctions
+preserved, agreeing with exact-content retries. Definition/state/batch value strings use shortest round-trip float
+precision independently of ambient settings, including construction/reconstruction checks at the retained finite
+byte limits; explicit wire/storage/retry encoders and shared StrictJson stay unchanged.
+`TaskInputs` and its identified input groups remain nested lifecycle
+bookkeeping, not values solely because immutable. Commands/Queries/facts and Application Query views/handles retain
+their messaging/use-case classifications. See [the complete classification](docs/durable-tasks.md#model-classification-and-value-contracts).
+Completed Tool `isError: true` remains completed; failed holds a safely mapped JSON-RPC execution error. Neither
+silence, disconnect, expiry nor a handle establishes execution, cancellation, business success or Workflow authority.
+
+Shared `CreateTask` / `RecordTaskState` Commands and `GetTask` Query route through their owning Application Task
+CommandHandlers/QueryHandler. Each coordinates only its operation, with explicit command transaction ownership and
+post-commit facts; Queries inject only read capabilities/policies/clock and initiate no mutation or cleanup.
+Independent current creation, producer-update, read and removal admissions are consumer-supplied; possession,
+capability declarations and submitted labels grant nothing. Required `TaskPayloadPolicy` validates retained original
+contract context without executing work and freshly authorizes whole-state safe disclosure. Concrete
+`ToolTaskPayloadPolicy` validates captured Tool schemas, supported flat forms/text results and exact constant public
+execution errors; explicit disclosure remains consumer-owned. Protected data is never replaced with empty success.
+
+Domain `Mcp\Task\TaskRepository` owns aggregate load/save/removal, without transaction inheritance or connection
+access. Each Task CommandHandler injects it and the existing `TransactionalUnitOfWork` separately, with only its
+operation-specific admissions, policies, clock and dispatcher. QueryHandlers instead inject the narrow
+`CommittedTaskReader` and their required read policies/clock, without repository or transaction capabilities.
+`RequestTaskCancellationHandler` additionally injects `CommittedTaskReader` to reconstruct committed intent before
+initial acknowledgment.
+`Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository` implements repository and committed-read capabilities; it never commits.
+`DbalTaskTransaction` binds its exact dedicated DBAL connection and owns schema serialization/failure translation
+around reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. An unrelated DBAL/ORM transaction or
+another Task boundary on that connection cannot admit repository writes; committed reads require idle state.
+Dedicated version-one Task storage supports SQLite/MySQL/PostgreSQL. Adapter-only `DbalTaskTables` independently
+selects `stateTable` (default `fight_task_state`) and `taskTable` (default `fight_tasks`), using shared `DbalTableName`
+ordinary-name validation/platform quoting and rejecting case-insensitive collisions. The same explicit selection
+composes schema installation and the Task transaction; repository/committed reads inherit it from that exact
+transaction. Partial overrides intentionally retain omitted defaults; `DbalTaskSchema::TABLES` remains the default
+inventory. Every independent connection/worker must use the same selection. Installation stays explicit/exclusive;
+missing/partial/incompatible selected storage fails without runtime creation or fallback. A changed selection never
+renames, copies or migrates old data and confers no permissions. See [configured durable storage](docs/durable-tasks.md#configurable-durable-storage).
+A namespace lock serializes mutation/admission through actual commit; state/payload/comparison changes are atomic. Enclosing
+transactions and dirty reads reject before writes without
+committing or rolling back caller work. Unknown begin/commit/rollback closes the boundary with explicit storage
+uncertainty; fresh authorized polling reconciles possible committed state. Reference-only `TaskChanged` follows
+commit; `CommittedTaskDispatchFailed` cannot erase persistence. No outbox/replay/general-notice-feed guarantee exists.
+
+Creation retains one SHA-256 original-content digest; exact encoded-content repeats are admitted no-ops while
+retained, including after progress. Updates retain only the latest transition digest plus expected version; only
+an immediately matching retry is a no-op. Conflicting/stale updates and all new terminal replacements reject.
+Comparison memory is bounded, private and removed with the row; physical removal ends those guarantees, with no hidden
+historical archive or exactly-once job promise. `GetTaskHandler` uses internal
+`Application\Mcp\Task\Projection\TaskProjection::fromTask()` to construct one immutable coherent bounded `StrictJson`
+view, never definition/private comparison material. This cohesive Application owner maps Query fields and encodes
+visibility-bound revisions with native PHP HMAC/addition, requiring no cryptographic provider or new caller setup.
+Domain `Task::stateAt()` owns outstanding-input lifecycle state; explicit state-value/readable-metadata comparison
+advances its persisted public-write counter without constructing or serializing a transport view. Protected
+`incarnation()`/`publicOrder()` expose atomic evidence only to trusted inward callers, not public wire data.
+Denied/missing/cross-scope/expired/withheld is null with unknown absence reason;
+storage failure is explicit. Reads emit/mutate nothing and never renew TTL or remove state. Consumer clocks, retention,
+permissions, safe evidence, workers, scheduling and external-effect recovery remain consumer-owned.
+
+`RemoveTasks(TaskSelection::fromIds(scope, ids))` selects 1–100 distinct explicit identities. Fresh independent
+`TaskRemovalAdmission` checks every member under the same namespace lock before any existence/deletion work,
+including missing/repeated requests. Denial rejects the whole selection. Authorized missing members are no-ops;
+whole-row deletion atomically removes state, original context, input/result/error, TTL and both comparison digests,
+without a hidden archive/tombstone. TTL expiry alone never deletes. A bounded reference-only `TaskDataRemoved` lists
+only actual deletions after commit; dispatch failure cannot restore data and repeats never replay facts. Late producer
+updates to absent state reject without upsert. Separately admitted creation after removal starts a new lifetime,
+even for an old creation retry; consumers use fresh random IDs and own bounded retries/old-producer quiescence for
+any deliberate tuple reuse. No permanent identity-memory, cross-lifetime version fence, forensic database erasure,
+job stop or external-effect rollback is promised. Removal owns its actual commit and rejects caller transactions.
+
+`TaskInputBatch` / `TaskInputs` extend the same retained row with immutable caller-bound form/confirmation groups,
+private original schema/runtime contracts, durable accepted answers and a lifetime high-water key counter. The
+Application `RequestTaskInputHandler`, `SupplyTaskInputHandler`, `AcquireTaskInputHandler`, `RetireTaskInputHandler`
+and protected `GetTaskInputHandler` own these use cases through existing buses/storage, without a shared lifecycle facade. Independent current submission, observation and business
+continuation decisions remain separate from producer/read grants. All active validation precedes atomic partial-batch
+admission; inactive keys ignore content under finite whole-envelope bounds. Unanswered forms stay outstanding; any
+active confirmation refusal retires only that group, and complete unexpired non-refused groups acquire once before
+consumer continuation. Consumer failures/uncertain acknowledgment never restore consumed input or prove execution.
+Keys `input-<scoped-Task namespace>-1` through counter 1,024 never repeat within a retained lifetime or identify
+another Task/scope's request, even after explicit payload retirement;
+at most 16 retained requests/groups and fixed encoded bounds prevent hidden archives. Whole-row removal removes
+this bookkeeping too. Queries are read-only, expose no private rules and do not renew expiry. Producer state cannot
+replace contracts or clear unanswered forms. Public projection omits expired forms without a read-side mutation,
+preserving the admitted producer message (including empty string versus null) while any forms remain outstanding.
+`Application\\Mcp\\Task\\McpTaskInput` implements actual per-request negotiated, bounded `tasks/update` Command
+handling and an empty complete acknowledgment, with no independent capability advertisement. Ordinary stateless
+exact-key/replay and existing confirmation-store behavior are unchanged. See [Task input](docs/task-input.md).
+
+`RequestTaskCancellationHandler` and protected `GetTaskCancellationHandler` own cancellation intent admission and
+observation through this same row/lock. The Command explicitly reconstructs committed intent before initial acknowledgment. Independent current cancellation/intent-observation grants never imply ordinary read,
+producer or worker-control authority. One bounded original timestamp/version records intent separately from actual
+outcome; commit and shared-read reconstruction precede initial acknowledgment. Repeats/known terminal requests
+reauthorize as no-ops without renewal, new stop obligations or payload changes. Missing/expired/removed state never
+resurrects or implies stopping. All input/producer changes preserve intent and terminal winners; consumed confirmation
+and accepted answers survive cancellation. Input continuation requires current business and intent-observation grants,
+and its protected Query exposes coherent current intent/version before the consumer's separate stopping decision.
+No worker/outbox, forced stop, guaranteed delivery or atomic external-effect/compensation promise is added.
+`McpTaskCancellation` implements negotiated bounded `tasks/cancel` with safe errors and empty complete acknowledgment,
+not a capability advertisement or stopped-job receipt. See [Task cancellation](docs/task-cancellation.md).
+
+Explicit `Application\Mcp\Task\McpTasks` now composes the actual start/get/update/cancel path and advertises the
+single empty `io.modelcontextprotocol/tasks` extension only alongside its identically bound Tool invoker. Additive
+`McpTaskTool::start()` can return a bounded `McpTaskHandle` or ordinary output/input; released `McpTool::handle()` and
+interactive `resume()` returns are unchanged. Availability and current per-request support precede entry/effects,
+including direct invocations without negotiation. A returned handle is independently reconstructed through shared
+`GetTask` with fresh scope/read/whole-state disclosure before acknowledgment. Creation is flat `resultType:task`;
+get is complete detailed state with original result/error or all outstanding elicitation forms. Internal context,
+versions, answers and cancellation intent stay private. Exact UTC millisecond metadata and optional fields retain
+meaning. All Task responses have a default 65,536-byte complete encoded envelope bound (configurable 1–65,536),
+including central metadata, ID and escaping; overflow is safe failure, never truncated input or empty success.
+Guarded get/update/cancel mirror Mcp-Name to taskId and retain independent supplier mutation authority. Connection
+loss does not request durable cancellation; workers/submission/external-effect reconciliation remain consumer-owned.
+Optional live Task delivery is explicitly composed through the same `McpTasks` instance and guarded subscription stream.
+`notifications.taskIds` accepts at most 16 finite requested identities with fresh signal and shared Task-read/whole-state
+permission. Task live composition additionally requires the neutral consumer-implemented `McpTaskDisclosureGuard`:
+it synchronizes fresh identity/credential, independent signal/Task/whole-state/field grants and application scope with
+every relevant writer through one bounded protected byte handoff. Common owns no auth policy or AccessControl types.
+The guard receives the exact proposed complete state(s), not a cached allow; unsupported synchronization denies.
+Common checks authoritative owner readiness after sourcing/guard admission, inside that action. Its Fiber pauses
+before guarded work; native echo/flush runs synchronously under protection, with no yield/queued bytes substituting
+for disclosure. Small explicit PSR reads re-source/re-guard every fragment and stop on a changed frame. Consumer
+buffering is not permission for a later network write. No guard spans stream lifetime/idle waits; finite lock/SQL/SAPI
+timeouts, writer participation and snapshot/scope eligibility remain consumer-qualified. No atomic network receipt,
+retraction or whole-stream authorization lease is promised. Acknowledgment precedes a current full DetailedTask
+baseline, including already-terminal state; subsequent
+bounded Queries observe independent producers without notice capture, replay or a protected snapshot queue. Task-only
+streams need no retained-notice recovery. Full state never enters notices, Mercure or subscriber storage. Unsafe
+permission/availability/source/tracking/frame changes close the whole stream without successful completion.
+
+Get/live share server-owned `org.fight/taskRevision` metadata, atomically derived from the coherent row/public projection,
+including input expiry. A separate bounded public-write counter and 0–16 expiry sub-order exclude private-only mutation
+gaps; each write reserves 32 slots so later committed state dominates earlier expiry views even across clock skew.
+The Application projection combines the private random
+lifetime incarnation and trusted `TaskReadAdmission::comparisonScope()` caller/visibility epoch to derive independent
+HMAC scope/additive mask. Fixed-width masked values compare bytewise only within the same Task/scope; equal means identical
+public state, older arrivals lose, and changed visibility/lifetime/unknown comparison requires safe restart. Epochs must
+rotate on revocation/regrant or other visibility discontinuities. Neither clocks, private producer version nor arrival
+order establishes freshness. Public-write exhaustion/clock rollback before the row's update fail safely without wrap. No public global/private
+mutation counter or cross-epoch counter difference is exposed. Reconnect get/new listen recovers current authorized
+retained state, not every missed frame, and never cancels/replays durable work. See
+[live Task state](docs/mcp-task-live.md) for exact composition, privacy/consumer merge contract, bounds and package proof.
+See [MCP Tasks](docs/mcp-tasks.md) for complete composition, compatibility and real
+three-database HTTP/reconnect evidence, and [durable Tasks](docs/durable-tasks.md) for shared lifecycle bounds,
+retry lifetime, schema and compatibility. Package proof is not deployed Pi/Agent OS/client qualification.
+
+## Live MCP subscription language
+
+Explicit `Application\Mcp\Subscription\McpSubscriptions` enables guarded POST `subscriptions/listen` for requested
+Tool/Resource catalog changes, optional explicitly enabled Prompt catalog changes and exact selected Resource updates. It acknowledges the supported/currently permitted
+subset first; every signal and graceful completion carries the exact typed originating JSON-RPC ID in standard
+subscription metadata. Random owner-bound technical identities remain separate. Shared authorized `RecoverNotices`
+Queries establish a current committed boundary (`startAtCurrent: true`, no historical replay), then source bounded
+cross-process batches. Uncertain/incomplete/lost continuity ends delivery, never silently reports healthy catch-up.
+Consumer `McpSubscriptionAdmission` independently authorizes the whole signal directly before each queued emission;
+no protected notice fields become arbitrary wire payloads. Optional `prompts: true` requires actual Prompt serving;
+only explicitly recorded `mcp.prompts.list_changed` maps to `notifications/prompts/list_changed`, without names,
+bodies, arguments or revision promises. Whole-catalog activity permission remains distinct from Prompt retrieval;
+queued changes reauthorize again after tracking callbacks. Listening never calls Prompt content/metadata providers
+or fetches links; registration alone snapshots metadata. Subsequent list/get independently reauthorizes, and generic
+tracking/inspection already retains requested/accepted Prompt filters. Consumers own safe change capture, not a new
+Prompt store or guaranteed complete catalog monitor. Ordinary serving and Tool/Resource subscriptions remain independent;
+Task full-state delivery is an explicit independent shared-Query composition on this same stream; Mercure remains separate.
+
+**Current subscriber inspection:** `Domain\Mcp\Subscription\SubscriberSelection` and
+`Query\{SummarizeSubscribers,ListSubscribers}` route through `Application\Mcp\Subscription\QueryHandler` to separate
+current `Service\SubscriberReadAdmission` / `SubscriberAccess` and `SubscriberReader` /
+`Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriberReader`. Complete-metadata grants cover every requested/accepted filter,
+identity and reference; a stream's full nonempty opening scope set must fit both selected and granted scopes, with
+optional exact registration restrictions. Counts/extrema include only admitted matches: distinct technical
+registrations versus distinct trusted subscriber strings, plus three fixed observed-state buckets. No join
+multiplication or page-local summary. `Data\SubscriberSummary`, `SubscriberPage`, `SubscriberView` and
+`SubscriberReadScope` retain explicit store visibility, invocation clock, complete opening filters and honest
+recently-observed/disconnected/stale-uncertain state, never connectivity, continuing permission or receipt evidence.
+Strict live pages default 1/16, maximum size 16/offset 1,000,000, opened_at ASC/DESC with bytewise full-ID ties.
+Direct existing SQLite/MySQL/PostgreSQL tracking scans use 32-row batches, at most 8,192 examined rows under churn,
+bounded distinct-identity memory and 262,144-byte encoded pages; overflow/failure is fixed `SubscriberReadFailed`,
+not empty success. No read-side heartbeat/cleanup/transaction/event, duplicate store, schema/index change,
+Prompt dependency, MCP Tool, dashboard, historical audience or consumer policy is introduced. Empty authorized
+selections reveal no concealed global freshness; multi-statement reads and later pages remain live. Cleanup stays
+with the lifecycle owner, and absence does not prove no previous stream. See
+[subscriber inspection](docs/subscriber-inspection.md) for APIs, complete-row permission, all finite bounds,
+unknown/failure meanings, cross-process runtime evidence and tagged-release compatibility.
+
+`Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema`/`DbalSubscriptionStore` own actual SQLite/MySQL/PostgreSQL
+version-one technical registrations, requested/accepted filters, trusted subscriber/scope, random ownership and
+observed open/closed/five-second freshness. Adapter-only `DbalSubscriptionTables` independently selects `stateTable`
+(default `fight_mcp_subscription_state`) and `subscriptionTable` (default `fight_mcp_subscriptions`). Optional trailing
+`tables` construction shares it explicitly across schema, store/cleanup and subscriber reader, preserving existing
+arguments and exact omitted defaults. Shared `DbalTableName` validates ordinary ASCII identifiers and quotes every
+schema/lock/version/count/lifecycle/inspection path; case-insensitive collisions reject. Default expiry index naming
+remains; renamed registration tables use a short table-derived index for coexistence. Configuration/constructors do
+no DDL, migration, rename or copy; explicit installation and existing missing/partial/version/index failure boundaries
+never fall back to populated defaults. Partial choices intentionally retain omitted counterparts, not an independent
+namespace. The [eight-table lifecycle composition and SQL inventory](docs/lifecycle-storage.md) reconciles the actual
+Task/Notice suppliers with subscriptions. Default/configured real three-database HTTP/native journeys transport all
+selected names into independent producers/readers, preserve poisoned default counterparts and independently guarded
+Task state outside retained Notices/tracking. The [whole-package inventory](docs/table-names.md) separately accounts for native ORM nonce/audit storage and the
+integrated Event Sourcing/execution suppliers; TASK-00202 records independent Review acceptance, required QA PASS
+and the later behavior-preserving integration/verification bridge.
+Owner heartbeats cannot revive closed/expired rows; abrupt death becomes
+stale/uncertain, not confirmed connectivity or a permission lease. Short dedicated transactions, a namespace capacity
+lock, at most 256 fresh registrations/4,096 retained rows and explicit 1–256-row cleanup bound tracking. No historical
+audience/receipt ledger is added. The existing lazy event stream/emitter and native integrations carry subscriptions
+without buffering. Finite lifetime/waits, one bounded Query batch/frame and actual encoded-frame checks constrain work;
+consumer worker/SQL/SAPI/proxy timeouts remain necessary because PHP cannot preempt blocked I/O. Returned callbacks
+must pass fresh cancellation/deadline and independent five-second tracking checks before new output. Owner-bound
+tracking is revalidated after admission, without reviving expired ownership or caching permission. Opening then
+rechecks the complete accepted subset after final tracking, with no later consumer callback before acknowledgment;
+changed permission closes without acknowledgment. Task full-state/accepted-ID disclosure uses the additional
+[guarded boundary](docs/mcp-task-live.md#guarded-disclosure-boundary), not a Boolean alone: post-source authoritative
+readiness rejects native close/cleanup before new bytes. A later technical close can race an already admitted write;
+tracking is not atomic network delivery. Local freshness/cancellation/deadline checks still apply, and even
+a returned store callback cannot make an already elapsed lease healthy. DBAL renewal advances the invocation-supplied clock
+by elapsed host wall-clock seconds after acquiring the capacity lock, checks old expiry at that serialized boundary
+and keeps the proposed expiry unchanged; lock waits cannot resurrect ownership. Supplied epochs remain supported
+under synchronized/no-rollback wall-clock assumptions. Expired opening produces no acknowledgment, and body
+closure during production suppresses bytes from the in-progress read. Failure preserves
+retained notices for independently authorized polling; reconnect starts a new live registration, not replay.
+See [live MCP subscriptions](docs/mcp-subscriptions.md) for exact composition, safe type mapping, numeric limits,
+continuity prerequisites, runtime qualification, schema and tagged-release compatibility.
+
+## Retained safe notice language
+
+`Domain\Mcp\Notice\Notice` is a bounded immutable change notice, not authoritative application state, an execution
+observation, protocol identity or an Event Store event. `NoticeMetadata`, `NoticeRelationships` and
+`NoticeOccurrence` preserve bounded scalar safe labels, distinct subject/recipient/author/causation references,
+explicit unknowns/broadcasts and supplied UTC precision. Consumer `NoticeAdmission` freshly validates trusted
+producer/scope/content/references on originals and retries; submitted fields never grant access.
+
+`RecordNotice` routes through `RecordNoticeHandler` and `NoticeRecorder` with separate Domain `NoticeRepository`
+and existing Application `TransactionalUnitOfWork` collaborators. `Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRepository`
+shares the exact dedicated connection/ownership boundary of `DbalNoticeTransaction`. The latter owns namespace
+locking/schema validation/Notice failure translation around generic `DbalTransactionalUnitOfWork` mechanics.
+SQLite/MySQL/PostgreSQL enclosing transactions and auto-commit-off mode reject before admission/writes without
+caller-work interference. One state-row lock serializes allocation through actual commit of content, relationships
+and exact versioned comparison. Scope/producer/ID-bound identical retries
+deduplicate while retained; changed admitted content conflicts without overwrite. `RecordedNotice` keeps immutable
+server time separate from its namespace-local positive signed-32-bit commit-ordered position; neither establishes
+causality, cross-store order or delivery. Occurrence retains zero through six source fractional digits or null unknown.
+
+`NoticeRecorded` contains only safe recording references after commit. `CommittedNoticeDispatchFailed::event()`
+distinguishes failed later fact dispatch from retained persistence; retries never replay publication. Storage uncertainty
+closes the boundary without claiming rollback/absence. Trusted bounded idle `readAfter()` reconstructs retained rows,
+not public authorization or complete catch-up. `RemoveNotices` selects 1–100 exact scope/producer/ID/position tuples
+bound to the namespace incarnation. `NoticeRemover` and its routed handler invoke independent current
+`NoticeRemovalAdmission` for the whole selection before lookup and all matching retained content/relationships
+before deletion. Unknown, denied, repeated, stale-position and stale-namespace targets share fixed rejection with
+no selected mutation; no existence/count response distinguishes a concealed record from a missing one. The same
+actual transaction/lock atomically cascades notice/relationship/comparison deletion and advances
+one bounded global `lost_through` watermark while retaining ordering high water, even when the feed becomes empty.
+No removal event, receipt, cleanup eligibility, archive, public mutation Tool or outbox is defined. Comparison lives
+only with retained evidence; deletion ends deduplication, and new admitted same-ID content is a later recording,
+not restoration. Old removal targets cannot delete that new incarnation.
+
+Adapter-owned `DbalNoticeTables` independently selects `stateTable` (default `fight_notice_state`),
+`noticeTable` (`fight_notices`), `relationshipTable` (`fight_notice_relationships`) and `comparisonTable`
+(`fight_notice_comparisons`). Omitted overrides retain their own defaults. Schema/transaction/inspection/recovery
+composition explicitly shares this immutable selection; the repository inherits its exact transaction's selection.
+All schema/FK/index, lock/allocation, retry/reconstruction, live inspection, coherent recovery and exact removal/loss
+SQL uses selected names with shared `Adapter\Persistence\Doctrine\DbalTableName` ordinary-name validation and
+platform quoting. Names preserve case, support quoted reserved words and reject qualification/prequoting or
+case-insensitive collisions; they stay outside Domain/Application and confer no permission. Default schema/index
+names and stored meanings remain unchanged; renamed Notice tables receive table-derived index names for coexistence.
+Configuration/constructors do no DDL, migration, rename or transfer, and runtime never falls back to default tables.
+Explicit installation rejects partially present selections and incompatible state/index/comparison/FK evidence.
+Partial choices intentionally share omitted tables, not an independent namespace; consumers own coherent existing-data
+operations and deployment. A new full selection starts empty with a fresh incarnation, not migrated history or
+valid old continuation/removal authority. See [table composition](docs/safe-notices.md#explicit-physical-table-selection).
+
+Separate Application `NoticeRecoveryReader`/Adapter `DbalNoticeRecoveryReader` own bounded feed reconstruction.
+Its trusted `readWindow()` returns `Application\Mcp\Notice\Data\NoticeRecoveryWindow` with coherently locked bounded rows,
+namespace, committed high water and conservative global loss boundary. Its continuity predicate is storage proof
+only: missing/corrupt state fails, and changed/retired namespace invalidates old proof. No per-ID/per-scope tombstones,
+body/comparison archive or unbounded loss log remains. Global counters and loss changes must never be projected
+across concealed scopes; partial/unproven access requires conservative public uncertainty independent of concealed
+activity unless a narrower safe proof is established. TICKET-00046 owns protected continuation, current access/
+selection continuity and public completeness semantics. Empty rows alone never establish catch-up, expiry or receipt.
+Exclusive loss-evidence retirement preserves high water, rotates namespace and conservatively marks loss through
+high water; no ordinary retirement/reset API is supplied. Consumers own safe capture, access, retention and operations.
+See [safe notices](docs/safe-notices.md) for composition, all numeric bounds, qualified recovery, compatibility and
+failure semantics. Notice additions remain provisional against tags; no development schema migration is promised.
+
+**Authorized retained-notice inspection:** `Domain\Mcp\Notice\NoticeSelection` and
+`Query\{SummarizeNotices,ListNotices,GetNotice}` route through Application Notice handlers and fresh
+`Service\NoticeReadAdmission` to separate `NoticeReader`/`Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeReader`. Trusted
+`NoticeAccess` scope grants and optional exact restrictions intersect caller selection before counts/projection;
+whole safe metadata and all relationships require permission, never a supplied ID/topic/recipient/SUPER_ADMIN label.
+`Data\NoticeSummary` counts all encountered admitted matches once with complete bounded topic/type dimensions
+(128 each), explicit audience/unknown counts and time extrema. `NoticePage` uses strict live page/per-page 1/32,
+size at most 32, offset at most 1,000,000, recorded_at ASC/DESC with private position ties; `NoticeView` exposes
+safe content and server time, not global positions/state/comparison. Filters cover topic, subject Agent, intended
+recipient, type, producer/author/causes and half-open recording/occurrence instants without altering source precision.
+Direct detail freshly authorizes independently of listing; unknown/denied/disappeared is the same null, not expiry.
+Fixed `NoticeReadFailed` differs from successful empty results. Actual three-database reads scan bounded 100-row
+batches with finite retained output, no business mutation/event, transaction or snapshot/catch-up promise.
+No schema/index, stream/UI/Mercure or consumer-policy change is introduced by inspection. See
+[notice inspection](docs/notice-inspection.md) for composition, finite bounds, full-selection semantics, linear-scan
+cost, live consistency and additive compatibility classification.
+
+**Authorized retained-notice recovery:** `Domain\Mcp\Notice\Query\RecoverNotices` routes through
+`Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler`, fresh `NoticeReadAdmission` and `Service\NoticeRecovery`.
+The same `NoticeAccess` snapshot supplies optional trusted `NoticeRecoveryIdentity` (caller, nullable policy epoch,
+explicit namespace-evidence permission). Missing caller rejects; unproven epoch or concealed global evidence always
+reports uncertain. Canonical selection/grants/caller/epoch/serving parameters bind a confidential authenticated
+continuation; changes reject and require restart so newly eligible older data cannot be silently skipped.
+`NoticeRecoveryReader::readWindow` accepts one scope or 0–16 scopes, merging 1–100 retained rows in committed-position
+order under one coherent lock with namespace/high-water/loss evidence. Its DBAL reader owns the required coherent
+read transaction internally, not through caller sequencing or a write repository implementing transaction control.
+Authorized live inspection remains a distinct `NoticeReader` capability with no continuity/snapshot promise.
+`Data\NoticeRecoveryBatch` returns 1–32 bounded
+whole safe notices (or empty), complete/incomplete/uncertain and an opaque examined-boundary continuation, including
+for subsequent polls after completion. Scan exhaustion is not catch-up; known loss stays sticky, removed final rows
+are not expiry, missing evidence fails and retired namespaces reject. No raw counters/gap details, deleted bodies,
+retention lease, processing acknowledgment, mutation or read-side event is supplied.
+`NoticeContinuationProtector` is an inward port; optional Adapter `SodiumNoticeContinuationProtector` uses dedicated
+rotating 32-byte keys, XChaCha20-Poly1305 and padded fixed 1,432-byte tokens, with a 300-second default TTL (1–900).
+Explicit `Adapter\Mcp\Tool\Notice\RecoverNoticesTool` registers only `notices.recover` on the existing guarded HTTP
+composition through QueryBus; Tool availability and Query access remain independent. Default Query projection is
+65,536 bytes (configurable 2,048–262,144) and complete encoded MCP response 1,048,576 bytes including structured/text
+duplication, escaping, ID and actual central metadata. Oversized single notices/results and storage/output failures
+return no advanced continuation, never truncation or empty success. Consumers own cadence/current-data reload,
+policy epochs, safe capture, routes and deployment. See [notice recovery](docs/notice-recovery.md) for composition,
+exact APIs/bounds, completion and restart meanings, compatibility and actual three-database guarded HTTP evidence;
+controlled publication failure is not live MCP/Mercure or deployed-client qualification.
+
+**Optional retained-notice publication:** `Application\Mcp\Notice\Publication\RecordNoticeAndPublish` executes the
+synchronous recording Command before `NoticePublication::publish(GetNotice)`. The latter reconstructs currently
+admitted committed content through the shared Query, then independently asks consumer `NoticePublicationPolicy`
+for a fresh whole-audience `NoticePublicationGrant`. One permitted topic, explicit public/private mode and selected
+retained fields map through existing Publisher/PrivatePublisher and optional Mercure adapters. Mandatory versioned
+scope/producer/notice identity, distinct selected relationships and null-versus-empty recipients stay truthful;
+no target read, arbitrary body, MCP envelope or full Task state is sent. Topics use a deliberate 256-byte HTTPS
+DNS/path subset, lists select at most 10 fields/16 existing metadata keys, references count at most 32 and actual
+escaped encoded data at most 4,096 bytes. Invalid/denied/missing-private cases never fall back to public.
+Recording exceptions propagate before optional output; committed publication failures return fixed safe statuses
+and cannot undo data. Private redaction-aware diagnostics may fail without changing a failed outcome to success.
+Repeated attempts reauthorize and can duplicate sends, including deduplicated recording retries; no outbox, delivery
+ledger, automatic retry, eventual-send or receipt/processing guarantee exists. Shared inspection/recovery/polling
+reauthorize independently and remain Mercure-free; consumers own topic/browser/hub policy, scheduling and reload.
+The six additive public declarations are provisional against tags; existing ports/schema/dependencies stay unchanged.
+See [notice publication](docs/notice-publication.md) for composition, precise limits, exception/uncertainty semantics,
+compatibility and actual three-database/controlled-HubInterface evidence, not deployed browser qualification.
 
 ## Access control language
 
@@ -193,7 +715,8 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Public API manifest** | The machine-readable inventory of PHP declarations for which Fight Common makes a versioned compatibility promise. Its initial baseline contains every production-autoloaded declaration in the authoritative published `1.1.0` source unless that declaration was already marked `@internal`; every later production declaration must be deliberately classified. For each public declaration, callable, constructible, extensible, and implementable are independent consumer-operation promises. A non-final class is extensible only when affirmative design or history evidence establishes that promise. |
 | **Behavioral contract** | An explicit consumer-facing behavior promised by published documentation, public PHPDoc, or an accepted ADR. A stable contract ID links the normative statement to designated compatibility evidence. Ordinary tests and incidental observed behavior do not create behavioral contracts by themselves. |
 | **Compatibility contract** | The combined versioned promises covering the public API manifest, behavioral contracts, exceptions, serialization, persisted data, framework adapters, accepted runtime environments, Composer package metadata, and the coding standard. Compatibility is classified by consumer-visible effect rather than PHP signatures alone. |
-| **Deprecation** | A minor-release notice that a still-functional public contract is planned for removal or incompatible change in a future major release. A deprecated contract remains supported for at least one released minor before removal. |
+| **Deprecation** | A minor-release notice that a still-functional public contract is planned for removal or incompatible change in a future major release. A deprecated contract remains supported for at least one released minor before removal. TASK-00173 adds 50 property-name typed getters across 14 released HTTP/OAuth/MCP classes while retaining the same public readonly storage, construction, identity, arrays and serialization. Direct reads have documentation-only deprecation planned to first ship in v1.5.0, not yet released, without runtime notices. Standards is wholly excluded. See the [complete migration map](docs/maintenance/public-property-getters.md); removal/private conversion needs separate future-major authorization. |
+| **Public table-name constants** | The four schema `TABLES` arrays in Execution, Task, Notice and Subscription DBAL persistence are default-only inventories, not configured selections. TASK-00206 marks all four deprecated in PHPDoc for removal in v2.0.0, following John's explicit instruction including provisional constants. Values, visibility and runtime behavior remain unchanged, with no runtime warnings or replacement constants. Use the existing `DbalObservationTables`, `DbalTaskTables`, `DbalNoticeTables` and `DbalSubscriptionTables` accessors shared by schema/runtime composition. The first deprecating minor is planned v1.5.0, not yet released; actual removal still requires the supported released-minor window. See the [complete migration map](docs/maintenance/table-name-constants.md). |
 | **Supported release line** | A `major.minor` maintenance line whose phase, exact branch, release baselines, allowed fix classes, and exclusive UTC support boundary are declared in the canonical support-policy data. Only its latest patch release is supported. |
 | **Release baseline** | The canonical release tag and immutable peeled commit OID against which a candidate's compatibility is certified. Baselines are selected by release class and must have valid ancestry; tooling never guesses from tag ordering. |
 | **Affected line** | A supported release line on which focused public behavioral evidence reproduces a defect. An introducing commit may be unknown, but affected status may not be inferred from ancestry alone. |
@@ -205,7 +728,8 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Architecture gate** | The quality gate that verifies inward dependency direction between Domain, Application, and Adapter. |
 | **Coverage gate** | The quality gate that compares covered statements with all executable statements. Fight Common requires exact complete statement coverage rather than a rounded percentage. |
 | **Dependency freshness lane** | CI verification performed after resolving the latest versions permitted by the package constraints. It is distinct from a local build using already-resolved dependencies. |
-| **Build** | The complete ordered set of quality gates used to decide whether the repository is acceptable. |
+| **Product build** | The complete ordered quality gate invoked by `./bin/build`; it verifies the checkout but grants no independent acceptance or delivery authority. |
+| **Build workflow** | An explicitly invoked shared Team Lead workflow coordinating one TASK through Engineer, independent Review, QA and authorized Land to a PR. It is distinct from the product build and does not merge, release or deploy. |
 | **Candidate commit** | The exact clean `HEAD` commit certified by `bin/release certify`. A branch name or dirty checkout cannot substitute for this immutable identity. |
 | **Certification record** | The compact, digest-bearing JSON record emitted by `bin/release certify`. It binds the version, candidate commit, archive digest, dependency lanes, package surface, installed-consumer result, and cited historical starter receipts. |
 | **Publication authorization** | John's informed `ship <version>` decision for the unchanged certified candidate and stated publication form, after reading the summary required by [ADR 0028](planning/adr/0028-clear-package-release-decisions.md). It covers the remaining normal release operation and applicable reviewed housekeeping, not unrelated releases, branch deletion or application deployment. Certification alone authorizes no effect; changed inputs, failures or new material risk require a fresh decision. |
@@ -231,11 +755,11 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Combined resolution lane** | The root dependency set in which all supported frameworks and optional adapter packages must resolve together. Each widened previous line is proven in its own isolated fixture before the combined lane is re-resolved. |
 | **Forward-compatible seam** | A stable Fight Common port or boundary chosen so a future native facility (for example a released `yiisoft/queue`) can replace the current composition without breaking the public contract. |
 
-## Proposed Event Sourcing language for 1.2
+## Event Sourcing language
 
-These terms describe the planned optional extension. They do not describe existing production APIs until their tickets are implemented.
+These terms describe the optional Event Sourcing capability and its current public contracts.
 
-| Term | Planned meaning |
+| Term | Meaning |
 | --- | --- |
 | **Event-sourced aggregate** | The framework-free lifecycle contract used by repositories for an aggregate whose state changes only by explicitly applying domain events. It owns a static named constructor for reconstitution from history and exposes its identity through the existing `Identifier` contract. |
 | **Aggregate root** | The reference abstract implementation of the event-sourced aggregate contract. It stores the consumer's domain-specific `Identifier`, implements `id()`, and owns version tracking and pending-event lifecycle while the consumer aggregate owns explicit event routing and semantic state transitions. |
@@ -246,6 +770,7 @@ These terms describe the planned optional extension. They do not describe existi
 | **Stream** | The ordered event history of one aggregate, identified by a stable aggregate name and aggregate identifier rather than by the PHP aggregate class name. |
 | **Expected version** | The stream version observed before new events were recorded and checked during append for optimistic concurrency. An empty stream has version zero and its first event has stream version one. |
 | **Event Store** | The append-only port that accepts event messages, maps them to durable event identity and schema, writes versioned streams, and returns hydrated stored events from stream-ordered and globally ordered reads. |
+| **Physical Event Store tables** | Adapter-owned `DbalEventStoreTables` independently selects `eventTable` (default `event_store_events`) and `globalPositionTable` (default `event_store_global_position`), shared explicitly by the DBAL schema installer and store. `Adapter\Persistence\Doctrine\DbalTableName` validates `[A-Za-z_][A-Za-z0-9_]{0,62}` and supplies portable schema/platform quoting, preserving case and supporting reserved words but rejecting qualified/prequoted names. The pair rejects case-insensitive collisions. Configuration has no SQL effects; installation creates only missing selected storage and initializes a missing singleton at zero without inferring history or repairing existing event columns. Every runtime/retry/lock path uses those selections without fallback. Changing names does not migrate/copy data; partial overrides intentionally retain the other table, and consumers own consistent sequence initialization, connection/schema choice and permissions. Checkpoint and publication selections share this identifier mechanism. |
 | **Event mapper** | The explicit, bidirectional registry for one Event Store that maps a stable event name to the current PHP event class and reconstructs an event message from stored data. It must contain every event persisted in that store, and aliases must be unique across the store. Consumer configuration registers every stored event; attribute scanning, convention-based discovery, and FQCN fallback are not part of the contract. A PHP class rename changes the mapping without changing stored history. |
 | **Event mapping provider** | A portable declaration of typed event mappings owned by one bounded context. It declares a durable event namespace plus locally unique event names; each typed mapping owns the current PHP class, current schema version, and complete upcaster chain. The event mapper qualifies local names into canonical stored names. Multiple providers may compose the complete catalog for one Event Store and may be registered directly or collected by optional framework integration. |
 | **Upcaster** | A one-event-to-one-event in-memory transformation from one stored payload schema version to the next integer version. It does not rewrite stored history, and class renames alone do not require upcasting. |
@@ -253,10 +778,12 @@ These terms describe the planned optional extension. They do not describe existi
 | **Projection runner** | The worker-facing service that polls stored events for one projector, handles them in global order, and advances that projector's checkpoint only after each successful projection. |
 | **Read model** | Query-oriented data derived from events; it is not the authoritative event history. |
 | **Checkpoint** | The last global event position successfully processed by one named projector. Processing means either successfully projecting a declared current event type or successfully skipping an undeclared type. The runner advances it per event, not only after a complete fetched batch. |
+| **Physical checkpoint table** | `DbalProjectionCheckpointStoreSchema` and `DbalProjectionCheckpointStore` accept the same explicit optional `table: DbalTableName`, defaulting exactly to `projection_checkpoints`. Shared ordinary-name validation and schema/platform quoting govern install/existing checks and every load/save/duplicate-key/reset path, including independent workers. Configuration and schema definition perform no SQL; explicit installation creates missing selected storage without validating/repairing existing columns. Missing/incompatible selected storage fails when used without fallback. Changing selection never migrates/copies/resets old progress or rebuilds read models. Stable projector identity, bound fields, monotonicity, explicit reset responsibilities and existing `connection` named construction remain unchanged; consumers own coherent composition, privileges, collisions and data operations. |
 | **Event publication** | Post-commit fan-out of stored event messages through the Event Dispatcher in a worker process separate from projection. Publication attempts all matching subscribers and does not automatically replay an event because a subscriber failed. |
 | **Publication cursor** | The last global position for which event publication attempted all matching subscribers. It advances after the complete attempt even when subscriber failures were collected; unlike a projection checkpoint, it records attempted fan-out rather than successful state projection. |
 | **Event publication runner** | A stably named worker-facing service that polls committed stored events, dispatches their original event messages through a `SynchronousEventDispatcher`, reports collected subscriber failures, and advances its publication cursor after each complete attempt. Multiple named runners may publish independently from one Event Store. |
 | **Publication cursor store** | The port that loads and monotonically saves attempted-fan-out positions independently by stable publication name. It has no reset operation in 1.2 and is distinct from a projector checkpoint store even when adapters share persistence mechanics. |
+| **Physical publication tables** | `DbalPublicationCursorStoreSchema` and `DbalPublicationCursorStore` explicitly share an optional `table: DbalTableName` (default `publication_cursors`). `DbalPublicationFailureRecorderSchema` and `DbalPublicationFailureRecorder` share optional `tables: DbalPublicationFailureTables`, independently selecting `failureTable` (default `publication_failures`) and `handlerFailureTable` (default `publication_handler_failures`). Shared ordinary-name validation/platform quoting governs every schema/runtime path, including monotonic cursor/race recovery and atomic/idempotent parent/handler inserts; the failure pair rejects case-insensitive collisions and its selected handler FK targets its selected parent. Omitted choices intentionally retain their own defaults. Configuration/schema definition do no SQL; explicit install creates missing selected storage without validating/repairing existing columns or retargeting existing FKs. Missing/incompatible storage fails on use without fallback. Changes never migrate/copy old progress/evidence, and a newly empty cursor can repeat delivery. Consumers own coherent schema/runtime/worker selections, cross-capability collisions, privileges and data operations. Released `connection` named construction, stored snapshots and fan-out/retry semantics remain unchanged. The executable guide retains default and actual all-six-configured journeys; [the SQL-path inventory](docs/event-sourcing.md#six-table-schema-and-sql-path-inventory) accounts for all six tables. |
 | **Event dispatch failure** | The aggregate exception thrown by a Synchronous Event Dispatcher only after it has attempted every matching handler and one or more failed. It contains the ordered handler failures and proves fan-out completed despite those failures. |
 | **Event handler failure** | A transient value pairing one failed callable description with its original `Throwable`. It allows callers such as the Event Publication Runner to distinguish completed fan-out with handler failures from an unexpected dispatcher or infrastructure failure. |
 | **Event publication failure** | A structured snapshot of one stored-event publication attempt that had handler failures. It includes publication, stored-event, and message identity, the UTC time at which dispatch began, and each failed callable's description, exception FQCN, integer code, and bounded diagnostic message. It excludes original throwables, stack traces, event payloads, and message metadata. |
@@ -366,13 +893,58 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 
 Committed planning state lives in `planning/`. The TASK Board displays executable work; the Roadmap planning
 frontier displays decomposition. [Automatic parent completion](planning/CONVENTIONS.md#automatic-parent-completion)
-closes eligible TICKETs and EPICs in the child-completion operation, counting live and archived children. TASK `done` means implementation acceptance and required local verification
-are complete, before publication; pending independent review and delivery outcomes are recorded separately.
+closes eligible TICKETs and EPICs in the child-completion operation, counting live and archived children. TASK `done`
+requires implementation acceptance, required verification, independent Review acceptance and satisfied required QA
+(or justified overall N/A). Implementation awaiting Review/QA stays non-terminal with its handoff explicit; delivery
+is separate. Historical completion records retain the meaning of their original policy. Current Board/Roadmap
+TASK-routing summaries derive from the same ordered records; their authored planning/dependency narratives are
+not competing current status. The offline build rejects stale summaries without rewriting them. Ordinary Land
+records the verified PR URL and historical acceptance/publication, without a new delivery marker, persistent current
+merge note/Board row, or post-merge Board cleanup for John. Land still directly checks the exact owned PR before
+publication and at final handoff under the
+[workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). Land closes the
+accepted TASK/eligible parents and applicable current docs before final publication and retires eligible owned
+local Git/Docker/storage. The tracked delivery marker/table/check/reconciliation mechanism is removed, including
+legacy scans and recurring Work/planning intake/post-merge obligations. Planning/routing stays offline; preserve
+historical acceptance/publication/reconciliation and independent reports. Closed-unmerged, non-terminal scope,
+unintegrated or unverifiable outcomes still hold the affected action for its real owner. Human-only merge,
+open-PR remote-head preservation, independent Review/QA/full verification and qualified resource cleanup remain;
+no background watcher or execution after stopping is promised.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained
 under the [Review contract](docs/engineering/standards/Review.md). Important outcomes and deviations belong in the
-TASK; a report's accept/revise verdict is distinct from implementation completion and delivery authority.
+TASK; a report's accept/revise verdict is distinct from QA and delivery authority. The current independent QA
+report is `<base-worktree>/.runs/qa/<TASK-ID>/qa.md` under the [QA contract](docs/engineering/standards/QA.md).
+The [shared workflow binding](planning/agents/shared-workflows.md) owns provider/target substitutions and prospective
+Build/task-run paths without relocating historical evidence.
+
+## Disposable database tooling
+
+The project image copies its public `local.ini` with explicit readable permissions. A restrictive checkout
+umask must not make that root-owned image configuration unreadable to the non-root gate user: doing so silently
+loses the intended coverage mode and 512 MiB memory setting. No host trust, global settings or runtime protections
+are changed.
+
+`bin/build` and `bin/phpunit` use the selected checkout's native Compose PHP, MySQL and PostgreSQL
+services. Follow [local tooling](docs/engineering/LOCAL_TOOLING.md) for explicit startup, freshly checked
+planning, application-evidence reuse and Docker-first guarded removal. MySQL/PostgreSQL fixture storage in
+isolated stacks is disposable; main data and unrelated consumers are preserved. `bin/down --worktree` retires
+only the selected project's qualified runtime. No global prune or shared-service shutdown is used.
+
+Historical per-run database receipts remain supported for recovery by the retained Python lifecycle below;
+new builds do not create per-run database containers or invoke the removed shell lifecycle. The local down
+adapter qualifies legacy receipts for the exact selected creator checkout before native stack teardown.
+
+Receipts default to the Git-common-directory parent’s ignored `.runs/database-runs/`, outside linked worktrees.
+`FIGHT_COMMON_DATABASE_RECEIPT_DIR` may select another private retained evidence directory before creation.
+After an interrupted run, inspect that exact receipt and resolve its named holds, then run
+`python3 bin/.disposable-database-lifecycle.py cleanup --receipt /absolute/path/to/the-recorded-receipt.json`
+from an intact owning checkout. Use `--docker` only for the same qualified Docker endpoint/tool. Never rerun
+creation against an existing receipt. Changed identity, inspection failure, shared/stopped consumers and creation
+interrupted before returned-ID capture remain finite holds; names alone never authorize deletion. Preserve
+receipts through review/delivery. This is trusted local tooling, not a hostile-code sandbox or atomic protection
+against unrelated concurrent Docker mutation.
 
 ## Decisions
 

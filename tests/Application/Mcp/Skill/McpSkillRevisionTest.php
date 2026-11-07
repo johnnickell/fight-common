@@ -48,12 +48,12 @@ final class McpSkillRevisionTest extends UnitTestCase
             $uri = 'skill://catalog/r1/work/'.$member->uriPath();
             self::assertSame($member, $revision->file($uri));
             $manifest = array_column($entry['resources'], null, 'uri')[$uri];
-            self::assertSame(['uri' => $uri, 'digest' => 'sha256:'.hash('sha256', $member->bytes), 'size' => strlen($member->bytes)], $manifest);
-            self::assertSame(strlen($member->bytes), $revision->resources()[$uri]->toArray()['size']);
+            self::assertSame(['uri' => $uri, 'digest' => 'sha256:'.hash('sha256', $member->bytes()), 'size' => strlen($member->bytes())], $manifest);
+            self::assertSame(strlen($member->bytes()), $revision->resources()[$uri]->toArray()['size']);
         }
         $members = [];
         $descriptors = $revision->resources(); unset($descriptors[self::URI]);
-        self::assertSame(self::ROOT, $revision->file(self::URI)->bytes);
+        self::assertSame(self::ROOT, $revision->file(self::URI)->bytes());
         self::assertCount(7, $revision->resources());
         self::assertNull($revision->file('skill://catalog/r1/work/%53KILL.md'));
         self::assertNull($revision->file('skill://catalog/r1/work/references/../SKILL.md'));
@@ -82,8 +82,8 @@ final class McpSkillRevisionTest extends UnitTestCase
         $old = McpSkillRevision::fromFiles(self::URI, [McpSkillFile::fromBytes('SKILL.md', self::ROOT)], $this->parser());
         $newUri = str_replace('/r1/', '/r2/', self::URI);
         $new = McpSkillRevision::fromFiles($newUri, [McpSkillFile::fromBytes('SKILL.md', self::ROOT.'New')], $this->parser());
-        self::assertSame(self::ROOT, $old->file(self::URI)->bytes);
-        self::assertSame(self::ROOT.'New', $new->file($newUri)->bytes);
+        self::assertSame(self::ROOT, $old->file(self::URI)->bytes());
+        self::assertSame(self::ROOT.'New', $new->file($newUri)->bytes());
         self::assertNull($old->file($newUri));
         self::assertNull($new->file(self::URI));
         self::assertNotSame($old->entry()->get('resources'), $new->entry()->get('resources'));

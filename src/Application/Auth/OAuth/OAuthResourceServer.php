@@ -12,15 +12,32 @@ use Throwable;
  */
 final readonly class OAuthResourceServer
 {
+    private OAuthTokenValidator $tokenValidator;
+    private OAuthClaimsHandoff $claimsHandoff;
+
     /**
      * Constructs OAuthResourceServer
      */
     public function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use requirements() instead
+         * Retained until a future major after at least one released minor
+         */
         public OAuthTokenRequirements $requirements,
-        private OAuthTokenValidator $validator,
-        private OAuthClaimsHandoff $handoff,
+        OAuthTokenValidator $validator,
+        OAuthClaimsHandoff $handoff,
         private OAuthDiagnostics $diagnostics
     ) {
+        $this->tokenValidator = $validator;
+        $this->claimsHandoff = $handoff;
+    }
+
+    /**
+     * Returns the configured token requirements
+     */
+    public function requirements(): OAuthTokenRequirements
+    {
+        return $this->requirements;
     }
 
     /**
@@ -63,7 +80,7 @@ final readonly class OAuthResourceServer
         try {
             $now = time();
             try {
-                $claims = $this->validator->validate($matches[1], $this->requirements, $now);
+                $claims = $this->tokenValidator->validate($matches[1], $this->requirements, $now);
             } catch (OAuthTokenRejected) {
                 return $this->reject(OAuthFailure::INVALID_TOKEN);
             }
@@ -72,11 +89,11 @@ final readonly class OAuthResourceServer
                 return $this->reject(OAuthFailure::INVALID_TOKEN);
             }
 
-            if (!$claims->grantedScopes->includes($requiredScopes)) {
+            if (!$claims->grantedScopes()->includes($requiredScopes)) {
                 return $this->reject(OAuthFailure::INSUFFICIENT_SCOPE);
             }
 
-            $this->handoff->accept($claims);
+            $this->claimsHandoff->accept($claims);
         } catch (Throwable $throwable) {
             return $this->reject(OAuthFailure::INTERNAL_ERROR, $throwable);
         }

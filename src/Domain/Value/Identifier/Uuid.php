@@ -80,8 +80,8 @@ final readonly class Uuid extends ValueObject implements Comparable
         $hash = bin2hex(random_bytes(10));
         $time = microtime(true);
         $seconds = (int) $time;
-        $micro = (int) (($time - $seconds) * 1000);
-        $milliseconds = sprintf('%d%03d', $seconds, $micro);
+        $fractionalMilliseconds = (int) (($time - $seconds) * 1000);
+        $milliseconds = sprintf('%d%03d', $seconds, $fractionalMilliseconds);
         $timestamp = sprintf('%012x', $milliseconds);
         if ($msb) {
             $hex = $timestamp.$hash;
@@ -224,15 +224,15 @@ final readonly class Uuid extends ValueObject implements Comparable
             throw new DomainException($message);
         }
 
-        $steps = [];
+        $formattedParts = [];
         foreach (range(0, 15) as $i) {
-            $steps[] = sprintf('%02x', ord($bytes[$i]));
+            $formattedParts[] = sprintf('%02x', ord($bytes[$i]));
             if (in_array($i, [3, 5, 7, 9])) {
-                $steps[] = '-';
+                $formattedParts[] = '-';
             }
         }
 
-        return static::parse(implode('', $steps));
+        return static::parse(implode('', $formattedParts));
     }
 
     /**
@@ -251,18 +251,18 @@ final readonly class Uuid extends ValueObject implements Comparable
         // 122192928000000000 is the number of 100-nanosecond intervals between
         // the UUID epoch 1582-10-15 00:00:00 and
         // the Unix epoch 1970-01-01 00:00:00
-        $offset = 122192928000000000;
+        $uuidEpochOffsetTicks = 122192928000000000;
         $timeOfDay = gettimeofday();
 
-        $time = ($timeOfDay['sec'] * 10000000) + ($timeOfDay['usec'] * 10) + $offset;
-        $hi = intval($time / 0xffffffff);
+        $timestampTicks = ($timeOfDay['sec'] * 10000000) + ($timeOfDay['usec'] * 10) + $uuidEpochOffsetTicks;
+        $highTimestampBits = intval($timestampTicks / 0xffffffff);
 
-        $timestamp = [];
-        $timestamp[] = sprintf('%04x', (($hi >> 16) & 0xfff));
-        $timestamp[] = sprintf('%04x', $hi & 0xffff);
-        $timestamp[] = sprintf('%08x', $time & 0xffffffff);
+        $timestampParts = [];
+        $timestampParts[] = sprintf('%04x', (($highTimestampBits >> 16) & 0xfff));
+        $timestampParts[] = sprintf('%04x', $highTimestampBits & 0xffff);
+        $timestampParts[] = sprintf('%08x', $timestampTicks & 0xffffffff);
 
-        return implode('', $timestamp);
+        return implode('', $timestampParts);
     }
 
     /**

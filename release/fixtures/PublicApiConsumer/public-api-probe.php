@@ -36,8 +36,8 @@ try {
         require $argv[1];
     }
 
-    $list = array_list(['alpha', 'beta'], 'string');
-    $meta = Meta::create(['consumer' => 'disposable']);
+    $stringValues = array_list(['alpha', 'beta'], 'string');
+    $consumerMetadata = Meta::create(['consumer' => 'disposable']);
     $uuid = Uuid::fromString(Uuid::NIL);
     if (interface_exists(EntityManagerInterface::class)) {
         $entityManager = new class implements EntityManagerInterface {
@@ -213,8 +213,8 @@ echo json_encode(
         ]],
         'observations'   => [
             'uuid'                       => $uuid->toString(),
-            'meta'                       => $meta->toArray(),
-            'collection'                 => $list->toArray(),
+            'meta'                       => $consumerMetadata->toArray(),
+            'collection'                 => $stringValues->toArray(),
             'transactional_unit_of_work' => [
                 'canonical_adapter'    => $canonicalAdapter,
                 'legacy_adapter'       => $legacyAdapter,

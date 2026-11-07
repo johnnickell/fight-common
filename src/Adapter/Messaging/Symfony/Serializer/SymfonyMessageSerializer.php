@@ -15,14 +15,14 @@ use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
  */
 final readonly class SymfonyMessageSerializer implements SerializerInterface
 {
-    private LegacySymfonyMessageSerializer $serializer;
+    private LegacySymfonyMessageSerializer $transportSerializer;
 
     /**
      * Constructs SymfonyMessageSerializer
      */
     public function __construct(DomainSerializer $serializer)
     {
-        $this->serializer = new LegacySymfonyMessageSerializer($serializer);
+        $this->transportSerializer = new LegacySymfonyMessageSerializer($serializer);
     }
 
     /**
@@ -42,7 +42,7 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
      */
     public function decode(array $encodedEnvelope): Envelope
     {
-        return $this->serializer->decode($encodedEnvelope);
+        return $this->transportSerializer->decode($encodedEnvelope);
     }
 
     /**
@@ -52,6 +52,6 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
      */
     public function encode(Envelope $envelope): array
     {
-        return $this->serializer->encode($envelope);
+        return $this->transportSerializer->encode($envelope);
     }
 }

@@ -43,6 +43,15 @@ For JSON APIs, register `JsonRequestMiddleware` so that the JSON body is parsed 
 
 **`ValidationService`** — a portable Application service that orchestrates field-level validation using the parsed rules. On success it returns an `ApplicationData` object (unused in the attribute flow). On failure it throws `Fight\Common\Application\Validation\Exception\ValidationException`.
 
+Construction and execution have separate owners. `RulesParser::parse()` retains its field-keyed arrays of
+`type`, string `args` and formatted `error`. The service registers them through the existing coordinator
+convenience methods on the supplied coordinator; those methods delegate assembly to
+`Application\Validation\Internal\ValidatorFactory`. This explicitly internal detail owns rule selection,
+argument conversion and required/single/cross-field specification construction. It is not a consumer factory,
+plugin/options API or additional setup step. The coordinator owns the queue, fresh context, result and cleanup;
+custom `Validator` instances still enter that same queue unchanged. Existing public signatures, including
+parameter names, defaults and variadic list arguments, remain supported.
+
 ---
 
 ## Sequential reuse and failure cleanup
@@ -262,7 +271,7 @@ The `match` rule is handled specially: the regex pattern may itself contain `[` 
 | `max_count` | `n` | Collection must contain at most `n` items. |
 | `range_count` | `min, max` | Collection item count must be between `min` and `max` (inclusive). |
 | `in_list` | `a, b, ...` | Value must be one of the listed values. |
-| `key_isset` | `key` | Value must be an array that has the given `key` set (value may be `null`). |
+| `key_isset` | `key` | Value must have the given `key` set to a non-null value. |
 | `key_not_empty` | `key` | Value must be an array that has the given `key` set to a non-empty value. |
 
 #### Date & Time
@@ -277,7 +286,10 @@ Arguments use PHP date-format characters. The format string is validated at pars
 
 #### Cross-Field Comparison
 
-These rules compare the field's value against the value of a second field in the same input. The second field is identified by its input key, not its label. If either field is absent from the input, the rule passes (use `required` on both fields if presence is mandatory).
+These rules compare the field's value against the value of a second field in the same input. The second field
+is identified by its input key, not its label. If either field is absent, the positive `equals` and `same`
+specifications pass; their negations `not_equals` and `not_same` fail. This existing distinction is retained.
+Use `required` on both fields if presence is mandatory.
 
 | Rule | Arguments | Description |
 |---|---|---|

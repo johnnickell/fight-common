@@ -64,7 +64,7 @@
         "codeigniter4/queue": "Required by the CodeIgniter Queue messaging adapters",
         "deptrac/deptrac": "Required to run optional architecture checks in a consuming repository",
         "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
-        "ext-sodium": "Required by the optional Sodium MCP ordinary interaction state protector",
+        "ext-sodium": "Required by the optional Sodium MCP interaction and notice continuation protectors",
         "doctrine/dbal": "Required by the custom doctrine data types",
         "doctrine/orm": "Required by the canonical Doctrine transactional unit of work, legacy 1.x unit of work, audit repository, and base repository",
         "guzzlehttp/guzzle": "Required by the guzzle http client adapter",
@@ -106,7 +106,24 @@
             "Fight\\Test\\Common\\TestCase\\": "tests/TestCase"
         },
         "files": [
-            "src/Domain/functions.php"
+            "src/Domain/functions.php",
+            "src/Application/Mcp/Capability/McpCapability.php",
+            "src/Application/Mcp/Capability/McpMetadataAwareCapability.php",
+            "src/Application/Mcp/Capability/McpCapabilityRegistry.php",
+            "src/Application/Mcp/Protocol/McpRequest.php",
+            "src/Application/Mcp/Protocol/McpRequestMetadata.php",
+            "src/Application/Mcp/Protocol/McpRequestDecoder.php",
+            "src/Application/Mcp/Protocol/McpRequestLimits.php",
+            "src/Application/Mcp/Protocol/McpResult.php",
+            "src/Application/Mcp/Protocol/McpJsonResponse.php",
+            "src/Application/Mcp/Protocol/McpProtocolError.php",
+            "src/Application/Mcp/Protocol/McpServerInfo.php",
+            "src/Application/Mcp/Protocol/Exception/McpProtocolException.php",
+            "src/Application/Mcp/Http/McpOriginPolicy.php",
+            "src/Application/Mcp/Http/McpInvocationGuard.php",
+            "src/Application/Mcp/Http/McpMirrorDeclaration.php",
+            "src/Application/Mcp/Http/McpRequestMirrors.php",
+            "src/Application/Mcp/Tool/McpProgressReporter.php"
         ]
     },
     "autoload-dev": {

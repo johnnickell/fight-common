@@ -1,0 +1,96 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal;
+
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
+use Fight\Common\Domain\Mcp\Observation\Observation;
+
+/**
+ * Class DbalProtectedContentRepository
+ *
+ * Requires trusted storage composition; it is not a protected-read authorization API
+ */
+final readonly class DbalProtectedContentRepository implements ProtectedContentRepository
+{
+    /**
+     * Constructs DbalProtectedContentRepository
+     */
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
+    {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFor(Observation $detail): ?ProtectedContent
+    {
+        $capture = $detail->detail();
+        if ($capture === null) {
+            throw new DomainException('Expected a protected detail observation.');
+        }
+
+        $table = $this->recordingTransaction->tables()->contentTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
+        );
+        $row = $this->recordingTransaction->connection()->fetchAssociative(
+            'SELECT payload FROM '.$table.' WHERE producer_id = ? AND observation_id = ?',
+            [$detail->producerId(), $detail->id()->toString()]
+        );
+        if ($row === false) {
+            return null;
+        }
+
+        $data = json_decode($row['payload'], true, 8, JSON_THROW_ON_ERROR);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid stored protected content.');
+        }
+
+        return ProtectedContent::fromArray($capture, $data);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function add(Observation $detail, ProtectedContent $content): void
+    {
+        $this->recordingTransaction->requireOwnedTransaction();
+        $capture = $detail->detail();
+        if ($capture === null) {
+            throw new DomainException('Expected a protected detail observation.');
+        }
+
+        $capture->validateBody($content->body());
+        $table = $this->recordingTransaction->tables()->contentTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
+        );
+        $this->recordingTransaction->connection()->insert($table, [
+            'producer_id'    => $detail->producerId(),
+            'observation_id' => $detail->id()->toString(),
+            'payload'        => json_encode($content->toArray(), JSON_THROW_ON_ERROR)
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function removeFor(Observation $detail): void
+    {
+        $this->recordingTransaction->requireOwnedTransaction();
+        if ($detail->detail() === null) {
+            throw new DomainException('Expected a protected detail observation.');
+        }
+
+        $table = $this->recordingTransaction->tables()->contentTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
+        );
+        $this->recordingTransaction->connection()->delete($table, [
+            'producer_id'    => $detail->producerId(),
+            'observation_id' => $detail->id()->toString()
+        ]);
+    }
+}

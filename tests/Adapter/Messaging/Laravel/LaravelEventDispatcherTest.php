@@ -18,23 +18,23 @@ final class LaravelEventDispatcherTest extends UnitTestCase
 {
     public function test_that_trigger_submits_a_queue_job_for_the_created_event_message(): void
     {
-        $dispatcher = $this->mock(Dispatcher::class);
-        $dispatcher->shouldReceive('dispatch')
+        $jobDispatcher = $this->mock(Dispatcher::class);
+        $jobDispatcher->shouldReceive('dispatch')
             ->once()
             ->withArgs(static fn (mixed $job): bool => $job instanceof QueuedEventMessage);
 
-        (new LaravelEventDispatcher($dispatcher))->trigger(new LaravelEventDispatcherEvent('event-86'));
+        (new LaravelEventDispatcher($jobDispatcher))->trigger(new LaravelEventDispatcherEvent('event-86'));
     }
 
     public function test_that_dispatch_submits_a_queue_job_for_the_supplied_event_message(): void
     {
-        $dispatcher = $this->mock(Dispatcher::class);
-        $dispatcher->shouldReceive('dispatch')
+        $jobDispatcher = $this->mock(Dispatcher::class);
+        $jobDispatcher->shouldReceive('dispatch')
             ->once()
             ->withArgs(static fn (mixed $job): bool => $job instanceof QueuedEventMessage);
         $message = EventMessage::create(new LaravelEventDispatcherEvent('message-86'));
 
-        (new LaravelEventDispatcher($dispatcher))->dispatch($message);
+        (new LaravelEventDispatcher($jobDispatcher))->dispatch($message);
     }
 
     public function test_that_local_subscriber_and_handler_methods_remain_empty_for_async_delivery(): void

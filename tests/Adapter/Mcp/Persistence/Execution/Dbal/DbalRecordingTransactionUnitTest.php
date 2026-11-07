@@ -1,0 +1,419 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Execution\Dbal;
+
+use DateTimeImmutable;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalSessionRepository;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork;
+use Fight\Common\Application\Mcp\Observation\Exception\ObservationStorageFailed;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
+use Fight\Common\Domain\Mcp\Observation\ObservationId;
+use Fight\Common\Domain\Mcp\Phase\Phase;
+use Fight\Common\Domain\Mcp\Phase\PhaseId;
+use Fight\Common\Domain\Mcp\Session\Session;
+use Fight\Common\Domain\Mcp\Session\SessionId;
+use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
+use Fight\Test\Common\TestCase\UnitTestCase;
+use InvalidArgumentException;
+use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
+
+#[CoversClass(DbalRecordingTransaction::class)]
+#[CoversClass(DbalSessionRepository::class)]
+#[CoversClass(DbalPhaseRepository::class)]
+#[CoversClass(DbalObservationRepository::class)]
+#[CoversClass(DbalObservationSchema::class)]
+final class DbalRecordingTransactionUnitTest extends UnitTestCase
+{
+    public function test_that_owned_transactions_persist_complete_references_and_precise_evidence(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        self::assertFalse($recordingTransaction->isClosed());
+        self::assertNull((new DbalObservationRepository($recordingTransaction))->getById('instrumentation', ObservationId::generate()));
+        self::assertNull((new DbalSessionRepository($recordingTransaction))->getById(SessionId::fromStrings('project', 'missing')));
+        self::assertNull((new DbalPhaseRepository($recordingTransaction))->getById(PhaseId::fromStrings('project', 'missing')));
+        $session = ObservationFixture::session();
+        $phase = ObservationFixture::phase();
+        $first = $session->recorded(new DateTimeImmutable('2026-10-21T12:00:00.000001Z'));
+        $second = $phase->recorded(new DateTimeImmutable('2026-10-21T12:00:00.000002Z'));
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $first): void {
+            (new DbalSessionRepository($recordingTransaction))->add(new Session($first->session()));
+            (new DbalObservationRepository($recordingTransaction))->add($first);
+        });
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $second): void {
+            (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', $second->phase()));
+            (new DbalObservationRepository($recordingTransaction))->add($second);
+        });
+        foreach ([$first, $second] as $recorded) {
+            $reconstructed = (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $recorded->id());
+            self::assertSame($recorded->toArray(), $reconstructed->toArray());
+            self::assertSame($recorded->recordedAt()->format('Y-m-d\TH:i:s.u\Z'), $reconstructed->recordedAt()->format('Y-m-d\TH:i:s.u\Z'));
+            self::assertNotEquals($recorded->occurredAt(), $reconstructed->recordedAt());
+        }
+        self::assertSame($session->session()->toArray(), (new DbalSessionRepository($recordingTransaction))->getById(SessionId::fromStrings('project', 'session'))->reference()->toArray());
+        self::assertSame($phase->phase()->toArray(), (new DbalPhaseRepository($recordingTransaction))->getById(PhaseId::fromStrings('project', 'phase'))->reference()->toArray());
+        self::assertFalse($connection->isTransactionActive());
+        self::assertSame(1, (int) $connection->fetchOne('PRAGMA foreign_keys'));
+    }
+
+    public function test_that_write_methods_reject_unowned_and_caller_owned_transactions(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        self::assertSame($connection, $recordingTransaction->connection());
+        foreach ([false, true] as $outer) {
+            if ($outer) {
+                $connection->beginTransaction();
+                $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
+                $connection->insert('caller_work', ['id' => 42]);
+            }
+            foreach ([
+                static fn () => (new DbalSessionRepository($recordingTransaction))->add(new Session(ObservationFixture::session()->session())),
+                static fn () => (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', ObservationFixture::phase()->phase())),
+                static fn () => (new DbalObservationRepository($recordingTransaction))->add(ObservationFixture::session()->recorded(new DateTimeImmutable('now'))),
+                static fn () => $recordingTransaction->commitTransactional(static fn () => $recordingTransaction->commitTransactional(static fn () => null)),
+            ] as $write) {
+                try {
+                    $write();
+                    self::fail('Expected transaction ownership rejection.');
+                } catch (LogicException) {
+                    self::assertSame($outer, $connection->isTransactionActive());
+                }
+            }
+            if ($outer) {
+                self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM caller_work'));
+                $connection->rollBack();
+            }
+        }
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+        self::assertFalse($recordingTransaction->isClosed());
+    }
+
+    public function test_that_unrecorded_evidence_cannot_be_persisted_with_a_fabricated_receipt(): void
+    {
+        $connection = $this->database();
+        $transaction = new DbalRecordingTransaction($connection);
+        try {
+            $transaction->commitTransactional(static function () use ($transaction): void {
+                (new DbalSessionRepository($transaction))->add(new Session(ObservationFixture::session()->session()));
+                (new DbalObservationRepository($transaction))->add(ObservationFixture::session());
+            });
+            self::fail('Expected unrecorded root rejection.');
+        } catch (DomainException $exception) {
+            self::assertSame('Observation has not been recorded.', $exception->getMessage());
+        }
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
+        self::assertFalse($connection->isTransactionActive());
+    }
+
+    public function test_that_repositories_from_another_boundary_cannot_join_or_commit_the_recording_transaction(): void
+    {
+        $connection = $this->database();
+        $owner = new DbalRecordingTransaction($connection);
+        $other = new DbalRecordingTransaction($connection);
+        try {
+            $owner->commitTransactional(static function () use ($owner, $other): void {
+                (new DbalSessionRepository($owner))->add(new Session(ObservationFixture::session()->session()));
+                (new DbalPhaseRepository($other))->add(new Phase('project', ObservationFixture::phase()->phase()));
+            });
+            self::fail('Expected boundary mismatch rejection.');
+        } catch (LogicException $exception) {
+            self::assertSame('Observation writes require the recording-owned transaction.', $exception->getMessage());
+        }
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_phases'));
+        self::assertFalse($connection->isTransactionActive());
+    }
+
+    public function test_that_a_late_database_failure_rolls_back_all_related_writes_and_remains_reusable(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $observation = ObservationFixture::session();
+        try {
+            $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $connection, $observation): void {
+                (new DbalSessionRepository($recordingTransaction))->add(new Session($observation->session()));
+                (new DbalObservationRepository($recordingTransaction))->add($observation->recorded(new DateTimeImmutable('now')));
+                $connection->executeStatement('INSERT INTO absent_failure_table (id) VALUES (1)');
+            });
+            self::fail('Expected explicit rolled-back storage failure.');
+        } catch (ObservationStorageFailed $exception) {
+            self::assertFalse($exception->outcomeUncertain());
+            self::assertInstanceOf(Exception::class, $exception->getPrevious());
+        }
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
+        self::assertFalse($recordingTransaction->isClosed());
+        self::assertSame('committed', $recordingTransaction->commitTransactional(static fn (): string => 'committed'));
+    }
+
+    public function test_that_domain_rejection_rolls_back_without_becoming_a_storage_failure(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $failure = new DomainException('safe rejection');
+        try {
+            $recordingTransaction->commitTransactional(static function () use ($failure) { throw $failure; });
+            self::fail('Expected rejection.');
+        } catch (DomainException $exception) {
+            self::assertSame($failure, $exception);
+        }
+        self::assertFalse($connection->isTransactionActive());
+    }
+
+    #[DataProvider('uncertainFailures')]
+    public function test_that_begin_commit_and_rollback_uncertainty_close_the_store(string $stage, bool $activeAfterCommit): void
+    {
+        $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new PostgreSQLPlatform());
+        // The initial ownership check is idle; subsequent checks model lost acknowledgment.
+        $connection->shouldReceive('isTransactionActive')->andReturn(false, $activeAfterCommit);
+        $connection->shouldReceive('isAutoCommit')->once()->andReturnTrue();
+        $failure = new RuntimeException('connection lost');
+        if ($stage === 'begin') {
+            $connection->shouldReceive('beginTransaction')->once()->andThrow($failure);
+        } else {
+            $connection->shouldReceive('beginTransaction')->once();
+            $connection->shouldReceive('executeStatement')->once();
+            $connection->shouldReceive('fetchOne')->once()->andReturn(1);
+            if ($stage === 'rollback') {
+                $connection->shouldReceive('rollBack')->once()->andThrow(new RuntimeException('rollback unavailable'));
+            } else {
+                $connection->shouldReceive('commit')->once()->andThrow($failure);
+                if ($activeAfterCommit) {
+                    $connection->shouldReceive('rollBack')->once();
+                }
+            }
+        }
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        try {
+            $recordingTransaction->commitTransactional(static function () use ($stage, $failure) {
+                if ($stage === 'rollback') { throw $failure; }
+                return null;
+            });
+            self::fail('Expected uncertainty.');
+        } catch (ObservationStorageFailed $exception) {
+            self::assertTrue($exception->outcomeUncertain());
+            self::assertSame($failure, $exception->getPrevious());
+        }
+        self::assertTrue($recordingTransaction->isClosed());
+        $this->expectException(LogicException::class);
+        $recordingTransaction->commitTransactional(static fn () => null);
+    }
+
+    public static function uncertainFailures(): iterable
+    {
+        yield ['begin', false];
+        yield ['commit', false];
+        yield ['commit', true];
+        yield ['rollback', false];
+    }
+
+    public function test_that_unsupported_platform_and_sqlite_outer_composition_reject(): void
+    {
+        $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new OraclePlatform());
+        try {
+            new DbalRecordingTransaction($connection);
+            self::fail('Expected unsupported platform.');
+        } catch (InvalidArgumentException $exception) {
+            self::assertStringContainsString('SQLite, MySQL and PostgreSQL', $exception->getMessage());
+        }
+        $sqlite = $this->database();
+        $sqlite->beginTransaction();
+        try {
+            new DbalRecordingTransaction($sqlite);
+            self::fail('Expected outer composition rejection.');
+        } catch (LogicException) {
+            self::assertTrue($sqlite->isTransactionActive());
+        } finally {
+            $sqlite->rollBack();
+        }
+    }
+
+    public function test_that_mysql_is_an_accepted_platform(): void
+    {
+        $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new MySQLPlatform());
+        self::assertFalse((new DbalRecordingTransaction($connection))->isClosed());
+    }
+
+    public function test_that_unsupported_stored_payload_and_schema_versions_reject_clearly(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $observation = ObservationFixture::session();
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $observation): void {
+            (new DbalSessionRepository($recordingTransaction))->add(new Session($observation->session()));
+            (new DbalObservationRepository($recordingTransaction))->add($observation->recorded(new DateTimeImmutable('now')));
+        });
+        foreach ([['version' => 2], ['version' => 1, 'payload' => 'null'], ['payload' => '{"version":2}']] as $changes) {
+            $connection->update('fight_execution_observations', $changes, ['producer_id' => 'instrumentation']);
+            try {
+                (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $observation->id());
+                self::fail('Expected stored version or shape rejection.');
+            } catch (DomainException $exception) {
+                self::assertStringContainsString('observation', $exception->getMessage());
+            }
+        }
+        $connection->update('fight_execution_schema', ['version' => 2], ['singleton' => 1]);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Unsupported observation storage version.');
+        $recordingTransaction->commitTransactional(static fn () => null);
+    }
+
+    public function test_that_schema_composition_preserves_consumer_tables_and_qualifies_mysql_binary_identity(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $connection->executeStatement('CREATE TABLE consumer_owned (id INTEGER)');
+        $connection->insert('consumer_owned', ['id' => 42]);
+        $schema = new DbalObservationSchema();
+        $schema->install($connection);
+        $schema->install($connection);
+        self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM consumer_owned'));
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
+        self::assertTrue($connection->createSchemaManager()->tablesExist(DbalObservationSchema::TABLES));
+        $definition = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true])->createSchemaManager()->introspectSchema();
+        $schema->addTo($definition, new MySQLPlatform());
+        foreach (DbalObservationSchema::TABLES as $table) {
+            self::assertSame('utf8mb4_bin', $definition->getTable($table)->getOption('collation'));
+        }
+        self::assertCount(3, $definition->getTable('fight_execution_observations')->getForeignKeys());
+    }
+
+    public function test_that_schema_installation_rejects_active_partial_and_unsupported_composition(): void
+    {
+        foreach (['active', 'partial', 'unsupported'] as $mode) {
+            $connection = $this->database();
+            if ($mode === 'active') {
+                $connection->beginTransaction();
+            } elseif ($mode === 'partial') {
+                $connection->executeStatement('DROP TABLE fight_execution_observations');
+            } else {
+                $connection->update('fight_execution_schema', ['version' => 2], ['singleton' => 1]);
+            }
+            try {
+                (new DbalObservationSchema())->install($connection);
+                self::fail('Expected schema rejection.');
+            } catch (RuntimeException $exception) {
+                self::assertSame($mode === 'active', $connection->isTransactionActive());
+                self::assertStringContainsString('schema', $exception->getMessage());
+            } finally {
+                if ($connection->isTransactionActive()) { $connection->rollBack(); }
+            }
+        }
+    }
+
+    public function test_that_activity_uses_the_same_atomic_version_one_payload(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $activity = ObservationFixture::activity()->recorded(new DateTimeImmutable('2026-10-21T00:00:00.000001Z'));
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $activity): void {
+            (new DbalSessionRepository($recordingTransaction))->add(new Session($activity->session()));
+            (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', $activity->phase()));
+            (new DbalObservationRepository($recordingTransaction))->add($activity);
+        });
+        $saved = (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $activity->id());
+        self::assertSame($activity->comparison(), $saved->comparison());
+        self::assertSame('2026-10-20T12:34:56.120Z', $saved->occurrence()->toString());
+        self::assertEquals($activity->recordedAt(), $saved->recordedAt());
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_observations'));
+        self::assertSame(1, $saved->toArray()['version']);
+    }
+
+    public function test_that_current_schema_missing_its_order_index_rejects_as_incomplete(): void
+    {
+        $connection = $this->database();
+        $connection->createSchemaManager()->dropIndex('fight_execution_recording_order', 'fight_execution_observations');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Incomplete observation schema version one.');
+        (new DbalObservationSchema())->install($connection);
+    }
+
+    public function test_that_all_four_repositories_reject_an_unrelated_generic_transaction_on_the_same_connection(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
+        $detail = ObservationFixture::detail();
+        $protectedContentRepository = new DbalProtectedContentRepository($recordingTransaction);
+        $writes = [
+            static fn () => (new DbalSessionRepository($recordingTransaction))->add(new Session(ObservationFixture::session()->session())),
+            static fn () => (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', ObservationFixture::phase()->phase())),
+            static fn () => (new DbalObservationRepository($recordingTransaction))->add(ObservationFixture::session()->recorded(new DateTimeImmutable('now'))),
+            static fn () => $protectedContentRepository->add($detail, ProtectedContent::create($detail->detail(), 'private')),
+            static fn () => $protectedContentRepository->removeFor($detail)
+        ];
+        $transactionalUnitOfWork->commitTransactional(static function () use ($writes, $connection): void {
+            foreach ($writes as $write) {
+                try {
+                    $write();
+                    self::fail('A generic active transaction is not the execution serialization boundary.');
+                } catch (LogicException) {
+                    self::assertTrue($connection->isTransactionActive());
+                }
+            }
+        });
+        foreach (['sessions', 'phases', 'observations', 'contents'] as $table) {
+            self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_'.$table));
+        }
+    }
+
+    public function test_that_catching_nested_rejection_does_not_release_the_owning_serialization_boundary(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction): void {
+            try {
+                $recordingTransaction->commitTransactional(static fn () => null);
+                self::fail('Expected nested execution rejection.');
+            } catch (LogicException) {
+                (new DbalSessionRepository($recordingTransaction))->add(new Session(ObservationFixture::session()->session()));
+            }
+        });
+        self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+    }
+
+    public function test_that_failed_idle_inspection_is_not_reported_as_a_confirmed_rollback(): void
+    {
+        $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new PostgreSQLPlatform());
+        $failure = new class ('inspection failed') extends RuntimeException implements Exception {};
+        $connection->shouldReceive('isTransactionActive')->once()->andThrow($failure);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        try {
+            $recordingTransaction->commitTransactional(static fn () => null);
+            self::fail('Expected idle inspection failure.');
+        } catch (Exception $caught) {
+            self::assertSame($failure, $caught);
+            self::assertFalse($recordingTransaction->isClosed());
+        }
+    }
+
+    private function database(): Connection
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        (new DbalObservationSchema())->install($connection);
+        return $connection;
+    }
+}

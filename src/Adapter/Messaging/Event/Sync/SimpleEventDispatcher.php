@@ -43,11 +43,11 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
     public function dispatch(EventMessage $eventMessage): void
     {
         $eventType = ClassName::underscore($eventMessage->payload());
-        $allEvents = ClassName::underscore(AllEvents::class);
+        $allEventsType = ClassName::underscore(AllEvents::class);
         $failures = [];
 
         $this->invokeHandlerPhase($this->getHandlers($eventType), $eventMessage, $failures);
-        $this->invokeHandlerPhase($this->getHandlers($allEvents), $eventMessage, $failures);
+        $this->invokeHandlerPhase($this->getHandlers($allEventsType), $eventMessage, $failures);
 
         if ([] !== $failures) {
             throw new EventDispatchFailed($failures);
@@ -59,17 +59,17 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
      */
     public function register(EventSubscriber $subscriber): void
     {
-        foreach ($subscriber->eventRegistration() as $eventType => $params) {
+        foreach ($subscriber->eventRegistration() as $eventType => $eventRegistration) {
             $eventType = ClassName::underscore($eventType);
-            if (is_string($params)) {
-                $this->addHandler($eventType, [$subscriber, $params]);
-            } elseif (is_string($params[0])) {
-                $priority = isset($params[1]) ? (int) $params[1] : 0;
-                $this->addHandler($eventType, [$subscriber, $params[0]], $priority);
+            if (is_string($eventRegistration)) {
+                $this->addHandler($eventType, [$subscriber, $eventRegistration]);
+            } elseif (is_string($eventRegistration[0])) {
+                $priority = isset($eventRegistration[1]) ? (int) $eventRegistration[1] : 0;
+                $this->addHandler($eventType, [$subscriber, $eventRegistration[0]], $priority);
             } else {
-                foreach ($params as $handler) {
-                    $priority = isset($handler[1]) ? (int) $handler[1] : 0;
-                    $this->addHandler($eventType, [$subscriber, $handler[0]], $priority);
+                foreach ($eventRegistration as $handlerRegistration) {
+                    $priority = isset($handlerRegistration[1]) ? (int) $handlerRegistration[1] : 0;
+                    $this->addHandler($eventType, [$subscriber, $handlerRegistration[0]], $priority);
                 }
             }
         }
@@ -80,15 +80,15 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
      */
     public function unregister(EventSubscriber $subscriber): void
     {
-        foreach ($subscriber->eventRegistration() as $eventType => $params) {
+        foreach ($subscriber->eventRegistration() as $eventType => $eventRegistration) {
             $eventType = ClassName::underscore($eventType);
-            if (is_array($params) && is_array($params[0])) {
-                foreach ($params as $handler) {
-                    $this->removeHandler($eventType, [$subscriber, $handler[0]]);
+            if (is_array($eventRegistration) && is_array($eventRegistration[0])) {
+                foreach ($eventRegistration as $handlerRegistration) {
+                    $this->removeHandler($eventType, [$subscriber, $handlerRegistration[0]]);
                 }
             } else {
-                $handler = is_string($params) ? $params : $params[0];
-                $this->removeHandler($eventType, [$subscriber, $handler]);
+                $handlerMethod = is_string($eventRegistration) ? $eventRegistration : $eventRegistration[0];
+                $this->removeHandler($eventType, [$subscriber, $handlerMethod]);
             }
         }
     }

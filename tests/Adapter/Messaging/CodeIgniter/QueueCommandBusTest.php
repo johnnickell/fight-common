@@ -53,13 +53,13 @@ final class QueueCommandBusTest extends UnitTestCase
     public function test_that_job_validates_and_hands_the_reconstituted_message_to_its_service(): void
     {
         $message = CommandMessage::create(new QueueCommandBusTestCommand('command-73'));
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')->once()->withArgs(static function (CommandMessage $actual) use ($message): bool {
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')->once()->withArgs(static function (CommandMessage $actual) use ($message): bool {
             self::assertSame($message->arraySerialize(), $actual->arraySerialize());
 
             return true;
         });
-        Services::override(CommandMessageJob::HANDLER_SERVICE, new CommandMessageHandler($bus));
+        Services::override(CommandMessageJob::HANDLER_SERVICE, new CommandMessageHandler($commandBus));
 
         try {
             (new CommandMessageJob([

@@ -28,9 +28,9 @@ class MessengerCommandBusTest extends UnitTestCase
                 return $envelope;
             });
 
-        $bus = new MessengerCommandBus($sender);
+        $commandBus = new MessengerCommandBus($sender);
 
-        $bus->execute($command);
+        $commandBus->execute($command);
     }
 
     public function test_that_dispatch_sends_envelope_via_sender(): void
@@ -46,9 +46,9 @@ class MessengerCommandBusTest extends UnitTestCase
                 return $envelope;
             });
 
-        $bus = new MessengerCommandBus($sender);
+        $commandBus = new MessengerCommandBus($sender);
 
-        $bus->dispatch($commandMessage);
+        $commandBus->dispatch($commandMessage);
     }
 }
 

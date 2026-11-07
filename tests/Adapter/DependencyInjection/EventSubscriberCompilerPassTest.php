@@ -33,7 +33,7 @@ class EventSubscriberCompilerPassTest extends UnitTestCase
         try {
             foreach ([CanonicalEventSubscriberCompilerPass::class, EventSubscriberCompilerPass::class] as $passClass) {
                 $container = new ContainerBuilder();
-                $dispatcher = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
+                $eventDispatcherDefinition = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
                 $container->register('subscriber_id', StubEventSubscriber::class)
                     ->addTag('common.event_subscriber')
                     ->setPublic(true);
@@ -42,7 +42,7 @@ class EventSubscriberCompilerPassTest extends UnitTestCase
 
                 self::assertSame(
                     [['registerService', [StubEventSubscriber::class, 'subscriber_id']]],
-                    $dispatcher->getMethodCalls()
+                    $eventDispatcherDefinition->getMethodCalls()
                 );
             }
         } finally {
@@ -64,16 +64,16 @@ class EventSubscriberCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_tagged_event_subscribers(): void
     {
         $container = new ContainerBuilder();
-        $dispatcherDef = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
+        $eventDispatcherDefinition = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
 
-        $subscriberDef = $container->register('subscriber_id', StubEventSubscriber::class);
-        $subscriberDef->addTag('common.event_subscriber', []);
-        $subscriberDef->setPublic(true);
+        $subscriberDefinition = $container->register('subscriber_id', StubEventSubscriber::class);
+        $subscriberDefinition->addTag('common.event_subscriber', []);
+        $subscriberDefinition->setPublic(true);
 
         $pass = new EventSubscriberCompilerPass();
         $pass->process($container);
 
-        $calls = $dispatcherDef->getMethodCalls();
+        $calls = $eventDispatcherDefinition->getMethodCalls();
         self::assertCount(1, $calls);
         self::assertSame('registerService', $calls[0][0]);
         self::assertSame([StubEventSubscriber::class, 'subscriber_id'], $calls[0][1]);
@@ -82,20 +82,20 @@ class EventSubscriberCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_multiple_tagged_event_subscribers(): void
     {
         $container = new ContainerBuilder();
-        $dispatcherDef = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
+        $eventDispatcherDefinition = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
 
-        $subDef1 = $container->register('sub_1', StubEventSubscriber::class);
-        $subDef1->addTag('common.event_subscriber', []);
-        $subDef1->setPublic(true);
+        $firstSubscriberDefinition = $container->register('sub_1', StubEventSubscriber::class);
+        $firstSubscriberDefinition->addTag('common.event_subscriber', []);
+        $firstSubscriberDefinition->setPublic(true);
 
-        $subDef2 = $container->register('sub_2', StubOtherEventSubscriber::class);
-        $subDef2->addTag('common.event_subscriber', []);
-        $subDef2->setPublic(true);
+        $secondSubscriberDefinition = $container->register('sub_2', StubOtherEventSubscriber::class);
+        $secondSubscriberDefinition->addTag('common.event_subscriber', []);
+        $secondSubscriberDefinition->setPublic(true);
 
         $pass = new EventSubscriberCompilerPass();
         $pass->process($container);
 
-        $calls = $dispatcherDef->getMethodCalls();
+        $calls = $eventDispatcherDefinition->getMethodCalls();
         self::assertCount(2, $calls);
         self::assertSame('registerService', $calls[0][0]);
         self::assertSame([StubEventSubscriber::class, 'sub_1'], $calls[0][1]);
@@ -108,9 +108,9 @@ class EventSubscriberCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
 
-        $subscriberDef = $container->register('private_sub', StubEventSubscriber::class);
-        $subscriberDef->addTag('common.event_subscriber', []);
-        $subscriberDef->setPublic(false);
+        $subscriberDefinition = $container->register('private_sub', StubEventSubscriber::class);
+        $subscriberDefinition->addTag('common.event_subscriber', []);
+        $subscriberDefinition->setPublic(false);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must be public');
@@ -124,9 +124,9 @@ class EventSubscriberCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
 
-        $badDef = $container->register('bad_sub', StubNonSubscriberService::class);
-        $badDef->addTag('common.event_subscriber', []);
-        $badDef->setPublic(true);
+        $invalidDefinition = $container->register('bad_sub', StubNonSubscriberService::class);
+        $invalidDefinition->addTag('common.event_subscriber', []);
+        $invalidDefinition->setPublic(true);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must implement interface');

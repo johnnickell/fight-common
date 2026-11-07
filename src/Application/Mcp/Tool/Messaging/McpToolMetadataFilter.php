@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Tool\Messaging;
 
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
 use Fight\Common\Application\Messaging\Query\QueryFilter;

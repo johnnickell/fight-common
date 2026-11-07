@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
@@ -23,7 +25,8 @@ use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 final class McpSkillCompositionTest extends UnitTestCase
 {
     public function test_that_distinct_extension_ids_compose_and_equal_same_id_settings_coalesce(): void
@@ -167,21 +170,26 @@ final class McpSkillCompositionTest extends UnitTestCase
     {
         $policy = new class implements McpSkillAvailability { public function isAvailable(StrictJson $entry): bool { return true; } };
         $general = new class implements McpResourceAvailability { public function isAvailable(McpResourceInfo $resource): bool { return true; } };
-        $provider = new McpSkillResources([], $policy, new HttpFactory());
-        $resources = new McpResourceDiscovery([$provider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
-        $skills = new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope');
+        $skillResourceProvider = new McpSkillResources([], $policy, new HttpFactory());
+        $resourceDiscovery = new McpResourceDiscovery([$skillResourceProvider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResourceProvider, $resourceDiscovery, str_repeat('k', 32), 'scope');
         $extension = new ExtensionCapability(['example/other'], ['extensions' => ['com.example/other' => (object) []]]);
-        foreach ([[$skills, $resources, $extension], [$extension, $resources, $skills]] as $capabilities) {
+        foreach ([[$skillDiscovery, $resourceDiscovery, $extension], [$extension, $resourceDiscovery, $skillDiscovery]] as $capabilities) {
             $registry = $this->registry($capabilities);
-            self::assertSame($skills, $registry->capabilityFor('skills/get'));
-            self::assertSame($resources, $registry->capabilityFor('resources/read'));
+            self::assertSame($skillDiscovery, $registry->capabilityFor('skills/get'));
+            self::assertSame($resourceDiscovery, $registry->capabilityFor('resources/read'));
             self::assertCount(2, $registry->advertisedCapabilities()['extensions']);
         }
-        self::assertArrayNotHasKey('extensions', $this->registry([$resources])->advertisedCapabilities());
-        $other = new McpResourceDiscovery([$provider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('share the configured Resources');
-        $this->registry([$skills, $other]);
+        self::assertArrayNotHasKey('extensions', $this->registry([$resourceDiscovery])->advertisedCapabilities());
+        $other = new McpResourceDiscovery([$skillResourceProvider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
+        foreach ([[$skillDiscovery, $other], [$other, $skillDiscovery]] as $capabilities) {
+            try {
+                $this->registry($capabilities);
+                self::fail('A nominally equivalent Resources capability must not replace the shared instance.');
+            } catch (DomainException $failure) {
+                self::assertSame('Skills and file reads must share the configured Resources capability.', $failure->getMessage());
+            }
+        }
     }
 
     private function registry(array $capabilities): McpCapabilityRegistry

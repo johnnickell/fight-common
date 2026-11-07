@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Fixture\Mcp;
 
-use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
@@ -21,7 +21,7 @@ final readonly class DocumentLinkTool implements McpTool
     /**
      * Constructs DocumentLinkTool
      */
-    public function __construct(private QueryBus $queries, private McpResourceInfo $document)
+    public function __construct(private QueryBus $queryBus, private McpResourceInfo $document)
     {
     }
 
@@ -46,7 +46,7 @@ final readonly class DocumentLinkTool implements McpTool
      */
     public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $result = $this->queries->fetch(new SampleQuery($input->get('id')));
+        $result = $this->queryBus->fetch(new SampleQuery($input->get('id')));
 
         return McpToolOutput::structuredWithResourceLinks((object) ['summary' => $result['summary']], $this->document);
     }

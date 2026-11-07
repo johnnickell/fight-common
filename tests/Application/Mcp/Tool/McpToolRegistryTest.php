@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;

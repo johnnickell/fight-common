@@ -45,13 +45,13 @@ $projector = new class implements SafeHttpProjector {
         return null; // Fixed safe defaults; never copy $failure->getMessage() or getErrors().
     }
 };
-$errors = new SafeJSendErrorMiddleware(
+$errorMiddleware = new SafeJSendErrorMiddleware(
     new JSendResponseFactory($httpFactory, $httpFactory),
     new SafeHttpErrorPolicy(),
     $diagnostics,
     $projector
 );
-$response = $errors->process($request, $nextHandler);
+$response = $errorMiddleware->process($request, $nextHandler);
 ```
 
 Place the middleware outside the selected downstream handler. It passes successful responses through unchanged.
@@ -63,6 +63,13 @@ forward secrets. If reporting fails, the middleware returns a generic safe 500, 
 cannot claim the diagnostic was delivered. Projector or primary response-creation failure also falls back to a
 safe 500 without recursively reporting. If both primary and fallback PSR factories fail, the middleware throws a
 new sanitized `RuntimeException` without a cause; a broken response factory cannot supply a PSR response.
+
+Read `SafeHttpFailure`, `SafeHttpMetadata` and `SafeHttpPresentation` through typed property-name getters:
+`status()`, `metadata()`, `challenge()`, `allow()`, `retryAfterSeconds()`, `message()` and `data()` as applicable.
+The original public readonly fields remain supported; documentation-only deprecation is planned to first ship
+in v1.5.0, not yet released. See the
+[complete getter migration and release window](maintenance/public-property-getters.md). This does not expand
+public data or change status/header policy.
 
 ## Mapping and public data
 

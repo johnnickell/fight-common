@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Functional;
 
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
@@ -224,7 +224,7 @@ final class McpEndpointJourneyTest extends TestCase
 
     public function test_that_registered_cqrs_tools_complete_the_guarded_write_read_and_failure_journey(): void
     {
-        $commands = new class implements SynchronousCommandBus {
+        $commandBus = new class implements SynchronousCommandBus {
             public array $records = [];
             public array $messages = [];
             public function execute(Command $command): void { $this->dispatch(CommandMessage::create($command)); }
@@ -234,21 +234,21 @@ final class McpEndpointJourneyTest extends TestCase
                 $this->records[$message->payload()->toArray()['value']] = ['value' => 'recorded', 'private' => 'credential-not-for-output'];
             }
         };
-        $queries = new class ($commands) implements QueryBus {
+        $queryBus = new class ($commandBus) implements QueryBus {
             public array $messages = [];
-            public function __construct(private object $commands) {}
+            public function __construct(private object $commandBus) {}
             public function fetch(Query $query): mixed { return $this->dispatch(QueryMessage::create($query)); }
             public function dispatch(QueryMessage $message): mixed
             {
                 $this->messages[] = $message;
                 $id = $message->payload()->toArray()['value'];
                 if ($id === 'unexpected') { throw new LogicException('credential /private/path'); }
-                return $this->commands->records[$id] ?? throw new RuntimeException('private missing-record details');
+                return $this->commandBus->records[$id] ?? throw new RuntimeException('private missing-record details');
             }
         };
         $metadata = new McpToolMetadataFilter();
-        $commandPipeline = new CommandPipeline($commands);
-        $queryPipeline = new QueryPipeline($queries);
+        $commandPipeline = new CommandPipeline($commandBus);
+        $queryPipeline = new QueryPipeline($queryBus);
         $commandPipeline->addFilter($metadata);
         $queryPipeline->addFilter($metadata);
         $availability = new class implements McpToolAvailability {
@@ -289,11 +289,11 @@ final class McpEndpointJourneyTest extends TestCase
             self::assertSame('complete', $result['resultType']);
             self::assertStringNotContainsString('credential', (string) $response->getBody());
         }
-        self::assertCount(1, $commands->messages);
-        self::assertCount(1, $queries->messages);
-        self::assertSame('value.write', $commands->messages[0]->meta()->get('fight.mcp/tool'));
-        self::assertSame('value.read', $queries->messages[0]->meta()->get('fight.mcp/tool'));
-        self::assertArrayHasKey('item-1', $commands->records);
+        self::assertCount(1, $commandBus->messages);
+        self::assertCount(1, $queryBus->messages);
+        self::assertSame('value.write', $commandBus->messages[0]->meta()->get('fight.mcp/tool'));
+        self::assertSame('value.read', $queryBus->messages[0]->meta()->get('fight.mcp/tool'));
+        self::assertArrayHasKey('item-1', $commandBus->records);
 
         foreach ([['value.write', '', 'Tool arguments do not match the input schema.'], ['value.read', 'missing', 'The item is unavailable.']] as [$name, $id, $message]) {
             $response = $app->handle($call($name, (object) ['id' => $id]));
@@ -302,7 +302,7 @@ final class McpEndpointJourneyTest extends TestCase
             self::assertTrue($result['isError']);
             self::assertSame($message, $result['content'][0]['text']);
         }
-        self::assertCount(1, $commands->messages);
+        self::assertCount(1, $commandBus->messages);
         self::assertSame(0, $diagnostics->calls);
         $unexpected = $app->handle($call('value.read', (object) ['id' => 'unexpected']));
         self::assertSame(500, $unexpected->getStatusCode());
@@ -321,7 +321,7 @@ final class McpEndpointJourneyTest extends TestCase
         self::assertSame(-32602, json_decode((string) $hidden->getBody(), true)['error']['code']);
         self::assertSame(1, $diagnostics->calls);
         self::assertSame(1, $mirrored->calls);
-        self::assertCount(3, $queries->messages);
+        self::assertCount(3, $queryBus->messages);
     }
 
     private function request(string $method, array $params = []): ServerRequestInterface

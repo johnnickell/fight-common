@@ -18,15 +18,15 @@ final class CodeIgniterCacheTest extends UnitTestCase
 {
     public function test_that_read_handles_native_misses_hits_and_cached_null_values(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('get')->with('value')->twice()->andReturn(null, ['fight-common.codeigniter-cache.value' => 'value']);
-        $native->shouldReceive('get')->with('nullable')->twice()->andReturn(null, ['fight-common.codeigniter-cache.value' => null]);
-        $native->shouldReceive('get')->with('raw')->once()->andReturn('raw value');
-        $native->shouldReceive('save')->with('value', ['fight-common.codeigniter-cache.value' => 'value'], 300)->once()->andReturnTrue();
-        $native->shouldReceive('save')->with('nullable', ['fight-common.codeigniter-cache.value' => null], 300)->once()->andReturnTrue();
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('get')->with('value')->twice()->andReturn(null, ['fight-common.codeigniter-cache.value' => 'value']);
+        $nativeCache->shouldReceive('get')->with('nullable')->twice()->andReturn(null, ['fight-common.codeigniter-cache.value' => null]);
+        $nativeCache->shouldReceive('get')->with('raw')->once()->andReturn('raw value');
+        $nativeCache->shouldReceive('save')->with('value', ['fight-common.codeigniter-cache.value' => 'value'], 300)->once()->andReturnTrue();
+        $nativeCache->shouldReceive('save')->with('nullable', ['fight-common.codeigniter-cache.value' => null], 300)->once()->andReturnTrue();
 
-        $cache = new CodeIgniterCache($native);
+        $cache = new CodeIgniterCache($nativeCache);
 
         self::assertInstanceOf(MutableCache::class, $cache);
         self::assertSame('value', $cache->read('value', fn (): string => 'value', 300));
@@ -44,35 +44,35 @@ final class CodeIgniterCacheTest extends UnitTestCase
 
     public function test_that_read_passes_ttl_and_translates_save_failure(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('get')->once()->with('key')->andReturn(null);
-        $native->shouldReceive('save')->once()->with('key', ['fight-common.codeigniter-cache.value' => 'value'], 42)->andReturnFalse();
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('get')->once()->with('key')->andReturn(null);
+        $nativeCache->shouldReceive('save')->once()->with('key', ['fight-common.codeigniter-cache.value' => 'value'], 42)->andReturnFalse();
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('CodeIgniter cache could not save the value.');
 
-        (new CodeIgniterCache($native))->read('key', fn (): string => 'value', 42);
+        (new CodeIgniterCache($nativeCache))->read('key', fn (): string => 'value', 42);
     }
 
     public function test_that_read_translates_native_failures(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('get')->once()->with('key')->andThrow(new Exception('native cache failure'));
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('get')->once()->with('key')->andThrow(new Exception('native cache failure'));
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('native cache failure');
 
-        (new CodeIgniterCache($native))->read('key', fn (): string => 'value', 60);
+        (new CodeIgniterCache($nativeCache))->read('key', fn (): string => 'value', 60);
     }
 
     public function test_that_delete_translates_a_false_native_result(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('delete')->once()->with('missing')->andReturnFalse();
-        $cache = new CodeIgniterCache($native);
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('delete')->once()->with('missing')->andReturnFalse();
+        $cache = new CodeIgniterCache($nativeCache);
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('CodeIgniter cache could not delete the value.');
@@ -82,49 +82,49 @@ final class CodeIgniterCacheTest extends UnitTestCase
 
     public function test_that_delete_preserves_a_fight_cache_failure(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('delete')->once()->with('key')->andThrow(new CacheException('known cache failure'));
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('delete')->once()->with('key')->andThrow(new CacheException('known cache failure'));
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('known cache failure');
 
-        (new CodeIgniterCache($native))->delete('key');
+        (new CodeIgniterCache($nativeCache))->delete('key');
     }
 
     public function test_that_delete_translates_native_failures(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('delete')->once()->with('key')->andThrow(new Exception('native delete failure'));
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('delete')->once()->with('key')->andThrow(new Exception('native delete failure'));
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('native delete failure');
 
-        (new CodeIgniterCache($native))->delete('key');
+        (new CodeIgniterCache($nativeCache))->delete('key');
     }
 
     public function test_that_clear_translates_a_false_native_result(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('clean')->once()->andReturnFalse();
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('clean')->once()->andReturnFalse();
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('CodeIgniter cache could not clear the store.');
 
-        (new CodeIgniterCache($native))->clear();
+        (new CodeIgniterCache($nativeCache))->clear();
     }
 
     public function test_that_clear_translates_native_failures(): void
     {
-        /** @var CacheInterface&MockInterface $native */
-        $native = $this->mock(CacheInterface::class);
-        $native->shouldReceive('clean')->once()->andThrow(new Exception('native clean failure'));
+        /** @var CacheInterface&MockInterface $nativeCache */
+        $nativeCache = $this->mock(CacheInterface::class);
+        $nativeCache->shouldReceive('clean')->once()->andThrow(new Exception('native clean failure'));
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('native clean failure');
 
-        (new CodeIgniterCache($native))->clear();
+        (new CodeIgniterCache($nativeCache))->clear();
     }
 }

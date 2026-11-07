@@ -78,7 +78,7 @@ final class RulesParser
                 if (!$validation->contains('[')) {
                     $ruleName = $validation;
 
-                    $error = static::getErrorMessage(
+                    $errorMessage = static::getErrorMessage(
                         $rule,
                         $ruleName->toString(),
                         $label
@@ -87,7 +87,7 @@ final class RulesParser
                     $output[$fieldName][] = [
                         'type'  => $ruleName->toPascalCase()->toString(),
                         'args'  => [],
-                        'error' => $error
+                        'error' => $errorMessage
                     ];
                 } else {
                     $ruleName = $validation->substr(
@@ -99,34 +99,34 @@ final class RulesParser
                         $validation->indexOf('[') + 1,
                         $validation->lastIndexOf(']')
                     );
-                    $args = array_map(trim(...), explode(',', $ruleArgs->toString()));
+                    $ruleArguments = array_map(trim(...), explode(',', $ruleArgs->toString()));
 
                     // validate date/time formats
                     $dateTimeRules = ['date', 'time', 'date_time'];
                     if (in_array($ruleName->toString(), $dateTimeRules, true)) {
-                        if (empty($args[0])) {
+                        if (empty($ruleArguments[0])) {
                             $message = sprintf('%s validation requires format', $ruleName->toString());
                             throw new DomainException($message);
                         }
 
-                        $format = $args[0];
+                        $format = $ruleArguments[0];
                         static::validateDateTimeFormat(
                             $ruleName->toString(),
                             $format
                         );
                     }
 
-                    $error = static::getErrorMessage(
+                    $errorMessage = static::getErrorMessage(
                         $rule,
                         $ruleName->toString(),
                         $label,
-                        $args
+                        $ruleArguments
                     );
 
                     $output[$fieldName][] = [
                         'type'  => $ruleName->toPascalCase()->toString(),
-                        'args'  => $args,
-                        'error' => $error
+                        'args'  => $ruleArguments,
+                        'error' => $errorMessage
                     ];
                 }
             }
@@ -194,12 +194,16 @@ final class RulesParser
       * @param array{field: string, label: string, rules: string, errors?: array<string, string>} $rule
       * @param string $ruleName
       * @param string $label
-      * @param string[] $args
+      * @param string[] $ruleArguments
       *
       * @throws DomainException When rules are formatted incorrectly
       */
-    private static function getErrorMessage(array $rule, string $ruleName, string $label, array $args = []): string
-    {
+    private static function getErrorMessage(
+        array $rule,
+        string $ruleName,
+        string $label,
+        array $ruleArguments = []
+    ): string {
         $errorKey = StringObject::create($ruleName)
             ->toUpperUnderscored()
             ->toString();
@@ -216,16 +220,16 @@ final class RulesParser
         }
 
         if ($ruleName === 'in_list') {
-            $listString = sprintf(
+            $listFormat = sprintf(
                 '[%s]',
-                rtrim(str_repeat('%s,', count($args)), ',')
+                rtrim(str_repeat('%s,', count($ruleArguments)), ',')
             );
-            $format = str_replace('{{list}}', $listString, $format);
+            $format = str_replace('{{list}}', $listFormat, $format);
         }
 
         return call_user_func_array(
             sprintf(...),
-            array_merge([$format, $label], $args)
+            array_merge([$format, $label], $ruleArguments)
         );
     }
 
@@ -241,9 +245,9 @@ final class RulesParser
         $rules = StringObject::create($rulesString);
         $matchString = '';
 
-        $startPos = $rules->indexOf('match[');
-        $remainingParts = $rules->substr($startPos)->split('|');
-        $ruleSet = array_change_key_case(
+        $matchStartOffset = $rules->indexOf('match[');
+        $remainingParts = $rules->substr($matchStartOffset)->split('|');
+        $supportedRuleMessages = array_change_key_case(
             new ReflectionClass(ErrorMessages::class)->getConstants(),
             CASE_LOWER
         );
@@ -258,7 +262,7 @@ final class RulesParser
 
             if ($part->indexOf('[') !== -1) {
                 $ruleName = $part->substr(0, $part->indexOf('['))->toString();
-                if (isset($ruleSet[$ruleName])) {
+                if (isset($supportedRuleMessages[$ruleName])) {
                     break;
                 }
             }

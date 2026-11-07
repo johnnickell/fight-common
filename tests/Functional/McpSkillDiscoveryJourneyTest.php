@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Functional;
 
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
@@ -52,13 +52,13 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
                 return $this->allowed;
             }
         };
-        $streams = new class implements StreamFactoryInterface {
+        $streamFactory = new class implements StreamFactoryInterface {
             public array $opened = [];
             public function createStream(string $content = ''): StreamInterface { $this->opened[] = $content; return Utils::streamFor($content); }
             public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface { throw new RuntimeException('No filesystem reads'); }
             public function createStreamFromResource($resource): StreamInterface { throw new RuntimeException('No external streams'); }
         };
-        $provider = new McpSkillResources([$second, $first], $policy, $streams);
+        $skillResourceProvider = new McpSkillResources([$second, $first], $policy, $streamFactory);
         $general = new class implements McpResourceAvailability { public function isAvailable(McpResourceInfo $resource): bool { return true; } };
         $guard = new class implements McpInvocationGuard {
             public bool $allowed = true;
@@ -70,9 +70,9 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             public function record(Throwable $failure): void { $this->events[] = 'sanitized_skill_failure'; }
         };
         $factory = new HttpFactory();
-        $resources = new McpResourceDiscovery([$provider], $general, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
-        $skills = new McpSkillDiscovery($provider, $resources, str_repeat('fixture-only', 4), 'skills', new McpSkillDiscoveryLimits(pageSize: 1));
-        $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skills, $resources]), new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
+        $resourceDiscovery = new McpResourceDiscovery([$skillResourceProvider], $general, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResourceProvider, $resourceDiscovery, str_repeat('fixture-only', 4), 'skills', new McpSkillDiscoveryLimits(pageSize: 1));
+        $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skillDiscovery, $resourceDiscovery]), new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
         $app = new App($factory);
         $app->post('/consumer/mcp', fn(ServerRequestInterface $request) => $endpoint->handle($request));
         $app->add(function (ServerRequestInterface $request, RequestHandlerInterface $next) use ($factory) {
@@ -83,7 +83,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             $request = $this->request($method, $params);
             foreach ([[$request->withoutHeader('Authorization'), 401], [$request->withHeader('Origin', 'https://evil.test'), 403], [$request->withoutHeader('Mcp-Method'), 400], [$request->withHeader('MCP-Protocol-Version', '2025-11-25'), 400]] as [$bad, $status]) {
                 self::assertSame($status, $app->handle($bad)->getStatusCode());
-                self::assertSame([], $streams->opened);
+                self::assertSame([], $streamFactory->opened);
                 self::assertSame([], $policy->seen);
                 self::assertSame([], $guard->seen);
             }
@@ -91,7 +91,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         $guard->allowed = false;
         self::assertSame(429, $app->handle($this->request('skills/get', ['uri' => $uri]))->getStatusCode());
         self::assertSame([], $policy->seen);
-        self::assertSame([], $streams->opened);
+        self::assertSame([], $streamFactory->opened);
         $guard->allowed = true;
         $discovery = $this->responseResult($app, 'server/discover');
         self::assertArrayHasKey('resources', $discovery['capabilities']);
@@ -105,7 +105,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         self::assertSame($this->entry($second->entry()), $get['skill']);
         self::assertArrayNotHasKey('nextCursor', $get);
         self::assertSame([$get['skill']], $this->responseResult($app, 'skills/list', ['cursor' => $page['nextCursor']])['skills']);
-        self::assertSame([], $streams->opened);
+        self::assertSame([], $streamFactory->opened);
         self::assertContains(['skills/get', null], $guard->seen);
         foreach ([$page, $get] as $result) {
             self::assertSame('complete', $result['resultType']);
@@ -114,17 +114,17 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         }
         $root = $this->responseResult($app, 'resources/read', ['uri' => $uri])['contents'][0]['text'];
         $guide = $this->responseResult($app, 'resources/read', ['uri' => 'skill://catalog/v1/work/references/guide.md'])['contents'][0]['text'];
-        self::assertSame([SkillRevision::ROOT, SkillRevision::GUIDE], $streams->opened);
+        self::assertSame([SkillRevision::ROOT, SkillRevision::GUIDE], $streamFactory->opened);
         foreach ([$uri => $root, 'skill://catalog/v1/work/references/guide.md' => $guide] as $address => $bytes) {
             $manifest = array_column($page['skills'][0]['resources'], null, 'uri');
             self::assertSame(strlen($bytes), $manifest[$address]['size']);
             self::assertSame('sha256:'.hash('sha256', $bytes), $manifest[$address]['digest']);
         }
         // Root mirrors still apply on Resource reads, before policy and content opening.
-        $opened = $streams->opened;
+        $opened = $streamFactory->opened;
         $seen = $policy->seen;
         self::assertSame(400, $app->handle($this->request('resources/read', ['uri' => $uri])->withoutHeader('Mcp-Name'))->getStatusCode());
-        self::assertSame($opened, $streams->opened);
+        self::assertSame($opened, $streamFactory->opened);
         self::assertSame($seen, $policy->seen);
         // Every retained revision's listed manifest remains a complete exact-byte contract.
         foreach ([$first, $second] as $revision) {
@@ -132,14 +132,14 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             foreach ($entry['resources'] as $member) {
                 $content = $this->responseResult($app, 'resources/read', ['uri' => $member['uri']])['contents'][0];
                 $bytes = $content['text'] ?? base64_decode($content['blob'], true);
-                self::assertSame($revision->file($member['uri'])->bytes, $bytes);
+                self::assertSame($revision->file($member['uri'])->bytes(), $bytes);
                 self::assertSame($member['size'], strlen($bytes));
                 self::assertSame($member['digest'], 'sha256:'.hash('sha256', $bytes));
             }
         }
         self::assertSame($page['skills'][0], $this->responseResult($app, 'skills/get', ['uri' => $uri])['skill']);
         $policy->allowed = false;
-        $opened = $streams->opened;
+        $opened = $streamFactory->opened;
         self::assertSame([], $this->responseResult($app, 'skills/list')['skills']);
         self::assertSame(-32602, $this->response($app, 'skills/list', ['cursor' => $page['nextCursor']])['error']['code']);
         $unknown = $this->response($app, 'skills/get', ['uri' => 'skill://catalog/missing/work/SKILL.md']);
@@ -149,14 +149,14 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
                 self::assertSame($unknown['error'], $this->response($app, 'resources/read', ['uri' => $address])['error']);
             }
         }
-        self::assertSame($opened, $streams->opened);
+        self::assertSame($opened, $streamFactory->opened);
         self::assertSame([], $diagnostics->events);
         $policy->allowed = true;
         $policy->fail = true;
         foreach (['skills/list' => [], 'skills/get' => ['uri' => $uri]] as $method => $params) {
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $this->response($app, $method, $params)['error']);
         }
-        self::assertSame($opened, $streams->opened);
+        self::assertSame($opened, $streamFactory->opened);
         self::assertSame(['sanitized_skill_failure', 'sanitized_skill_failure'], $diagnostics->events);
         $policy->fail = false;
         self::assertSame($page['skills'], $this->responseResult($app, 'skills/list', ['cursor' => ''])['skills']);
@@ -165,10 +165,10 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
     public function test_that_request_scoped_construction_does_not_probe_dynamic_providers_before_guarded_dispatch(): void
     {
         $revision = SkillRevision::create();
-        $provider = new McpSkillResources([$revision], new class implements McpSkillAvailability {
+        $skillResourceProvider = new McpSkillResources([$revision], new class implements McpSkillAvailability {
             public function isAvailable(StrictJson $entry): bool { return true; }
         }, new HttpFactory());
-        $external = new ReadableResources([]);
+        $externalResourceProvider = new ReadableResources([]);
         $factory = new HttpFactory();
         $diagnostics = new class implements McpDiagnostics {
             public int $count = 0;
@@ -180,14 +180,14 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         };
         $constructions = 0;
         $app = new App($factory);
-        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($provider, $external, $factory, $diagnostics, $guard, &$constructions) {
+        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($skillResourceProvider, $externalResourceProvider, $factory, $diagnostics, $guard, &$constructions) {
             ++$constructions;
-            $resources = new McpResourceDiscovery([$provider, $external], new class implements McpResourceAvailability {
+            $resourceDiscovery = new McpResourceDiscovery([$skillResourceProvider, $externalResourceProvider], new class implements McpResourceAvailability {
                 public function isAvailable(McpResourceInfo $resource): bool { return true; }
             }, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
-            $skills = new McpSkillDiscovery($provider, $resources, str_repeat('fixture-only', 4), 'skills');
+            $skillDiscovery = new McpSkillDiscovery($skillResourceProvider, $resourceDiscovery, str_repeat('fixture-only', 4), 'skills');
             $handler = new McpRequestHandler(
-                new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skills, $resources]),
+                new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skillDiscovery, $resourceDiscovery]),
                 new ExactMcpOriginPolicy(['https://client.test']),
                 $guard,
                 new McpResponseFactory($factory, $factory, $diagnostics)
@@ -205,18 +205,18 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         }
         self::assertSame(4, $constructions);
         self::assertSame(429, $app->handle($request)->getStatusCode());
-        self::assertSame(0, $external->enumerations);
-        self::assertSame([], $external->lookedUp);
-        self::assertSame([], $external->opened);
+        self::assertSame(0, $externalResourceProvider->enumerations);
+        self::assertSame([], $externalResourceProvider->lookedUp);
+        self::assertSame([], $externalResourceProvider->opened);
         $guard->allowed = true;
         self::assertArrayHasKey('result', $this->response($app, 'skills/get', ['uri' => $revision->entry()->get('uri')]));
-        self::assertSame(1, $external->enumerations);
-        $external->entries = [$revision->entry()->get('uri') => ['bytes' => 'collision']];
+        self::assertSame(1, $externalResourceProvider->enumerations);
+        $externalResourceProvider->entries = [$revision->entry()->get('uri') => ['bytes' => 'collision']];
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $this->response($app, 'skills/get', ['uri' => $revision->entry()->get('uri')])['error']);
-        self::assertSame(2, $external->enumerations);
+        self::assertSame(2, $externalResourceProvider->enumerations);
         self::assertSame(1, $diagnostics->count);
-        self::assertSame([], $external->lookedUp);
-        self::assertSame([], $external->opened);
+        self::assertSame([], $externalResourceProvider->lookedUp);
+        self::assertSame([], $externalResourceProvider->opened);
     }
 
     private function entry(StrictJson $entry): array { return json_decode($entry->toString(), true, flags: JSON_THROW_ON_ERROR); }

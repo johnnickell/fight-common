@@ -61,8 +61,8 @@ class StringTextDataTypeTest extends UnitTestCase
 
     public function test_that_convert_to_database_value_returns_string_for_string_object(): void
     {
-        $obj = StringObject::fromString('long text content');
-        $result = $this->type->convertToDatabaseValue($obj, $this->platform);
+        $stringValue = StringObject::fromString('long text content');
+        $result = $this->type->convertToDatabaseValue($stringValue, $this->platform);
 
         self::assertSame('long text content', $result);
     }
@@ -81,10 +81,10 @@ class StringTextDataTypeTest extends UnitTestCase
 
     public function test_that_convert_to_php_value_returns_same_instance(): void
     {
-        $obj = StringObject::fromString('some text');
-        $result = $this->type->convertToPHPValue($obj, $this->platform);
+        $stringValue = StringObject::fromString('some text');
+        $result = $this->type->convertToPHPValue($stringValue, $this->platform);
 
-        self::assertSame($obj, $result);
+        self::assertSame($stringValue, $result);
     }
 
     public function test_that_convert_to_php_value_creates_string_object_from_string(): void

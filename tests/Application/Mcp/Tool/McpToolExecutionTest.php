@@ -6,16 +6,16 @@ namespace Fight\Test\Common\Application\Mcp\Tool;
 
 use Closure;
 use Fiber;
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpProgressReporter;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
@@ -107,15 +107,15 @@ final class McpToolExecutionTest extends UnitTestCase
         foreach (['value.read', 'value.write'] as $name) {
             $finals = [];
             foreach ([null, 'live'] as $token) {
-                $queries = $this->mock(QueryBus::class);
-                $commands = $this->mock(CommandBus::class);
+                $queryBus = $this->mock(QueryBus::class);
+                $commandBus = $this->mock(CommandBus::class);
                 if ($name === 'value.read') {
-                    $queries->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'item'])
+                    $queryBus->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'item'])
                         ->andReturn(['value' => 'public', 'secret' => 'not-output']);
-                    $tool = new ReadValueTool($queries);
+                    $tool = new ReadValueTool($queryBus);
                 } else {
-                    $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'item']);
-                    $tool = new WriteValueTool($commands);
+                    $commandBus->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'item']);
+                    $tool = new WriteValueTool($commandBus);
                 }
                 $messages = [];
                 $execution = new McpToolExecution($this->request($token, $name, ['id' => 'item']), static function (array $message) use (&$messages): void { $messages[] = $message; });
@@ -346,9 +346,9 @@ final class McpToolExecutionTest extends UnitTestCase
     {
         $messages = [];
         $execution = new McpToolExecution($this->request('live', 'value.write', ['id' => 'item']), static function (array $message) use (&$messages): void { $messages[] = $message; });
-        $commands = $this->mock(CommandBus::class);
-        $commands->shouldReceive('execute')->once()->andReturnUsing(static function () use ($execution): void { $execution->cancel(); });
-        $execution->run($this->responder(new WriteValueTool($commands), $execution));
+        $commandBus = $this->mock(CommandBus::class);
+        $commandBus->shouldReceive('execute')->once()->andReturnUsing(static function () use ($execution): void { $execution->cancel(); });
+        $execution->run($this->responder(new WriteValueTool($commandBus), $execution));
         self::assertCount(1, $messages);
         self::assertTrue($execution->isCancelled());
         self::assertSame(0.0, $messages[0]['params']['progress']);

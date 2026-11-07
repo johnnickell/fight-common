@@ -16,9 +16,9 @@ class SafeHttpPresentationTest extends UnitTestCase
     public function test_that_constructor_accepts_public_plain_json(): void
     {
         $presentation = new SafeHttpPresentation('Public message', ['text' => 'safe', 'ok' => true, 'empty' => null, 'count' => 0]);
-        self::assertSame('Public message', $presentation->message);
-        self::assertSame(['text' => 'safe', 'ok' => true, 'empty' => null, 'count' => 0], $presentation->data);
-        self::assertNull((new SafeHttpPresentation())->data);
+        self::assertSame('Public message', $presentation->message());
+        self::assertSame(['text' => 'safe', 'ok' => true, 'empty' => null, 'count' => 0], $presentation->data());
+        self::assertNull((new SafeHttpPresentation())->data());
     }
 
     public function test_that_constructor_detaches_nested_references_without_changing_public_shape(): void
@@ -29,8 +29,8 @@ class SafeHttpPresentationTest extends UnitTestCase
 
         $field = 'private';
         $nested['added'] = 'private';
-        self::assertSame(['nested' => ['field' => 'Safe'], 'list' => [0, 1]], $presentation->data);
-        self::assertSame('{"nested":{"field":"Safe"},"list":[0,1]}', json_encode($presentation->data));
+        self::assertSame(['nested' => ['field' => 'Safe'], 'list' => [0, 1]], $presentation->data());
+        self::assertSame('{"nested":{"field":"Safe"},"list":[0,1]}', json_encode($presentation->data()));
     }
 
     public function test_that_constructor_rejects_unsafe_or_unencodable_data_before_serialization(): void

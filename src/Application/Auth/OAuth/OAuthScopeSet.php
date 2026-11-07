@@ -16,8 +16,13 @@ final readonly class OAuthScopeSet
      *
      * @phpstan-param list<string> $values
      */
-    private function __construct(public array $values)
-    {
+    private function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use values() instead
+         * Retained until a future major after at least one released minor
+         */
+        public array $values
+    ) {
     }
 
     /**
@@ -50,10 +55,20 @@ final readonly class OAuthScopeSet
     }
 
     /**
+     * Returns the canonical case-sensitive scope tokens
+     *
+     * @phpstan-return list<string>
+     */
+    public function values(): array
+    {
+        return $this->values;
+    }
+
+    /**
      * Returns whether every required scope is in this trusted effective set
      */
     public function includes(self $required): bool
     {
-        return array_diff($required->values, $this->values) === [];
+        return array_diff($required->values(), $this->values) === [];
     }
 }

@@ -327,21 +327,21 @@ final class LinkedStack implements Stack
      */
     public function partition(callable $predicate): array
     {
-        $stack1 = static::of($this->itemType());
-        $stack2 = static::of($this->itemType());
+        $matchingItems = static::of($this->itemType());
+        $nonMatchingItems = static::of($this->itemType());
 
         $this->list->setIteratorMode(static::REVERSE);
         foreach ($this->getIterator() as $index => $item) {
             if (call_user_func($predicate, $item, $index)) {
-                $stack1->push($item);
+                $matchingItems->push($item);
             } else {
-                $stack2->push($item);
+                $nonMatchingItems->push($item);
             }
         }
 
         $this->list->setIteratorMode(static::FORWARD);
 
-        return [$stack1, $stack2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

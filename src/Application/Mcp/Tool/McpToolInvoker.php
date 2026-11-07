@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Attribute\Validation;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpProgressReporter;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Task\McpTaskHandle;
+use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Mcp\Task\McpTaskTool;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputResponses;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInteractiveTool;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpToolInteraction;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\Messaging\McpToolMetadataFilter;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Application\Validation\Exception\ValidationException;
@@ -29,17 +32,35 @@ use Throwable;
  */
 final readonly class McpToolInvoker
 {
+    private ValidationService $validationService;
+    private McpToolFailureMap $toolFailureMap;
+    private ?McpToolMetadataFilter $toolMetadataFilter;
+
     /**
      * Constructs McpToolInvoker
      */
     public function __construct(
         private McpToolRegistry $registry,
         private McpToolAvailability $availability,
-        private ValidationService $validation = new ValidationService(),
-        private McpToolFailureMap $failures = new McpToolFailureMap(),
-        private ?McpToolMetadataFilter $metadata = null,
-        private ?McpToolInteraction $interaction = null
+        ValidationService $validation = new ValidationService(),
+        McpToolFailureMap $failures = new McpToolFailureMap(),
+        ?McpToolMetadataFilter $metadata = null,
+        private ?McpToolInteraction $interaction = null,
+        private ?McpTasks $taskCapability = null
     ) {
+        $this->validationService = $validation;
+        $this->toolFailureMap = $failures;
+        $this->toolMetadataFilter = $metadata;
+    }
+
+    /**
+     * Returns explicit complete Task composition for registry identity validation
+     *
+     * @internal
+     */
+    public function tasks(): ?McpTasks
+    {
+        return $this->taskCapability;
     }
 
     /**
@@ -101,6 +122,13 @@ final readonly class McpToolInvoker
         ?McpRequest $request
     ): McpResult {
         [$tool, $info] = $this->select($name);
+        if ($tool instanceof McpTaskTool) {
+            McpTasks::requireSupport($request);
+            if ($this->taskCapability === null) {
+                throw new DomainException('Task Tools require explicit complete Tasks composition.');
+            }
+        }
+
         $this->requireCapability($info, $request);
 
         try {
@@ -126,7 +154,7 @@ final readonly class McpToolInvoker
         $attributes = new ReflectionMethod($tool, 'handle')->getAttributes(Validation::class);
         $rules = $attributes === [] ? [] : $attributes[0]->newInstance()->rules();
         try {
-            $validated = $this->validation->validate($input, $rules);
+            $validated = $this->validationService->validate($input, $rules);
         } catch (ValidationException) {
             // Rules may interpolate labels or supplied values; those diagnostics are not public-safe.
             return $this->error('Tool argument validation failed.');
@@ -213,7 +241,7 @@ final readonly class McpToolInvoker
             $confirmation
         );
         try {
-            return $this->metadata?->invoke($info, $invoke) ?? $invoke();
+            return $this->toolMetadataFilter?->invoke($info, $invoke) ?? $invoke();
         } catch (Throwable $throwable) {
             throw new DomainException('Tool execution failed.', 0, $throwable);
         }
@@ -264,16 +292,22 @@ final readonly class McpToolInvoker
         try {
             if ($responses !== null && $tool instanceof McpInteractiveTool) {
                 $output = $tool->resume($validated, $responses, $progress);
+            } elseif ($tool instanceof McpTaskTool) {
+                $output = $tool->start($validated, $progress);
             } else {
                 $output = $tool->handle($validated, $progress);
             }
         } catch (Throwable $throwable) {
-            $message = $this->failures->messageFor($throwable);
+            $message = $this->toolFailureMap->messageFor($throwable);
             if ($message !== null) {
                 return $this->error($message);
             }
 
             throw new DomainException('Tool invocation failed.', 0, $throwable);
+        }
+
+        if ($output instanceof McpTaskHandle) {
+            return $this->taskCapability->created($output);
         }
 
         if ($output instanceof McpInputRequired) {
@@ -293,7 +327,7 @@ final readonly class McpToolInvoker
         return McpResult::complete([
             'content'           => $output->contentItems(),
             'structuredContent' => $content
-        ]);
+        ])->withResponseLimit($output->maxEncodedResponseBytes());
     }
 
     /**

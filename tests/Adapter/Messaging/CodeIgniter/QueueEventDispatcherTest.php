@@ -39,18 +39,18 @@ final class QueueEventDispatcherTest extends UnitTestCase
             'kind'    => 'event',
             'message' => $message->arraySerialize()
         ])->andReturn(QueuePushResult::success(73));
-        $dispatcher = new QueueEventDispatcher($queue, 'events', 'fight-event');
-        $dispatcher->dispatch($message);
+        $eventDispatcher = new QueueEventDispatcher($queue, 'events', 'fight-event');
+        $eventDispatcher->dispatch($message);
 
         $subscriber = $this->mock(EventSubscriber::class);
         $handler = static function (): void {
         };
-        $dispatcher->register($subscriber);
-        $dispatcher->unregister($subscriber);
-        $dispatcher->addHandler('event', $handler);
-        $dispatcher->removeHandler('event', $handler);
-        self::assertSame([], $dispatcher->getHandlers());
-        self::assertFalse($dispatcher->hasHandlers());
+        $eventDispatcher->register($subscriber);
+        $eventDispatcher->unregister($subscriber);
+        $eventDispatcher->addHandler('event', $handler);
+        $eventDispatcher->removeHandler('event', $handler);
+        self::assertSame([], $eventDispatcher->getHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers());
     }
 
     public function test_that_rejects_queue_failures_and_invalid_job_payloads(): void
@@ -82,13 +82,13 @@ final class QueueEventDispatcherTest extends UnitTestCase
     public function test_that_job_hands_reconstituted_messages_to_its_service_and_rejects_invalid_services(): void
     {
         $message = EventMessage::create(new QueueEventDispatcherTestEvent('event-73'));
-        $synchronous = $this->mock(SynchronousEventDispatcher::class);
-        $synchronous->shouldReceive('dispatch')->once()->withArgs(static function (EventMessage $actual) use ($message): bool {
+        $eventDispatcher = $this->mock(SynchronousEventDispatcher::class);
+        $eventDispatcher->shouldReceive('dispatch')->once()->withArgs(static function (EventMessage $actual) use ($message): bool {
             self::assertSame($message->arraySerialize(), $actual->arraySerialize());
 
             return true;
         });
-        Services::override(EventMessageJob::HANDLER_SERVICE, new EventMessageHandler($synchronous));
+        Services::override(EventMessageJob::HANDLER_SERVICE, new EventMessageHandler($eventDispatcher));
         try {
             (new EventMessageJob([
                 'kind'    => 'event',

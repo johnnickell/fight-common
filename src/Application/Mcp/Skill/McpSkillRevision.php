@@ -48,29 +48,29 @@ final readonly class McpSkillRevision
         $paths = [];
         $total = 0;
         foreach ($members as $member) {
-            if (!$member instanceof McpSkillFile || count($files) >= $limits->maxFiles) {
+            if (!$member instanceof McpSkillFile || count($files) >= $limits->maxFiles()) {
                 throw new DomainException('Skill revisions require a bounded complete set of immutable files.');
             }
 
             $address = $root.$member->uriPath();
-            $total += strlen($member->bytes);
-            if (isset($files[$address]) || $total > $limits->maxTotalBytes) {
+            $total += strlen($member->bytes());
+            if (isset($files[$address]) || $total > $limits->maxTotalBytes()) {
                 throw new DomainException('Skill revision members are duplicated or exceed the aggregate byte budget.');
             }
 
             $info = McpResourceInfo::fromArray([
                 'uri'      => $address,
-                'name'     => $member->path,
-                'mimeType' => $member->mimeType,
-                'size'     => strlen($member->bytes)
+                'name'     => $member->path(),
+                'mimeType' => $member->mimeType(),
+                'size'     => strlen($member->bytes())
             ], $resourceLimits);
             $readLimits->validate($info);
             $files[$address] = $member;
             $resources[$address] = $info;
-            $paths[$member->path] = true;
+            $paths[$member->path()] = true;
         }
 
-        if (!isset($files[$uri]) || !$files[$uri]->text) {
+        if (!isset($files[$uri]) || !$files[$uri]->text()) {
             throw new DomainException('Skill revisions require one UTF-8 root SKILL.md.');
         }
 
@@ -86,7 +86,7 @@ final readonly class McpSkillRevision
             }
         }
 
-        $frontmatter = self::frontmatter($files[$uri]->bytes, $parser, $limits);
+        $frontmatter = self::frontmatter($files[$uri]->bytes(), $parser, $limits);
         if (!str_ends_with($root, '/'.rawurlencode($frontmatter->get('name')).'/')) {
             throw new DomainException('Skill URI parent directory must match its frontmatter name.');
         }
@@ -95,14 +95,14 @@ final readonly class McpSkillRevision
         ksort($resources, SORT_STRING);
         $manifest = [];
         foreach ($files as $address => $file) {
-            $manifest[] = ['uri' => $address, 'digest' => $file->digest, 'size' => strlen($file->bytes)];
+            $manifest[] = ['uri' => $address, 'digest' => $file->digest(), 'size' => strlen($file->bytes())];
         }
 
         $entry = StrictJson::fromObject(
             ['uri' => $uri, 'frontmatter' => $frontmatter, 'resources' => $manifest],
-            $limits->maxDepth + 2
+            $limits->maxDepth() + 2
         );
-        if (strlen($entry->toString()) > $limits->maxEntryBytes) {
+        if (strlen($entry->toString()) > $limits->maxEntryBytes()) {
             throw new DomainException('Skill complete entry exceeds its encoded metadata budget.');
         }
 
@@ -141,7 +141,7 @@ final readonly class McpSkillRevision
     private static function root(string $uri, McpResourceLimits $limits): string
     {
         if (
-            strlen($uri) > $limits->maxUriBytes
+            strlen($uri) > $limits->maxUriBytes()
             || preg_match('~\A[a-z][a-z0-9+.-]*:(?://[A-Za-z0-9.-]+(?::[0-9]+)?)?(/[^?#]+)\z~D', $uri, $match) !== 1
             || !str_ends_with($uri, '/SKILL.md')
         ) {
@@ -167,18 +167,18 @@ final readonly class McpSkillRevision
         McpSkillLimits $limits
     ): StrictJson {
         // Search only a bounded prefix; never parse a file body as YAML or normalize CRLF in served bytes.
-        $prefix = substr($bytes, 0, $limits->maxFrontmatterBytes + 16);
+        $prefix = substr($bytes, 0, $limits->maxFrontmatterBytes() + 16);
         if (preg_match('/\A---\r?\n(.*?)^---(?:\r?\n|\z)/ms', $prefix, $match) !== 1) {
             throw new DomainException('Skill root requires bounded delimited YAML frontmatter.');
         }
 
-        if (strlen($match[1]) > $limits->maxFrontmatterBytes) {
+        if (strlen($match[1]) > $limits->maxFrontmatterBytes()) {
             throw new DomainException('Skill frontmatter exceeds its raw byte budget.');
         }
 
         $data = $parser->parse($match[1], $limits);
-        $data = StrictJson::fromData($data, $limits->maxDepth);
-        if (!$data->isObject() || strlen($data->toString()) > $limits->maxFrontmatterBytes) {
+        $data = StrictJson::fromData($data, $limits->maxDepth());
+        if (!$data->isObject() || strlen($data->toString()) > $limits->maxFrontmatterBytes()) {
             throw new DomainException('Skill frontmatter must retain a bounded complete JSON object.');
         }
 

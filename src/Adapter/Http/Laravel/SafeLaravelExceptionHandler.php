@@ -25,16 +25,20 @@ final class SafeLaravelExceptionHandler extends Handler
      * @var WeakMap<Throwable, bool>
      */
     private WeakMap $reported;
+    private readonly SafeHttpErrorPolicy $httpErrorPolicy;
+    private readonly ?SafeHttpProjector $httpErrorProjector;
 
     /**
      * Constructs SafeLaravelExceptionHandler
      */
     public function __construct(
         Container $container,
-        private readonly SafeHttpErrorPolicy $policy,
+        SafeHttpErrorPolicy $policy,
         private readonly SafeHttpDiagnostics $diagnostics,
-        private readonly ?SafeHttpProjector $projector = null
+        ?SafeHttpProjector $projector = null
     ) {
+        $this->httpErrorPolicy = $policy;
+        $this->httpErrorProjector = $projector;
         parent::__construct($container);
         $this->reported = new WeakMap();
     }
@@ -85,8 +89,8 @@ final class SafeLaravelExceptionHandler extends Handler
 
         try {
             $native = LaravelHttpFailure::translate($e);
-            $projection = $this->projector?->project($e, $this->policy->status($native));
-            [$status, $envelope, $headers] = $this->policy->present($native, $projection);
+            $projection = $this->httpErrorProjector?->project($e, $this->httpErrorPolicy->status($native));
+            [$status, $envelope, $headers] = $this->httpErrorPolicy->present($native, $projection);
 
             return JSendResponse::fromEnvelope($envelope, $status, $headers);
         } catch (Throwable) {
@@ -100,7 +104,7 @@ final class SafeLaravelExceptionHandler extends Handler
     private function fallback(): JSendResponse
     {
         try {
-            [$status, $envelope, $headers] = $this->policy->fallback();
+            [$status, $envelope, $headers] = $this->httpErrorPolicy->fallback();
 
             return JSendResponse::fromEnvelope($envelope, $status, $headers);
         } catch (Throwable) {

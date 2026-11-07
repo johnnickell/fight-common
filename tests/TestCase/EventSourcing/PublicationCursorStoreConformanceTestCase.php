@@ -20,13 +20,13 @@ abstract class PublicationCursorStoreConformanceTestCase extends UnitTestCase
      */
     public function test_that_named_publication_cursors_follow_the_durable_lifecycle_contract(): void
     {
-        $store = $this->createPublicationCursorStore();
+        $publicationCursorStore = $this->createPublicationCursorStore();
 
-        self::assertSame(0, $store->load('orders.primary'));
-        self::assertSame(0, $store->load('orders.secondary'));
+        self::assertSame(0, $publicationCursorStore->load('orders.primary'));
+        self::assertSame(0, $publicationCursorStore->load('orders.secondary'));
 
         try {
-            $store->save('orders.primary', -1);
+            $publicationCursorStore->save('orders.primary', -1);
             self::fail('Expected a cursor below the initial position to be rejected.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame(
@@ -35,16 +35,16 @@ abstract class PublicationCursorStoreConformanceTestCase extends UnitTestCase
             );
         }
 
-        $store->save('orders.primary', 3);
-        $store->save('orders.primary', 3);
-        $store->save('orders.primary', 5);
-        $store->save('orders.secondary', 2);
+        $publicationCursorStore->save('orders.primary', 3);
+        $publicationCursorStore->save('orders.primary', 3);
+        $publicationCursorStore->save('orders.primary', 5);
+        $publicationCursorStore->save('orders.secondary', 2);
 
-        self::assertSame(5, $store->load('orders.primary'));
-        self::assertSame(2, $store->load('orders.secondary'));
+        self::assertSame(5, $publicationCursorStore->load('orders.primary'));
+        self::assertSame(2, $publicationCursorStore->load('orders.secondary'));
 
         try {
-            $store->save('orders.primary', 4);
+            $publicationCursorStore->save('orders.primary', 4);
             self::fail('Expected a backward cursor save to be rejected.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame(
@@ -53,10 +53,10 @@ abstract class PublicationCursorStoreConformanceTestCase extends UnitTestCase
             );
         }
 
-        $store = $this->reopenPublicationCursorStore($store);
+        $publicationCursorStore = $this->reopenPublicationCursorStore($publicationCursorStore);
 
-        self::assertSame(5, $store->load('orders.primary'));
-        self::assertSame(2, $store->load('orders.secondary'));
+        self::assertSame(5, $publicationCursorStore->load('orders.primary'));
+        self::assertSame(2, $publicationCursorStore->load('orders.secondary'));
     }
 
     /**
@@ -68,8 +68,8 @@ abstract class PublicationCursorStoreConformanceTestCase extends UnitTestCase
      * Returns a reopened publication cursor store when supported
      */
     protected function reopenPublicationCursorStore(
-        PublicationCursorStore $store,
+        PublicationCursorStore $publicationCursorStore,
     ): PublicationCursorStore {
-        return $store;
+        return $publicationCursorStore;
     }
 }

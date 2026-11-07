@@ -20,7 +20,15 @@ final class SafeHttpFailure extends RuntimeException
      * Constructs SafeHttpFailure
      */
     private function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use status() instead
+         * Retained until a future major after at least one released minor
+         */
         public readonly int $status,
+        /**
+         * @deprecated Planned v1.5.0; use metadata() instead
+         * Retained until a future major after at least one released minor
+         */
         public readonly ?SafeHttpMetadata $metadata = null,
         string $diagnostic = '',
         ?Throwable $previous = null
@@ -105,5 +113,21 @@ final class SafeHttpFailure extends RuntimeException
     public static function unavailable(?int $retryAfterSeconds = null, string $diagnostic = ''): self
     {
         return new self(503, new SafeHttpMetadata(retryAfterSeconds: $retryAfterSeconds), $diagnostic);
+    }
+
+    /**
+     * Returns the selected HTTP status
+     */
+    public function status(): int
+    {
+        return $this->status;
+    }
+
+    /**
+     * Returns the selected protocol metadata
+     */
+    public function metadata(): ?SafeHttpMetadata
+    {
+        return $this->metadata;
     }
 }

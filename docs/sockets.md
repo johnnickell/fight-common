@@ -68,8 +68,8 @@ socket service provider is shipped.
 use Fight\Common\Adapter\Socket\Laravel\LaravelBroadcastPublisher;
 use Fight\Common\Adapter\Socket\Laravel\LaravelPrivatePublisher;
 
-$public = new LaravelBroadcastPublisher($broadcaster, 'fight.message');
-$private = new LaravelPrivatePublisher($public);
+$publicPublisher = new LaravelBroadcastPublisher($broadcaster, 'fight.message');
+$privatePublisher = new LaravelPrivatePublisher($publicPublisher);
 ```
 
 The remaining examples show the Mercure composition path.
@@ -283,14 +283,14 @@ class BookController extends AbstractController
     #[Route('/books/{id}', methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $bookUpdate = json_decode($request->getContent(), true);
 
         // ... persist the update ...
 
         $this->publisher->push(
             'https://example.com/books/' . $id,
             json_encode([
-                'title' => $data['title'] ?? null,
+                'title' => $bookUpdate['title'] ?? null,
                 'status' => 'updated',
             ]),
         );
@@ -303,13 +303,13 @@ class BookController extends AbstractController
 ### Client-Side Subscription
 
 ```javascript
-const url = new URL('https://hub.example.com/.well-known/mercure');
-url.searchParams.append('topic', 'https://example.com/books/1');
+const subscriptionUrl = new URL('https://hub.example.com/.well-known/mercure');
+subscriptionUrl.searchParams.append('topic', 'https://example.com/books/1');
 
-const eventSource = new EventSource(url);
+const eventSource = new EventSource(subscriptionUrl);
 
 eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log('Book updated:', data);
+    const bookUpdate = JSON.parse(event.data);
+    console.log('Book updated:', bookUpdate);
 };
 ```

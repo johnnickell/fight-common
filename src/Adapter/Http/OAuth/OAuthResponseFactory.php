@@ -17,14 +17,20 @@ use Psr\Http\Message\StreamFactoryInterface;
  */
 final readonly class OAuthResponseFactory
 {
+    private ResponseFactoryInterface $responseFactory;
+    private StreamFactoryInterface $streamFactory;
+
     /**
      * Constructs OAuthResponseFactory
      */
     public function __construct(
-        private ResponseFactoryInterface $responses,
-        private StreamFactoryInterface $streams,
+        ResponseFactoryInterface $responses,
+        StreamFactoryInterface $streams,
         private ?string $realm = null
     ) {
+        $this->responseFactory = $responses;
+        $this->streamFactory = $streams;
+
         if ($realm !== null && preg_match('/\A[\x20-\x7e]*\z/', $realm) !== 1) {
             throw new DomainException('Unsafe OAuth challenge realm.');
         }
@@ -35,9 +41,9 @@ final readonly class OAuthResponseFactory
      */
     public function metadata(OAuthResourceMetadata $metadata): ResponseInterface
     {
-        return $this->responses->createResponse(200)
+        return $this->responseFactory->createResponse(200)
             ->withHeader('Content-Type', 'application/json')
-            ->withBody($this->streams->createStream($metadata->toJson()));
+            ->withBody($this->streamFactory->createStream($metadata->toJson()));
     }
 
     /**
@@ -54,14 +60,14 @@ final readonly class OAuthResponseFactory
             OAuthFailure::INSUFFICIENT_SCOPE => 403,
             OAuthFailure::INTERNAL_ERROR => 500,
         };
-        $response = $this->responses->createResponse($status)
+        $response = $this->responseFactory->createResponse($status)
             ->withHeader('Cache-Control', 'no-store')
-            ->withBody($this->streams->createStream());
+            ->withBody($this->streamFactory->createStream());
         if ($failure === OAuthFailure::INTERNAL_ERROR) {
             return $response;
         }
 
-        $parameters = ['resource_metadata='.$this->quote($metadata->metadataUrl)];
+        $parameters = ['resource_metadata='.$this->quote($metadata->metadataUrl())];
         if ($this->realm !== null) {
             $parameters[] = 'realm='.$this->quote($this->realm);
         }
@@ -70,8 +76,8 @@ final readonly class OAuthResponseFactory
             $parameters[] = 'error='.$this->quote(strtolower($failure->name));
         }
 
-        if ($requiredScopes->values !== []) {
-            $parameters[] = 'scope='.$this->quote(implode(' ', $requiredScopes->values));
+        if ($requiredScopes->values() !== []) {
+            $parameters[] = 'scope='.$this->quote(implode(' ', $requiredScopes->values()));
         }
 
         return $response->withHeader('WWW-Authenticate', 'Bearer '.implode(', ', $parameters));
@@ -82,9 +88,9 @@ final readonly class OAuthResponseFactory
      */
     public function methodNotAllowed(): ResponseInterface
     {
-        return $this->responses->createResponse(405)
+        return $this->responseFactory->createResponse(405)
             ->withHeader('Allow', 'GET')
-            ->withBody($this->streams->createStream());
+            ->withBody($this->streamFactory->createStream());
     }
 
     /**

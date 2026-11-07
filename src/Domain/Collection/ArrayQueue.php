@@ -337,18 +337,18 @@ final class ArrayQueue implements Queue
      */
     public function partition(callable $predicate): array
     {
-        $queue1 = static::of($this->itemType());
-        $queue2 = static::of($this->itemType());
+        $matchingItems = static::of($this->itemType());
+        $nonMatchingItems = static::of($this->itemType());
 
         foreach ($this->getIterator() as $index => $item) {
             if (call_user_func($predicate, $item, $index)) {
-                $queue1->enqueue($item);
+                $matchingItems->enqueue($item);
             } else {
-                $queue2->enqueue($item);
+                $nonMatchingItems->enqueue($item);
             }
         }
 
-        return [$queue1, $queue2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**
@@ -408,12 +408,12 @@ final class ArrayQueue implements Queue
      */
     private function reindex(int $capacity): void
     {
-        $temp = [];
+        $reindexedItems = [];
         for ($i = 0; $i < $this->count; $i++) {
-            $temp[$i] = $this->items[($i + $this->front) % $this->cap];
+            $reindexedItems[$i] = $this->items[($i + $this->front) % $this->cap];
         }
 
-        $this->items = $temp;
+        $this->items = $reindexedItems;
         $this->cap = $capacity;
         $this->front = 0;
         $this->end = $this->count;

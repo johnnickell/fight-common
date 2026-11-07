@@ -26,21 +26,25 @@ class CommandFilterCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(CommandPipeline::class);
+        $commandPipelineDefinition = $container->findDefinition(CommandPipeline::class);
         $taggedServices = $container->findTaggedServiceIds('common.command_filter', true);
 
-        foreach ($taggedServices as $id => $tags) {
-            $serviceDefinition = $container->getDefinition($id);
+        foreach ($taggedServices as $filterServiceId => $tags) {
+            $serviceDefinition = $container->getDefinition($filterServiceId);
 
             $serviceClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
             $reflection = new ReflectionClass($serviceClass);
 
             if (!$reflection->implementsInterface(CommandFilter::class)) {
-                $message = sprintf('Service "%s" must implement interface "%s"', $id, CommandFilter::class);
+                $message = sprintf(
+                    'Service "%s" must implement interface "%s"',
+                    $filterServiceId,
+                    CommandFilter::class
+                );
                 throw new Exception($message);
             }
 
-            $definition->addMethodCall('addFilter', [new Reference($id)]);
+            $commandPipelineDefinition->addMethodCall('addFilter', [new Reference($filterServiceId)]);
         }
     }
 }

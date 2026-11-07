@@ -5,22 +5,23 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Tool\Interaction;
 
 use Fight\Common\Adapter\Mcp\Sodium\SodiumMcpStateProtector;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpProgressReporter;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequest;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputResponses;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInteractiveTool;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpStateProtector;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpToolInteraction;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
@@ -53,14 +54,14 @@ use RuntimeException;
 #[CoversClass(McpToolInvocation::class)]
 #[CoversClass(McpToolRegistry::class)]
 #[CoversClass(McpToolInfo::class)]
-#[CoversClass(McpResult::class)]
-#[CoversClass(McpProtocolError::class)]
+#[CoversClass(ReleasedMcp\McpResult::class)]
+#[CoversClass(ReleasedMcp\McpProtocolError::class)]
 final class McpToolInteractionTest extends UnitTestCase
 {
     public function test_that_a_fresh_instance_resumes_protected_query_input_without_initial_validation_or_handle(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $first = new InteractiveValueTool($queries);
+        $queryBus = $this->mock(QueryBus::class);
+        $first = new InteractiveValueTool($queryBus);
         $arguments = ['id' => 'original', 'nested' => ['b' => [true, null], 'a' => (object) []]];
         $issued = $this->responder([$first])->respond($this->wire(['name' => 'value.interactive', 'arguments' => $arguments]))->toArray();
         self::assertSame('input_required', $issued['result']['resultType']);
@@ -71,8 +72,8 @@ final class McpToolInteractionTest extends UnitTestCase
         self::assertSame('elicitation/create', $issued['result']['inputRequests']->get('details')->get('method'));
         self::assertStringNotContainsString('private validation label', json_encode($issued));
 
-        $queries->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'original'])->andReturn('safe public value');
-        $second = new InteractiveValueTool($queries);
+        $queryBus->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'original'])->andReturn('safe public value');
+        $second = new InteractiveValueTool($queryBus);
         $validator = $this->mock(Validator::class); // No method expectation: initial validation must not run again.
         $validation = new ValidationService();
         $validation->addValidator($validator);
@@ -91,12 +92,12 @@ final class McpToolInteractionTest extends UnitTestCase
     #[DataProvider('ordinaryActions')]
     public function test_that_ordinary_actions_resume_once_and_only_accept_dispatches_a_mutation(string $action): void
     {
-        $commands = $this->mock(CommandBus::class);
-        $tool = new InteractiveValueTool($commands);
+        $commandBus = $this->mock(CommandBus::class);
+        $tool = new InteractiveValueTool($commandBus);
         $responder = $this->responder([$tool]);
         $token = $responder->respond($this->wire(['name' => 'value.interactive', 'arguments' => ['id' => 'original']]))->toArray()['result']['requestState'];
         if ($action === 'accept') {
-            $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'original']);
+            $commandBus->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'original']);
         }
         $params = $this->retry($token);
         $params['inputResponses'] = ['details' => ['action' => $action]];
@@ -375,8 +376,8 @@ final class McpToolInteractionTest extends UnitTestCase
 
     public function test_that_initial_state_overflow_is_sanitized_without_dispatch(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $tool = new InteractiveValueTool($queries);
+        $queryBus = $this->mock(QueryBus::class);
+        $tool = new InteractiveValueTool($queryBus);
         $diagnostics = $this->mock(McpDiagnostics::class);
         $diagnostics->shouldReceive('record')->once();
         $result = $this->responder([$tool], diagnostics: $diagnostics)->respond($this->wire([

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Fixture\Mcp;
 
 use Fight\Common\Application\Attribute\Validation;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
@@ -15,7 +15,7 @@ use Fight\Test\Common\Domain\Serialization\SampleCommand;
 
 final readonly class WriteValueTool implements McpTool
 {
-    public function __construct(private CommandBus $commands) {}
+    public function __construct(private CommandBus $commandBus) {}
 
     #[McpToolInfo(
         name: 'value.write',
@@ -31,7 +31,7 @@ final readonly class WriteValueTool implements McpTool
         if ($progress->isCancelled()) {
             return McpToolOutput::structured((object) ['id' => $id]);
         }
-        $this->commands->execute(new SampleCommand($id));
+        $this->commandBus->execute(new SampleCommand($id));
         $progress->report(1, 1, 'Written');
 
         return McpToolOutput::structured((object) ['id' => $id]);

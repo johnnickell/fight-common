@@ -4,4 +4,4 @@ Preserve the dependency direction Domain <- Application <- Adapter. Event-source
 
 Use explicit event application: aggregate `apply(Event $event)` routes to semantic `when*()` methods without reflection. Stored events use stable aliases and integer schema versions. Projectors are idempotent because delivery is at least once.
 
-All production classes require complete test coverage. Run the non-interactive Docker submit gate documented in `CLAUDE.md`; never invoke the interactive `./bin/php*` wrappers from an agent.
+All production classes require complete test coverage. Run the non-interactive `./bin/build` gate documented in the [project profile](project-profile.md#commands-and-verification); never invoke the interactive `./bin/php*` wrappers from an agent.

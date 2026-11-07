@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\EventSourcing\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Common\Application\EventSourcing\PublicationCursorStore;
 use InvalidArgumentException;
 
@@ -19,8 +20,10 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
     /**
      * Constructs DbalPublicationCursorStore
      */
-    public function __construct(private Connection $connection)
-    {
+    public function __construct(
+        private Connection $connection,
+        private DbalTableName $table = new DbalTableName('publication_cursors')
+    ) {
     }
 
     /**
@@ -29,7 +32,7 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
     public function load(string $publicationName): int
     {
         $cursor = $this->connection->fetchOne(
-            'SELECT global_position FROM publication_cursors WHERE publication_name = ?',
+            sprintf('SELECT global_position FROM %s WHERE publication_name = ?', $this->tableName()),
             [$publicationName]
         );
 
@@ -57,7 +60,7 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
         }
 
         try {
-            $this->connection->insert('publication_cursors', [
+            $this->connection->insert($this->tableName(), [
                 'publication_name' => $publicationName,
                 'global_position'  => $globalPosition
             ]);
@@ -87,12 +90,19 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
     private function advance(string $publicationName, int $globalPosition): int
     {
         return $this->connection->executeStatement(
-            <<<'SQL'
-                UPDATE publication_cursors
-                SET global_position = ?
-                WHERE publication_name = ? AND global_position <= ?
-                SQL,
+            sprintf(
+                'UPDATE %s SET global_position = ? WHERE publication_name = ? AND global_position <= ?',
+                $this->tableName()
+            ),
             [$globalPosition, $publicationName, $globalPosition]
         );
+    }
+
+    /**
+     * Returns the selected platform-quoted cursor table
+     */
+    private function tableName(): string
+    {
+        return $this->table->quoted($this->connection->getDatabasePlatform());
     }
 }

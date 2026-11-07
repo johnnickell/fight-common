@@ -32,11 +32,14 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
 {
     private const string STAMP_HEADER_PREFIX = 'X-Message-Stamp-';
 
+    private DomainSerializer $messageSerializer;
+
     /**
      * Constructs SymfonyMessageSerializer
      */
-    public function __construct(private DomainSerializer $serializer)
+    public function __construct(DomainSerializer $serializer)
     {
+        $this->messageSerializer = $serializer;
     }
 
     /**
@@ -66,7 +69,7 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
         $body = $encodedEnvelope['body'];
 
         try {
-            $message = $this->serializer->deserialize($body);
+            $message = $this->messageSerializer->deserialize($body);
         } catch (Throwable $throwable) {
             throw new MessageDecodingFailedException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
@@ -89,7 +92,7 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
             throw new RuntimeException('Message must implement Serializable');
         }
 
-        $body = $this->serializer->serialize($message);
+        $body = $this->messageSerializer->serialize($message);
 
         $headers = [];
 
@@ -123,9 +126,9 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
                 continue;
             }
 
-            $data = $this->safelyUnserialize(stripslashes((string) $value));
+            $decodedStamps = $this->safelyUnserialize(stripslashes((string) $value));
 
-            foreach ($data as $stamp) {
+            foreach ($decodedStamps as $stamp) {
                 $stamps[] = $stamp;
             }
         }
@@ -145,19 +148,25 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
             throw new MessageDecodingFailedException('Could not decode an empty message using PHP serialization.');
         }
 
-        $prevUnserializeHandler = ini_set('unserialize_callback_func', self::class.'::handleUnserializeCallback');
-        $prevErrorHandler = set_error_handler(static function (
-            int $type,
-            string $msg,
+        $previousUnserializeCallback = ini_set('unserialize_callback_func', self::class.'::handleUnserializeCallback');
+        $previousErrorHandler = set_error_handler(static function (
+            int $errorType,
+            string $errorMessage,
             string $file,
             int $line,
             array $context = []
-        ) use (&$prevErrorHandler): bool {
-            if (__FILE__ === $file && !in_array($type, [E_DEPRECATED, E_USER_DEPRECATED], true)) {
-                throw new ErrorException($msg, 0, $type, $file, $line);
+        ) use (&$previousErrorHandler): bool {
+            if (__FILE__ === $file && !in_array($errorType, [E_DEPRECATED, E_USER_DEPRECATED], true)) {
+                throw new ErrorException($errorMessage, 0, $errorType, $file, $line);
             }
 
-            return $prevErrorHandler ? $prevErrorHandler($type, $msg, $file, $line, $context) : false;
+            return $previousErrorHandler ? $previousErrorHandler(
+                $errorType,
+                $errorMessage,
+                $file,
+                $line,
+                $context
+            ) : false;
         });
 
         try {
@@ -174,7 +183,7 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
             );
         } finally {
             restore_error_handler();
-            ini_set('unserialize_callback_func', $prevUnserializeHandler);
+            ini_set('unserialize_callback_func', $previousUnserializeCallback);
         }
     }
 }

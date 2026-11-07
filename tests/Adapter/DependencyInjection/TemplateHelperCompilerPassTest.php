@@ -34,12 +34,12 @@ class TemplateHelperCompilerPassTest extends UnitTestCase
         try {
             foreach ([CanonicalTemplateHelperCompilerPass::class, TemplateHelperCompilerPass::class] as $passClass) {
                 $container = new ContainerBuilder();
-                $engine = $container->register(TemplateEngine::class, TemplateEngine::class);
+                $templateEngineDefinition = $container->register(TemplateEngine::class, TemplateEngine::class);
                 $container->register('helper_id', StubTemplateHelper::class)->addTag('common.template_helper');
                 $container->addCompilerPass(new $passClass());
                 $container->compile();
 
-                $calls = $engine->getMethodCalls();
+                $calls = $templateEngineDefinition->getMethodCalls();
                 self::assertCount(1, $calls);
                 self::assertSame('addHelper', $calls[0][0]);
                 self::assertSame('helper_id', (string) $calls[0][1][0]);
@@ -63,15 +63,15 @@ class TemplateHelperCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_tagged_template_helpers(): void
     {
         $container = new ContainerBuilder();
-        $engineDef = $container->register(TemplateEngine::class, TemplateEngine::class);
+        $templateEngineDefinition = $container->register(TemplateEngine::class, TemplateEngine::class);
 
-        $helperDef = $container->register('helper_id', StubTemplateHelper::class);
-        $helperDef->addTag('common.template_helper', []);
+        $helperDefinition = $container->register('helper_id', StubTemplateHelper::class);
+        $helperDefinition->addTag('common.template_helper', []);
 
         $pass = new TemplateHelperCompilerPass();
         $pass->process($container);
 
-        $calls = $engineDef->getMethodCalls();
+        $calls = $templateEngineDefinition->getMethodCalls();
         self::assertCount(1, $calls);
         self::assertSame('addHelper', $calls[0][0]);
         self::assertInstanceOf(Reference::class, $calls[0][1][0]);
@@ -81,18 +81,18 @@ class TemplateHelperCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_multiple_tagged_template_helpers(): void
     {
         $container = new ContainerBuilder();
-        $engineDef = $container->register(TemplateEngine::class, TemplateEngine::class);
+        $templateEngineDefinition = $container->register(TemplateEngine::class, TemplateEngine::class);
 
-        $helperDef1 = $container->register('helper_1', StubTemplateHelper::class);
-        $helperDef1->addTag('common.template_helper', []);
+        $firstHelperDefinition = $container->register('helper_1', StubTemplateHelper::class);
+        $firstHelperDefinition->addTag('common.template_helper', []);
 
-        $helperDef2 = $container->register('helper_2', StubOtherTemplateHelper::class);
-        $helperDef2->addTag('common.template_helper', []);
+        $secondHelperDefinition = $container->register('helper_2', StubOtherTemplateHelper::class);
+        $secondHelperDefinition->addTag('common.template_helper', []);
 
         $pass = new TemplateHelperCompilerPass();
         $pass->process($container);
 
-        $calls = $engineDef->getMethodCalls();
+        $calls = $templateEngineDefinition->getMethodCalls();
         self::assertCount(2, $calls);
         self::assertSame('addHelper', $calls[0][0]);
         self::assertSame('helper_1', (string) $calls[0][1][0]);
@@ -105,8 +105,8 @@ class TemplateHelperCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(TemplateEngine::class, TemplateEngine::class);
 
-        $badDef = $container->register('bad_helper', StubTplHelperNonHelperService::class);
-        $badDef->addTag('common.template_helper', []);
+        $invalidDefinition = $container->register('bad_helper', StubTplHelperNonHelperService::class);
+        $invalidDefinition->addTag('common.template_helper', []);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must implement interface');

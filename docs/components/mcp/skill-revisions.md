@@ -6,6 +6,12 @@ Explicitly compose `McpSkillDiscovery` for complete `skills/list`, exact `skills
 `io.modelcontextprotocol/skills` advertisement. Directory RPC, subscriptions, rendering, execution, catalog storage
 and host activation are not provided.
 
+Use typed getters for member state (`path()`, `bytes()`, `mimeType()`, `text()`, `digest()`) and limits
+(e.g. `maxFiles()`, `maxFrontmatterBytes()`, `maxEntryBytes()`). Public readonly properties remain supported,
+with documentation-only deprecation planned to first ship in v1.5.0 (not yet released); see the
+[complete migration and release window](../../maintenance/public-property-getters.md).
+`text()` returns the Boolean classification, while `bytes()` preserves the original content without new I/O or hashing.
+
 ## Snapshot and integrity contract
 
 **Contract: `fight-common.behavior.mcp-skill-revisions`**
@@ -115,16 +121,16 @@ $revision = McpSkillRevision::fromFiles(
     resourceLimits: $metadataLimits,
     readLimits: $readLimits
 );
-$skillFiles = new McpSkillResources([$revision], $currentWholeSkillDecision, $psrStreamFactory);
-$resources = new McpResourceDiscovery(
-    [$skillFiles, ...$otherReadableProviders],
-    $currentResourceDecision,
+$skillResourceProvider = new McpSkillResources([$revision], $skillAvailability, $psrStreamFactory);
+$resourceDiscovery = new McpResourceDiscovery(
+    [$skillResourceProvider, ...$otherReadableProviders],
+    $resourceAvailability,
     $cursorSecret,
     'consumer-catalog',
     $metadataLimits,
     readLimits: $readLimits
 );
-// Register $resources once in the existing McpCapabilityRegistry / guarded McpRequestHandler.
+// Register $resourceDiscovery once in the existing McpCapabilityRegistry / guarded McpRequestHandler.
 ```
 
 A client can read `SKILL.md` and then just `references/guide.md`. Only each selected file gets a response stream;
@@ -178,19 +184,19 @@ works without Skills. No Tool registration, new endpoint, route or framework ada
 Continue the preceding composition:
 
 ```php
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
 
-$skills = new McpSkillDiscovery(
-    $skillFiles,
-    $resources,
+$skillDiscovery = new McpSkillDiscovery(
+    $skillResourceProvider,
+    $resourceDiscovery,
     $dedicatedSkillsCursorSecret, // Stable secret of 32–4096 bytes, not an access credential.
     'consumer-skills',            // Nonempty catalog scope, at most 128 bytes.
     new McpSkillDiscoveryLimits(pageSize: 25)
 );
-$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$resources, $skills]);
+$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$resourceDiscovery, $skillDiscovery]);
 // Supply this registry to the existing guarded McpRequestHandler; retain all HTTP safeguards.
 ```
 

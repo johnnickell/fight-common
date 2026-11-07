@@ -49,5 +49,65 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | done | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | done | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | done | — |
+| [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | done | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | done | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00149](00149-TASK.md) | Record separately protected execution detail | done | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | done | [TICKET-00041](../tickets/00041-TICKET.md) |
+| [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | done | [TICKET-00041](../tickets/00041-TICKET.md) |
+| [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | done | [TICKET-00041](../tickets/00041-TICKET.md) |
+| [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | done | [TICKET-00042](../tickets/00042-TICKET.md) |
+| [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | done | [TICKET-00042](../tickets/00042-TICKET.md) |
+| [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | done | [TICKET-00043](../tickets/00043-TICKET.md) |
+| [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | done | [TICKET-00043](../tickets/00043-TICKET.md) |
+| [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | done | [TICKET-00044](../tickets/00044-TICKET.md) |
+| [TASK-00158](00158-TASK.md) | Record durable safe change notices | done | [TICKET-00045](../tickets/00045-TICKET.md) |
+| [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | done | [TICKET-00045](../tickets/00045-TICKET.md) |
+| [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | done | [TICKET-00046](../tickets/00046-TICKET.md) |
+| [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | done | [TICKET-00046](../tickets/00046-TICKET.md) |
+| [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | done | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | done | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | done | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | done | [TICKET-00048](../tickets/00048-TICKET.md) |
+| [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | done | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | done | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | done | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | done | [TICKET-00050](../tickets/00050-TICKET.md) |
+| [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | done | [TICKET-00051](../tickets/00051-TICKET.md) |
+| [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | done | [TICKET-00052](../tickets/00052-TICKET.md) |
+| [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | done | — |
+| [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | done | — |
+| [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | done | — |
+| [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | done | — |
+| [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | done | — |
+| [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | done | — |
+| [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | done | — |
+| [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | done | — |
+| [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | done | — |
+| [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | done | — |
+| [TASK-00182](00182-TASK.md) | Separate validation construction from execution | done | — |
+| [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | done | — |
+| [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | done | — |
+| [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | done | — |
+| [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | done | — |
+| [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | done | — |
+| [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | done | — |
+| [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | done | — |
+| [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | done | — |
+| [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | done | — |
+| [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | done | — |
+| [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | done | — |
+| [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | done | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | done | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | done | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00197](00197-TASK.md) | Record executions in configurable tables | done | [TICKET-00054](../tickets/00054-TICKET.md) |
+| [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | done | [TICKET-00054](../tickets/00054-TICKET.md) |
+| [TASK-00199](00199-TASK.md) | Configure durable Task storage | done | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | done | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | done | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | done | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | done | — |
+| [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | done | — |
+| [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | done | [TICKET-00056](../tickets/00056-TICKET.md) |
+| [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | done | — |
+| [TASK-00207](00207-TASK.md) | Resolve v1.5.0 pre-tag audit findings and complete release notes | done | — |
 <!-- /planning:records -->

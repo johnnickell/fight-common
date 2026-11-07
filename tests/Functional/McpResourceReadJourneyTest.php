@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Functional;
 
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
@@ -32,12 +32,12 @@ final class McpResourceReadJourneyTest extends TestCase
     public function test_that_authenticated_guarded_list_to_read_and_direct_reads_preserve_bytes_and_authority(): void
     {
         $text = "# Guide 雪\r\ncafé\r\n";
-        $documents = new ReadableResources([
+        $documentProvider = new ReadableResources([
             'file:///docs/a' => ['bytes' => $text],
             'file:///docs/hidden' => ['bytes' => 'secret'],
             'file:///docs/unlisted' => ['bytes' => '{{ template }} <?php never_execute();', 'listed' => false],
         ]);
-        $assets = new ReadableResources([
+        $assetProvider = new ReadableResources([
             'asset:/binary' => ['bytes' => "\0\xff\x80\r\n", 'binary' => true, 'mimeType' => 'application/octet-stream'],
             'asset:/empty' => ['bytes' => '', 'binary' => true],
         ]);
@@ -57,7 +57,7 @@ final class McpResourceReadJourneyTest extends TestCase
         $factory = new HttpFactory();
         $endpoint = new McpRequestHandler(
             new McpCapabilityRegistry(new McpServerInfo('Resource read journey', '1'), [new McpResourceDiscovery(
-                [$documents, $assets], $availability, str_repeat('fixture-key-', 4), 'journey', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits(64, 1024),
+                [$documentProvider, $assetProvider], $availability, str_repeat('fixture-key-', 4), 'journey', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits(64, 1024),
             )]),
             new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics),
         );
@@ -77,20 +77,20 @@ final class McpResourceReadJourneyTest extends TestCase
             [$request->withHeader('Accept', 'application/json'), 406],
         ] as [$rejected, $status]) {
             self::assertSame($status, $app->handle($rejected)->getStatusCode());
-            self::assertSame([], $documents->lookedUp);
-            self::assertSame([], $documents->opened);
+            self::assertSame([], $documentProvider->lookedUp);
+            self::assertSame([], $documentProvider->opened);
             self::assertSame([], $guard->calls);
         }
         $guard->allowed = false;
         self::assertSame(429, $app->handle($request)->getStatusCode());
-        self::assertSame([], $documents->lookedUp);
+        self::assertSame([], $documentProvider->lookedUp);
         $guard->allowed = true;
 
         // This read precedes all discovery and requests an identity deliberately omitted from listing.
         $unlisted = $this->responseResult($app, 'resources/read', ['uri' => 'file:///docs/unlisted']);
         self::assertSame('{{ template }} <?php never_execute();', $unlisted['contents'][0]['text']);
-        self::assertSame(0, $documents->enumerations + $assets->enumerations);
-        self::assertSame([], $assets->opened);
+        self::assertSame(0, $documentProvider->enumerations + $assetProvider->enumerations);
+        self::assertSame([], $assetProvider->opened);
         self::assertSame(['resources/read', 'file:///docs/unlisted'], end($guard->calls));
 
         $uris = [];
@@ -101,8 +101,8 @@ final class McpResourceReadJourneyTest extends TestCase
             $parameters = isset($page['nextCursor']) ? ['cursor' => $page['nextCursor']] : [];
         } while (isset($page['nextCursor']));
         self::assertSame(['asset:/binary', 'asset:/empty', 'file:///docs/a'], $uris);
-        self::assertSame(['file:///docs/unlisted'], $documents->opened);
-        self::assertSame([], $assets->opened);
+        self::assertSame(['file:///docs/unlisted'], $documentProvider->opened);
+        self::assertSame([], $assetProvider->opened);
         $read = $this->responseResult($app, 'resources/read', ['uri' => 'file:///docs/a']);
         self::assertSame([['uri' => 'file:///docs/a', 'mimeType' => 'text/plain', 'text' => $text]], $read['contents']);
         self::assertSame('complete', $read['resultType']);
@@ -116,28 +116,28 @@ final class McpResourceReadJourneyTest extends TestCase
         self::assertSame(['resources' => ['subscribe' => false, 'listChanged' => false]], $this->responseResult($app, 'server/discover')['capabilities']);
 
         $availability->allowed = false;
-        $opened = $documents->opened;
+        $opened = $documentProvider->opened;
         $denied = (string) $app->handle($request)->getBody();
         self::assertSame(-32602, json_decode($denied, true)['error']['code']);
         foreach (['file:///docs/hidden', 'file:///missing', 'file:///docs/%61', 'file:///docs/../a', 'https://127.0.0.1/private'] as $uri) {
             self::assertSame($denied, (string) $app->handle($this->request('resources/read', ['uri' => $uri]))->getBody());
         }
-        self::assertSame($opened, $documents->opened);
+        self::assertSame($opened, $documentProvider->opened);
         self::assertSame([], $this->responseResult($app, 'resources/list')['resources']);
         self::assertSame([], $diagnostics->events);
         $availability->allowed = true;
         self::assertSame($text, $this->responseResult($app, 'resources/read', ['uri' => 'file:///docs/a'])['contents'][0]['text']);
 
-        $documents->fail = true;
+        $documentProvider->fail = true;
         $this->assertInternal($app, $request);
-        $documents->fail = false;
-        $documents->entries['file:///docs/a']['bytes'] = "\xff";
+        $documentProvider->fail = false;
+        $documentProvider->entries['file:///docs/a']['bytes'] = "\xff";
         $this->assertInternal($app, $request);
-        $documents->entries['file:///docs/a']['bytes'] = str_repeat('a', 65);
+        $documentProvider->entries['file:///docs/a']['bytes'] = str_repeat('a', 65);
         $this->assertInternal($app, $request);
-        $documents->entries['file:///docs/a'] = ['bytes' => 'a', 'size' => 2];
+        $documentProvider->entries['file:///docs/a'] = ['bytes' => 'a', 'size' => 2];
         $this->assertInternal($app, $request);
-        $documents->returnedInfo = McpResourceInfo::fromArray(['uri' => 'file:///elsewhere', 'name' => 'wrong']);
+        $documentProvider->returnedInfo = McpResourceInfo::fromArray(['uri' => 'file:///elsewhere', 'name' => 'wrong']);
         $this->assertInternal($app, $request);
         self::assertSame(array_fill(0, 5, 'resource_failure'), $diagnostics->events);
     }

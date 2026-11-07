@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Tool\Interaction;
 
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -19,6 +19,9 @@ use Throwable;
  */
 final readonly class McpToolInteraction
 {
+    private McpStateProtector $stateProtector;
+    private ?McpConfirmationStore $confirmationStore;
+
     /**
      * Constructs McpToolInteraction
      *
@@ -26,11 +29,13 @@ final readonly class McpToolInteraction
      * Each endpoint audience should use a separate key ring or an audience-qualified caller binding.
      */
     public function __construct(
-        private McpStateProtector $protector,
+        McpStateProtector $protector,
         #[SensitiveParameter] private string $caller,
         private int $ttl = 300,
-        private ?McpConfirmationStore $confirmations = null
+        ?McpConfirmationStore $confirmations = null
     ) {
+        $this->stateProtector = $protector;
+        $this->confirmationStore = $confirmations;
         if ($caller === '' || strlen($caller) > 1024 || $ttl < 1 || $ttl > 900) {
             throw new DomainException('Interactions require a bounded caller identity and a TTL of 1-900 seconds.');
         }
@@ -45,7 +50,7 @@ final readonly class McpToolInteraction
      */
     public function issue(McpInputRequired $input, ApplicationData $validated, McpRequest $request): McpResult
     {
-        if ($input->requiresConfirmation() && $this->confirmations === null) {
+        if ($input->requiresConfirmation() && $this->confirmationStore === null) {
             throw new DomainException('Confirmation requires an atomic interaction store.');
         }
 
@@ -66,11 +71,11 @@ final readonly class McpToolInteraction
         }
 
         $plaintext = self::canonical($state);
-        $token = $this->protector->seal($plaintext);
+        $token = $this->stateProtector->seal($plaintext);
         $requests = array_map(static fn(McpInputRequest $form): StrictJson => $form->request(), $input->requests());
         $result = McpResult::inputRequired(StrictJson::fromObject($requests), $token);
         if ($input->requiresConfirmation()) {
-            $this->confirmations->issue(
+            $this->confirmationStore->issue(
                 $state->get('confirmation'),
                 hash('sha256', $plaintext),
                 $state->get('expires')
@@ -92,7 +97,7 @@ final readonly class McpToolInteraction
                 throw new DomainException('Invalid interaction state.');
             }
 
-            $state = StrictJson::fromString($this->protector->open($token), 70);
+            $state = StrictJson::fromString($this->stateProtector->open($token), 70);
             if (!$state->isObject() || !is_string($state->get('tool'))) {
                 throw new DomainException('Invalid interaction state.');
             }
@@ -116,7 +121,7 @@ final readonly class McpToolInteraction
             if (
                 !in_array($state->get('mode'), ['ordinary', 'confirmation'], true)
                 || ($state->get('mode') === 'confirmation' && (
-                    $this->confirmations === null || !is_string($state->get('confirmation'))
+                    $this->confirmationStore === null || !is_string($state->get('confirmation'))
                     || preg_match('/^[a-f0-9]{64}$/D', $state->get('confirmation')) !== 1
                 ))
                 || $state->get('method') !== 'tools/call'
@@ -155,7 +160,7 @@ final readonly class McpToolInteraction
         }
 
         try {
-            $outcome = $this->confirmations?->consume(
+            $outcome = $this->confirmationStore?->consume(
                 $state->get('confirmation'),
                 hash('sha256', self::canonical($state)),
                 $state->get('expires')

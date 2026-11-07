@@ -63,4 +63,7 @@ Keep private HMAC keys and token signing material outside source control, compar
 shipped verifier, rotate credentials deliberately, and treat decoded JWT claims as untrusted until issuer,
 audience, time, and application-specific claims have been accepted by your policy.
 
+For the preferred OAuth value/configuration read API, see the
+[complete getter migration and release window](../../maintenance/public-property-getters.md).
+
 --8<-- "docs/auth.md"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate planning records and refresh their Markdown views with --write."""
+"""Validate planning and refresh record-derived views offline."""
 
 from __future__ import annotations
 
@@ -23,7 +23,11 @@ BLOCK = re.compile(r"<!-- planning:([a-z-]+) -->\n[\s\S]*?<!-- /planning:\1 -->"
 
 
 def frontmatter(path: Path) -> dict[str, str]:
-    text = path.read_text(encoding="utf-8")
+    return parse_frontmatter(path.read_text(encoding="utf-8"))
+
+
+def parse_frontmatter(text: str) -> dict[str, str]:
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     if not text.startswith("---\n") or "\n---\n" not in text[4:]:
         raise ValueError("missing frontmatter")
     block = text[4:].split("\n---\n", 1)[0]
@@ -159,28 +163,61 @@ def complete_parents(records: dict) -> dict[Path, str]:
     return pending
 
 
-def projections(records: dict) -> dict[tuple[Path, str], str]:
-    views = {}
-    board = PLANNING / "tasks/BOARD.md"
+def task_groups(records: dict) -> dict[str, list]:
+    """One authoritative ordering and state classification for every TASK view."""
     tasks = [(key, path, data) for key, (path, data) in records.items()
              if key.startswith("TASK-") and "archive" not in path.parts]
-    tasks.sort(key=lambda row: (int(row[2].get("order") or 999999), row[0]))
+    tasks.sort(key=lambda row: (not row[2].get("order"), int(row[2].get("order") or 0), row[0]))
     groups = {name: [] for name in ("Active Work", "Ready Frontier", "Waiting", "Needs Info", "Human Action", "Needs Triage", "Recently Closed")}
     for identifier, path, data in tasks:
         blockers = [key for key in dependencies(data) if records[key][1]["status"] not in TERMINAL]
         status = data["status"]
         group = {"in-progress": "Active Work", "needs-info": "Needs Info", "ready-for-human": "Human Action", "needs-triage": "Needs Triage"}.get(status)
         group = group or ("Recently Closed" if status in TERMINAL else "Waiting" if blockers else "Ready Frontier")
-        parent = data.get("ticket")
-        parent_label = linked(board, records[parent][0], f'{parent} — {records[parent][1]["title"]}') if parent else "— (standalone " + data.get("kind", "task") + ")"
-        groups[group].append([
-            cell(data.get("order", "")), linked(board, path, identifier), cell(data["title"]), parent_label,
-            cell(status), ", ".join(linked(board, records[key][0], key) for key in blockers) or "—",
-            f'[PR #{data["pr"].rsplit("/", 1)[1]}]({data["pr"]})' if data.get("pr") else "—",
-        ])
-    views[board, "board"] = "\n\n".join(f"## {name}\n\n" + table(
-        ["Order", "TASK ID", "Title", "Parent TICKET", "Status", "Blocked by", "PR"], rows
-    ) for name, rows in groups.items())
+        groups[group].append((identifier, path, data, blockers))
+    return groups
+
+
+def routing_summary(source: Path, groups: dict[str, list], records: dict) -> str:
+    """Select current work, not a workflow verdict or inferred delivery state."""
+    selected = [(name, task) for name in ("Human Action", "Needs Info") for task in groups[name]]
+    active, ready = groups["Active Work"], groups["Ready Frontier"]
+    if active:
+        selected.extend(("Active Work", task) for task in active)
+    elif ready:
+        selected.append(("Ready Frontier", ready[0]))
+    else:
+        for name in ("Needs Triage", "Waiting"):
+            selected.extend((name, task) for task in groups[name][:1])
+    rows = [[name, linked(source, path, identifier), cell(data["title"]), cell(data["status"]),
+             ", ".join(linked(source, records[key][0], key) for key in blockers) or "—"]
+            for name, (identifier, path, data, blockers) in selected]
+    summary = table(["Route", "TASK", "Title", "Status", "Blocked by"], rows)
+    if not active and not ready:
+        summary += "\n\nNo TASK is currently executable; unresolved work may remain."
+    return summary
+
+
+def projections(records: dict) -> dict[tuple[Path, str], str]:
+    views = {}
+    board = PLANNING / "tasks/BOARD.md"
+    groups = task_groups(records)
+    sections = []
+    for name, tasks in groups.items():
+        rows = []
+        for identifier, path, data, blockers in tasks:
+            parent = data.get("ticket")
+            parent_label = linked(board, records[parent][0], f'{parent} — {records[parent][1]["title"]}') if parent else "— (standalone " + data.get("kind", "task") + ")"
+            rows.append([
+                cell(data.get("order", "")), linked(board, path, identifier), cell(data["title"]), parent_label,
+                cell(data["status"]), ", ".join(linked(board, records[key][0], key) for key in blockers) or "—",
+                f'[PR #{data["pr"].rsplit("/", 1)[1]}]({data["pr"]})' if data.get("pr") else "—",
+            ])
+        sections.append(f"## {name}\n\n" + table(
+            ["Order", "TASK ID", "Title", "Parent TICKET", "Status", "Blocked by", "PR"], rows
+        ))
+    views[board, "board"] = "\n\n".join(sections)
+    views[board, "next"] = routing_summary(board, groups, records)
 
     for directory, kind in KINDS.items():
         for archived in (False, True):
@@ -195,6 +232,7 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
             views[source, "records"] = table(["ID", "Title", "Status", "Parent"], rows)
 
     roadmap = PLANNING / "ROADMAP.md"
+    views[roadmap, "execution"] = routing_summary(roadmap, groups, records)
     rows = [[linked(roadmap, path, identifier), cell(data["title"]), cell(data.get("target", "")), cell(data["status"])]
             for identifier, (path, data) in sorted(records.items())
             if identifier.startswith("EPIC-") and "archive" not in path.parts]
@@ -251,6 +289,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="close eligible parents and refresh generated views after validating records")
     args = parser.parse_args()
+    writing = args.write
     records, errors = load_records()
     for path in PLANNING.rglob("*.md"):
         if path.name.startswith("_"):
@@ -265,8 +304,8 @@ def main() -> int:
         errors.append(".runs/ must be gitignored")
     if not errors:
         closures = complete_parents(records)
-        pending = dict(closures) if args.write else {}
-        if not args.write:
+        pending = dict(closures) if writing else {}
+        if not writing:
             for path in closures:
                 errors.append(f"{path.relative_to(ROOT)}: parent completion out of sync; run ./bin/planning-check --write")
         for (path, name), content in projections(records).items():
@@ -280,7 +319,7 @@ def main() -> int:
                 continue
             expected = f"<!-- planning:{name} -->\n{content}\n<!-- /planning:{name} -->"
             if matches[0][0] != expected:
-                if args.write:
+                if writing:
                     pending[path] = text[:matches[0].start()] + expected + text[matches[0].end():]
                 else:
                     errors.append(f"{path.relative_to(ROOT)}: stale {name} view; run ./bin/planning-check --write")
@@ -295,7 +334,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
     active = sum(data["status"] not in TERMINAL for _, data in records.values())
-    print(f"Planning validation passed: {len(records)} records, {active} active; generated views {'refreshed' if args.write else 'current'}")
+    print(f"Local planning validation passed (offline): {len(records)} records, {active} active; generated views {'refreshed' if writing else 'current'}")
     return 0
 
 

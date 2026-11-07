@@ -12,7 +12,7 @@ Cover failure paths and business effects, not only successful calls. Use project
 
 Use focused checks while iterating. Implementation and changes to build inputs require the complete canonical product gate before commit/PR: tests, exact coverage, style, static analysis, architecture checks, docs/planning validation, and frontend build/type checking as applicable. For documentation-only follow-ups, apply the evidence-reuse rule below. Hooks must succeed; never bypass them to claim a completed gate.
 
-**Workflow:** `work` implements and establishes local verification; independent `review` assesses that content and evidence; authorized `land` pushes and creates or updates the PR. Neither work nor review requires publication to obtain hosted CI. Commit, push and PR creation remain distinct permissions; work does not publish merely because it can commit locally.
+**Workflow:** `work` implements and establishes local verification; independent `review` assesses that content and evidence; independent [QA](QA.md) challenges the accepted behavior; authorized `land` records completion and publishes the PR. TASK `done` requires independent acceptance and satisfied required QA (or justified overall N/A), not a builder's successful gate alone. Work/review/QA do not require publication to obtain ordinary acceptance evidence. Commit, push and PR creation remain distinct permissions; work does not publish merely because it can commit locally.
 
 **Implementation scope:** the builder must establish local pre-submit evidence: run the full gate for implementation/build-input changes, or retain a verified earlier full pass plus the targeted checks permitted below. Retain and report actual results. Hosted CI is not a builder or pre-publication review gate in either public or private repositories. Label it “not run before land” rather than implying a pass; do not scan runs, poll checks or fetch hosted logs merely to complete work or review. Reviewers first validate the builder's saved full-gate result against the reviewed content; a trustworthy receipt remains usable. Do not rerun gates merely to accumulate receipts. If evidence is missing, stale or contradictory, identify the exact gap and request the needed proof or run the canonical gate when necessary to establish acceptance. Focused checks to investigate a finding remain appropriate; review never applies repairs.
 
@@ -36,6 +36,12 @@ product defect still requires repair and independent review; optional CI is not 
 defect. Never label missing, skipped or failed checks passed. Host-enforced merge checks remain binding and may
 not be bypassed. This separation does not authorize agent merge, release or deployment.
 
+Common's [publication closeout](../../../planning/CONVENTIONS.md#publication-closeout) removes the tracked delivery
+mechanism and recurring post-merge planning chore, not verification: full/focused gate evidence, independent
+Review/QA and direct exact owned-PR/default/base/head live checks before publication and at final handoff remain
+required. A successful offline planning check proves no live PR state. Validate workflow prose/links directly,
+not with new product text tests.
+
 A future exception requiring hosted proof before technical acceptance needs a new explicit human decision, a named
 requirement and a publication plan. Historical workflow/ADR wording does not by itself establish a current hosted
 delivery gate: apply the accepted project/TASK policy and actual host restrictions. Do not recreate a circular
@@ -52,6 +58,12 @@ Record in the ignored handoff the successful run/log/exit result, its tested rev
 Report “Earlier full gate retained; documentation/planning checks passed for current content,” rather than claiming a fresh full build ran at the new head. Actual implementation/build-input changes require a new full gate from the engineer. Review the changed documentation and applicable standards normally; this rule does not carry old review acceptance forward automatically or waive explicitly required post-publication delivery checks. A justified reuse decision is valid verification evidence, not an acceptance override or an Unverified criterion merely because the full run used an earlier hash.
 
 ## Evidence
+
+[QA](QA.md) owns independent behavioral evidence, dispositions and its canonical report; this standard owns
+product gates and the evidence-reuse rule. A successful gate does not replace QA. Explicit accepted TASK exclusions
+bound required proof: TASK-00172 updates Common's binding to existing shared workflows without new workflow tests,
+simulations or live requalification. Validate its Common-specific documents and links; retain independent Review
+and applicable documentation QA without claiming fresh upstream execution evidence.
 
 **Explicit exclusion — planning-only sessions:** authoring or updating maps, EPICs, TICKETs, TASKs, Boards and other planning records requires no screenshots or Before/After section. Verify the records, links, dependencies and generated views as applicable, and summarize that verification in the handoff or PR. This exclusion does not waive an explicit screenshot request or evidence for implementation included in the same session.
 

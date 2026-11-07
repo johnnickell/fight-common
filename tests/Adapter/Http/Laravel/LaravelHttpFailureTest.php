@@ -63,20 +63,20 @@ final class LaravelHttpFailureTest extends UnitTestCase
         foreach ($cases as [$failure, $status]) {
             $translated = LaravelHttpFailure::translate($failure);
             self::assertInstanceOf(SafeHttpFailure::class, $translated);
-            self::assertSame($status, $translated->status);
+            self::assertSame($status, $translated->status());
             self::assertSame('', $translated->getMessage());
         }
 
         $retry = LaravelHttpFailure::translate(new ThrottleRequestsException('secret', headers: [
             'X-Discard' => 'secret', 'Retry-After' => '0'
         ]));
-        self::assertSame(0, $retry->metadata->retryAfterSeconds);
+        self::assertSame(0, $retry->metadata()->retryAfterSeconds());
         $max = LaravelHttpFailure::translate(new HttpException(503, headers: ['Retry-After' => (string) PHP_INT_MAX]));
-        self::assertSame(PHP_INT_MAX, $max->metadata->retryAfterSeconds);
+        self::assertSame(PHP_INT_MAX, $max->metadata()->retryAfterSeconds());
         $challenge = LaravelHttpFailure::translate(new UnauthorizedHttpException('Basic realm="safe"'));
-        self::assertSame('Basic realm="safe"', $challenge->metadata->challenge);
+        self::assertSame('Basic realm="safe"', $challenge->metadata()->challenge());
         $allow = LaravelHttpFailure::translate(new MethodNotAllowedHttpException(['GET', 'POST']));
-        self::assertSame('GET, POST', $allow->metadata->allow);
+        self::assertSame('GET, POST', $allow->metadata()->allow());
     }
 
     public function test_that_native_validation_is_distinct_from_common_validation_and_rejects_mutated_status(): void
@@ -84,7 +84,7 @@ final class LaravelHttpFailureTest extends UnitTestCase
         $validator = (new Factory(new Translator(new ArrayLoader(), 'en')))->make(['field' => null], ['field' => 'required']);
         $validator->fails();
         $failure = new ValidationException($validator);
-        self::assertSame(422, LaravelHttpFailure::translate($failure)->status);
+        self::assertSame(422, LaravelHttpFailure::translate($failure)->status());
         $failure->status = 400;
         self::assertSame($failure, LaravelHttpFailure::translate($failure));
     }

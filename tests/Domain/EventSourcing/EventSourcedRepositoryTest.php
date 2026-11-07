@@ -37,15 +37,15 @@ class EventSourcedRepositoryTest extends UnitTestCase
             'repository-test',
             new EventMapping('aggregate-renamed', RepositoryAggregateRenamed::class, 1),
         );
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             new InMemoryEventStore($eventMapper),
             new AggregateDefinition('orders', RepositoryAggregate::class),
         );
         $aggregate = RepositoryAggregate::create($id, 'created');
         $aggregate->rename('saved');
 
-        $repository->save($aggregate);
-        $restored = $repository->find($id);
+        $aggregateRepository->save($aggregate);
+        $restored = $aggregateRepository->find($id);
 
         self::assertSame([], $aggregate->releaseEvents());
         self::assertInstanceOf(RepositoryAggregate::class, $restored);
@@ -60,13 +60,13 @@ class EventSourcedRepositoryTest extends UnitTestCase
         $aggregate = new UnconfiguredAggregate(
             MissingAggregateId::fromString('6ff84280-669f-40ba-b974-dc27587b17aa'),
         );
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             new EmptyStreamEventStore(),
             new AggregateDefinition('orders', RepositoryAggregate::class),
         );
 
         try {
-            $repository->save($aggregate);
+            $aggregateRepository->save($aggregate);
             self::fail('Saving an unconfigured aggregate should fail.');
         } catch (DomainException $exception) {
             self::assertSame('Aggregate must match the configured aggregate class.', $exception->getMessage());
@@ -83,12 +83,12 @@ class EventSourcedRepositoryTest extends UnitTestCase
         );
         $aggregate->releaseEvents();
         $eventStore = new RecordingEventStore();
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             $eventStore,
             new AggregateDefinition('orders', RepositoryAggregate::class),
         );
 
-        $repository->save($aggregate);
+        $aggregateRepository->save($aggregate);
 
         self::assertSame(0, $eventStore->appendCalls);
     }
@@ -103,12 +103,12 @@ class EventSourcedRepositoryTest extends UnitTestCase
         $aggregate->rename('first new name');
         $aggregate->rename('second new name');
         $eventStore = new RecordingEventStore();
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             $eventStore,
             new AggregateDefinition('orders', RepositoryAggregate::class),
         );
 
-        $repository->save($aggregate);
+        $aggregateRepository->save($aggregate);
 
         self::assertSame(2, $eventStore->expectedVersion);
         self::assertSame('orders', $eventStore->streamId?->aggregateName());
@@ -126,13 +126,13 @@ class EventSourcedRepositoryTest extends UnitTestCase
             RepositoryAggregateId::fromString('6ff84280-669f-40ba-b974-dc27587b17aa'),
             'created',
         );
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             new ThrowingEventStore(),
             new AggregateDefinition('orders', RepositoryAggregate::class),
         );
 
         try {
-            $repository->save($aggregate);
+            $aggregateRepository->save($aggregate);
             self::fail('An append failure should propagate.');
         } catch (RuntimeException $exception) {
             self::assertSame('Append failed.', $exception->getMessage());
@@ -163,12 +163,12 @@ class EventSourcedRepositoryTest extends UnitTestCase
                 EventMessage::create(new RepositoryAggregateRenamed('restored')),
             ],
         );
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             $eventStore,
             new AggregateDefinition('orders', RepositoryAggregate::class),
         );
 
-        $aggregate = $repository->find($id);
+        $aggregate = $aggregateRepository->find($id);
 
         self::assertInstanceOf(RepositoryAggregate::class, $aggregate);
         self::assertSame($id->toString(), $aggregate->id()->toString());
@@ -180,13 +180,13 @@ class EventSourcedRepositoryTest extends UnitTestCase
     public function test_that_find_returns_null_for_an_empty_stable_stream_without_reconstituting(): void
     {
         $eventStore = new EmptyStreamEventStore();
-        $repository = new EventSourcedRepository(
+        $aggregateRepository = new EventSourcedRepository(
             $eventStore,
             new AggregateDefinition('orders', MissingAggregate::class),
         );
         $id = MissingAggregateId::fromString('6ff84280-669f-40ba-b974-dc27587b17aa');
 
-        self::assertNull($repository->find($id));
+        self::assertNull($aggregateRepository->find($id));
         self::assertSame('orders', $eventStore->readStreamId->aggregateName());
         self::assertSame($id->toString(), $eventStore->readStreamId->identifier());
     }

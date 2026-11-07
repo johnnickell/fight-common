@@ -57,12 +57,41 @@ atlas_local_contents:
     href: "#consumer-wiring"
 ---
 
+Read released MCP limit values through typed property-name getters such as `maxBytes()`, `maxDepth()`,
+`pageSize()` and `maxResultBytes()`. Skill members likewise expose `path()`, `bytes()`, `mimeType()`, `text()`
+and `digest()`. Their old public readonly properties remain supported; documentation-only deprecation is
+planned to first ship in v1.5.0 (not yet released);
+see the [complete getter migration and release window](../../maintenance/public-property-getters.md).
+No budget, validation or wire representation changes with getter adoption.
+
 ## Ownership
+
+Concrete shared-Query inspection Tools are presentation adapters under `Adapter\Mcp\Tool\{Aggregate}`;
+aggregate handlers and ports remain directly under `Application\Mcp\{Aggregate}`. MCP persistence uses
+`Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with genuinely cross-aggregate execution support under
+`Persistence\Execution\Dbal`. These direct never-released moves do not move the generic protocol engine,
+HTTP integrations or released foundation compatibility owners. See the
+[complete aggregate migration map](../../mcp-namespaces.md#approved-aggregate-alignment-target).
 
 `Application\Mcp` implements framework-neutral MCP `2026-07-28` semantics. It decodes a JSON-RPC request,
 retains bounded per-request MCP metadata, validates the protocol version, and produces a semantic JSON-RPC
 result or protocol error. It does not create a PSR response, choose an endpoint, authenticate a caller, resolve a
 principal, or make an authorization decision.
+
+`McpRequestMetadata::fromObject()` constructs the same immutable protocol context in one operation. Its internal
+`Protocol\McpTraceContextGrammar` owns present traceparent/tracestate/baggage syntax; internal
+`Protocol\McpImplementationInfoGrammar` owns implementation descriptor fields and their website/icon URI, MIME,
+percent-encoding and Base64 rules. Both live under `Fight\Common\Application\Mcp\Protocol` and move directly
+as untagged internals, without root aliases or deprecations. Public foundation imports now use `Capability`,
+`Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root.
+The 17 relocated root spellings remain functional; documentation-only deprecation is planned to first ship in
+v1.5.0 (not yet released). Canonical aliases preserve
+released runtime identities, both consumer type directions and saved values; see the
+[complete foundation migration map](../../maintenance/mcp-foundation-namespaces.md).
+Neither collaborator is a consumer validator API or an additional composition step. This extraction preserves
+accepted/rejected inputs, open objects and schema-permitted empty strings;
+metadata remains neither credentials nor authorization. Decoder byte/depth limits and usable error IDs remain
+with the decoder, and unexpected-failure diagnostics remain with the responder or guarded HTTP boundary.
 
 The consumer supplies `McpServerInfo` and one or more explicit `McpCapability` implementations through
 `McpCapabilityRegistry`. Each capability owns its methods, advertised metadata, outer-parameter validation, and
@@ -71,10 +100,21 @@ contradictory metadata, a standard method whose advertised capability family doe
 family without its mandatory anchor method, non-JSON capability definitions, and invalid transport-mirror
 declarations during composition.
 
+The registry remains the single trusted construction boundary. Its internal
+`Application\Mcp\Composition\McpCompositionValidator` owns cross-feature constraints: complete Skills/readable
+Resources wiring, exact shared Task/Tool instances, and truthful subscription activation. Generic method/mirror
+indexing, standard family/anchor constraints, JSON definitions and extension merging remain in the registry.
+This final `@internal` collaborator is deliberately classified internal in the compatibility manifest, not a
+consumer validator API, registration contract or additional setup step. Capabilities cannot self-certify global
+consistency. Extraction makes the existing feature coupling explicit; it does not remove it or enumerate providers,
+invoke Tools, persist state or replace request-time availability and authorization.
+
 The `prompts.listChanged`, `resources.subscribe`, `resources.listChanged`, and `tools.listChanged` flags describe
-subscription-driven delivery behavior. TASK-00104 supplies neither the subscription contract nor its long-lived
-delivery lifecycle, so this foundation rejects those flags when `true`. A later capability must introduce and prove
-that contract before it may advertise the flags.
+subscription-driven delivery behavior. Arbitrary declarations of those flags as `true` still reject. Explicit
+request-scoped [live Tool/Resource and optional Prompt subscriptions](../../mcp-subscriptions.md) supplied as the
+optional third registry argument derive only enabled flags and require matching serving capabilities. Prompt
+list changes additionally require explicit `prompts: true`; ordinary Prompt list/get remains independent. The guarded HTTP handler owns this live path; a semantic responder alone does
+not become a subscription transport. Default direct JSON and separately opted-in Tool progress remain unchanged.
 
 ## Composition
 
@@ -121,13 +161,24 @@ Skills methods without their extension declaration fail composition. The built-i
 requires its exact shared Resource capability to own `resources/read`, not another nominally readable handler.
 This is bounded extension-ID composition, not a plugin framework.
 
+## Authorized Prompt discovery and retrieval
+
+[`Application\\Mcp\\Prompt`](../../mcp-prompts.md) supplies explicit lazy registration, currently authorized
+`prompts/list` and direct `prompts/get` through this same guarded endpoint. Declared string arguments precede
+selected provider processing; complete user/assistant text or Resource-link messages retain independent later
+Resource authorization. Stateless authenticated visible-catalog pagination, private zero-TTL defaults and finite
+catalog/input/output/result/full encoded-response budgets apply. No automatic execution, link fetching, Skill
+activation, interaction, Completion or list-change delivery is introduced. See the focused guide for public APIs,
+opt-in wiring, exact limits, safe failures, ownership and compatibility.
+
 ## Authorized Resource discovery
 
 `Application\Mcp\Resource` supplies `resources/list`, an empty complete `resources/templates/list`, and
 [opt-in exact reads](#exact-authorized-resource-reads). `McpResourceDiscovery` remains the single method owner:
 its original constructor defaults preserve discovery-only consumers; supplying `readLimits` enables
 `resources/read` on the same provider objects and availability boundary. `server/discover` advertises `resources`
-with `subscribe: false` and `listChanged: false`. Template resolution and subscriptions remain unsupported.
+with `subscribe: false` and `listChanged: false` by default. Template resolution remains unsupported;
+[live subscriptions](../../mcp-subscriptions.md) are a separate explicit registry/HTTP composition.
 A discovery-only composition still cannot return content; explicitly opt in to deliver a readable endpoint.
 
 ### Metadata and provider ownership
@@ -166,7 +217,7 @@ use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceProvider;
 
-$documents = new class implements McpResourceProvider {
+$documentProvider = new class implements McpResourceProvider {
     public function resources(): iterable
     {
         // A real provider can stream already ordered metadata rows, without reading document bytes.
@@ -179,17 +230,17 @@ $documents = new class implements McpResourceProvider {
 };
 
 // Consumer-provided, request-scoped collaborator; it keeps identity and permissions privately.
-/** @var McpResourceAvailability $visibility */
+/** @var McpResourceAvailability $resourceAvailability */
 $limits = new McpResourceLimits(pageSize: 50);
-$resources = new McpResourceDiscovery(
-    [$documents],
-    $visibility,
+$resourceDiscovery = new McpResourceDiscovery(
+    [$documentProvider],
+    $resourceAvailability,
     $dedicatedCursorSecret, // Stable across serving processes; at least 32 bytes, never an access token.
     'planning-documents',   // Distinct catalog/endpoint scope; not a principal.
     $limits,
 );
 
-// Add $resources to the existing McpCapabilityRegistry and McpRequestHandler composition.
+// Add $resourceDiscovery to the existing McpCapabilityRegistry and McpRequestHandler composition.
 // Do not register a second owner for either Resource discovery method.
 ```
 
@@ -263,7 +314,8 @@ Pinned official conformance source `modelcontextprotocol/conformance` at
 read, missing-resource, wire-schema and cache-hint checks. TASK-00118 records passing Resource checks and the
 missing-resource warning for deliberately omitted URI error data. The broader caching scenario still fails its
 uncomposed Tools/Prompts checks; all Resource cache checks pass. Neither those failures nor the warning are hidden
-behind a blanket conformance badge. Template expansion/subscriptions are excluded, not passed. Owned tests fill
+behind a blanket conformance badge. Template expansion and subscriptions were excluded from that Resource-only evidence, not passed;
+[live subscription qualification](../../mcp-subscriptions.md) is separate. Owned tests fill
 harness gaps in current authorization, exact Unicode/CRLF/empty bytes, independent lookup, ownership conflicts,
 encoded bounds, provider failures, pagination and cache isolation. The real guarded-handler journey includes
 consumer authentication composition and rejection-before-opening proof. This is package evidence, not Skills,
@@ -307,11 +359,11 @@ use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 use Psr\Http\Message\StreamFactoryInterface;
 
 // Small fixed demonstration only; production providers open a bounded lazy stream from owned storage.
-$documents = new class ($streamFactory) implements McpReadableResourceProvider {
+$documentProvider = new class ($streamFactory) implements McpReadableResourceProvider {
     private const URI = 'context://revision-42/guide';
     private const TEXT = "# Guide 雪\r\n";
 
-    public function __construct(private readonly StreamFactoryInterface $streams) {}
+    public function __construct(private readonly StreamFactoryInterface $streamFactory) {}
 
     public function resources(): iterable
     {
@@ -331,15 +383,15 @@ $documents = new class ($streamFactory) implements McpReadableResourceProvider {
 
     public function open(McpResourceInfo $resource): McpResourceContent
     {
-        return McpResourceContent::text($resource, $this->streams->createStream(self::TEXT));
+        return McpResourceContent::text($resource, $this->streamFactory->createStream(self::TEXT));
     }
 };
 
-$resources = new McpResourceDiscovery(
-    [$documents], $visibility, $dedicatedCursorSecret, 'planning-documents',
+$resourceDiscovery = new McpResourceDiscovery(
+    [$documentProvider], $resourceAvailability, $dedicatedCursorSecret, 'planning-documents',
     readLimits: new McpResourceReadLimits()
 );
-// Compose this one capability in the existing registry/guarded endpoint, not alongside the earlier $resources.
+// Compose this one capability in the existing registry/guarded endpoint, not alongside the earlier $resourceDiscovery.
 ```
 
 Send `resources/read` with `params.uri` and the existing mandatory request `_meta`; over HTTP `Mcp-Name` mirrors
@@ -415,7 +467,7 @@ on admitted Skills dispatch before disclosure. Consumer acquisition and upstream
 `handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput|McpInputRequired` method.
 Non-interactive Tools may declare the narrower `McpToolOutput` return; interactive Tools may request additional
 input as described under [Protected ordinary input](#protected-ordinary-input). `ApplicationData` is
-`Application\Validation\Data\ApplicationData`; the reporter lives directly in `Application\Mcp`.
+`Application\Validation\Data\ApplicationData`; the reporter's canonical name is `Application\Mcp\Tool\McpProgressReporter`.
 
 Construct `McpToolRegistry` with the complete array of opted-in Tool objects. Registration examines only those
 objects' `handle()` metadata. It never scans a container, discovers HTTP Actions or CQRS handlers, hydrates a
@@ -431,17 +483,17 @@ the same request-scoped availability decision as discovery before inspecting arg
 remains the consumer use case's responsibility on every entry path.
 
 ```php
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
 // Explicit consumer-owned Tool objects and request-scoped McpToolAvailability.
-$tools = new McpToolRegistry([$findOrderTool, $listOrdersTool]);
-$discovery = new McpToolDiscovery($tools, $availability, $cursorSigningKey);
-$registry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$discovery]);
-$responder = new McpResponder($registry);
+$toolRegistry = new McpToolRegistry([$findOrderTool, $listOrdersTool]);
+$toolDiscovery = new McpToolDiscovery($toolRegistry, $toolAvailability, $cursorSigningKey);
+$capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$toolDiscovery]);
+$responder = new McpResponder($capabilityRegistry);
 // The same registry can be supplied to the guarded PSR endpoint below.
 ```
 
@@ -474,8 +526,10 @@ Lists default to `ttlMs: 0` and `cacheScope: private`. Constructor overrides req
 integer TTL and exactly `private` or `public`. Selecting public caching is an explicit consumer assertion that the
 catalog is safe to share across authorization contexts; Common cannot prove that policy. Positive TTL also means
 the consumer accepts cached discovery being stale. These overrides do not alter `server/discover` cache defaults.
-Availability failures propagate to the existing guarded endpoint's diagnostics/sanitization boundary; they never
-become a partially returned list or an exposed policy reason.
+Availability failures are contained at the callback boundary, including consumer-thrown `McpProtocolException`.
+They reach the semantic responder or guarded HTTP boundary as unexpected failures: generic `-32603` /
+`Internal error.` with one central diagnostic attempt retaining the original cause, never private protocol data,
+a partial list or a policy reason. Common-owned cursor/parameter protocol rejections remain deliberate `-32602`.
 
 ## Schema declarations and semantic output
 
@@ -531,6 +585,18 @@ object, a PHP list with typed object children for an array, or the scalar itself
 not arbitrary serializer objects. It creates no JSON-RPC response, error envelope, HTTP response, or partial result.
 The caller owns safe projection; `McpToolInvoker` enforces output-schema conformance before emitting success.
 
+`McpToolOutput::boundedStructured($publicData, $maxEncodedResponseBytes)` optionally bounds the **complete final
+JSON-RPC success response**, default 1 MiB (positive 1–64 MiB range). The central response boundary checks actual
+encoded bytes after text duplication, escaping, request identity and current server metadata. Overflow fails safely
+without truncation; existing unbounded factories retain their behavior. The five opt-in
+[safe execution inspection Tools](../../mcp-execution-inspection.md) use this bound plus finite projection/schema
+limits over shared authorized Queries, without protected-body or mutation exposure.
+
+Native Tool outputs saved by tagged v1.3.0/v1.4.0 predate this optional budget. Backward reads initialize an
+absent budget to null/unbounded while retaining the saved class identity, StrictJson content, matching text and
+Resource links. Current native round trips retain a present budget and its overflow behavior; no stored-object
+rewrite is required. Native unserialization is trusted-only, not an untrusted-input or service-graph storage API.
+
 ### Combined Tool, Resource and Skill journey
 
 A consumer can compose `McpToolDiscovery` and `McpToolInvocation` over one `McpToolRegistry`,
@@ -563,7 +629,8 @@ historical URIs. Cursors, link possession, authentication, immutable bytes, priv
 `cacheScope: private` by default) and previously returned manifests are not read grants. Resource and Skill
 metadata/raw/encoded budgets must fit the configured revision, including JSON/Base64 and central result metadata;
 invalid overrides or inconsistent providers fail rather than emitting a partial success. Do not treat the
-Tool output as subject to the Resource content budget; it retains its existing schema/StrictJson bounds.
+Tool output as subject to the Resource content budget; its schema/StrictJson validation and any explicitly
+selected `boundedStructured()` final-response budget are independent.
 
 `tests/Functional/McpCombinedJourneyTest.php` exercises this single guarded handler with real query dispatch,
 linked document reads and lazy structured Skill files. This package fixture is not an installed Agent OS/Pi
@@ -590,7 +657,7 @@ below supplies SSE and observed-disconnect cancellation; rollback is never impli
 
 ## Validated Tool invocation
 
-Compose `McpToolInvocation(new McpToolInvoker($tools, $availability, ...))` alongside `McpToolDiscovery` in the same
+Compose `McpToolInvocation(new McpToolInvoker($toolRegistry, $toolAvailability, ...))` alongside `McpToolDiscovery` in the same
 capability registry. Both advertise `tools: {listChanged: false}`; discovery remains the required anchor method.
 Use the same request-scoped availability implementation for both. The invoker is a semantic boundary, not a bus,
 authorizer or transaction owner.
@@ -600,15 +667,15 @@ use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 
-$invocation = new McpToolInvocation(new McpToolInvoker(
-    $tools,
-    $availability,
+$toolInvocation = new McpToolInvocation(new McpToolInvoker(
+    $toolRegistry,
+    $toolAvailability,
     failures: new McpToolFailureMap([
         OrderAlreadyClosed::class => 'The order is already closed.'
     ])
 ));
-$registry = new McpCapabilityRegistry($serverInfo, [$discovery, $invocation]);
-$responder = new McpResponder($registry, diagnostics: $diagnostics);
+$capabilityRegistry = new McpCapabilityRegistry($serverInfo, [$toolDiscovery, $toolInvocation]);
+$responder = new McpResponder($capabilityRegistry, diagnostics: $diagnostics);
 ```
 
 Initial `tools/call` accepts `name` and optional `arguments`; protected interactive retries additionally carry
@@ -647,14 +714,14 @@ Declare rules beside `McpToolInfo`, for example:
 #[Validation(rules: [['field' => 'id', 'label' => 'Order', 'rules' => 'required|not_blank']])]
 public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
 {
-    $order = $this->queries->fetch(new GetOrder($input->get('id')));
+    $order = $this->queryBus->fetch(new GetOrder($input->get('id')));
 
     return McpToolOutput::structured((object) ['id' => $order->id]);
 }
 ```
 
 Import the attributes/types from `Application\Mcp\Tool`, `Application\Attribute\Validation`,
-`Application\Mcp\McpProgressReporter`, and `Application\Validation\Data\ApplicationData`. The consumer owns the
+`Application\Mcp\Tool\McpProgressReporter`, and `Application\Validation\Data\ApplicationData`. The consumer owns the
 existing `GetOrder` Query and safe projection. For a mutation, explicitly construct the existing Command, call void
 `CommandBus::execute()` once, then acknowledge only known data such as its caller-generated identifier. Do not
 invent a command result, reflectively hydrate messages, or perform a read solely to manufacture a result.
@@ -742,8 +809,8 @@ $protector = new SodiumMcpStateProtector(
     keys: [1 => $previousRandom32ByteKey, 2 => $activeRandom32ByteKey]
 );
 $invoker = new McpToolInvoker(
-    $tools,
-    $availability,
+    $toolRegistry,
+    $toolAvailability,
     interaction: new McpToolInteraction($protector, $neutralCallerBinding)
 );
 ```
@@ -930,6 +997,17 @@ instance; `McpInputRequestTest` proves schema, envelope, typed response and runt
 `SodiumMcpStateProtectorTest` proves AEAD round trips, tampering, limits and rotation. These are package fixtures,
 not external SDK certification, a consumer authorization receipt or framework-starter qualification.
 
+## Durable asynchronous Tasks
+
+Explicit [MCP Tasks serving](../../mcp-tasks.md) composes negotiated Tool start, durable handle acknowledgment,
+current-state polling, input and cancellation on this same guarded endpoint. Its additive `McpTaskTool::start()`
+entry preserves ordinary `McpTool::handle()` and interactive resume contracts. Creation is acknowledged only after
+shared protected Query reconstruction; independent producer work remains recoverable after connection loss.
+Complete composition, current permissions and final encoded bounds are mandatory. Optional
+[live Task streams](../../mcp-task-live.md) reuse the same protected projection through `notifications.taskIds`, with
+state-bound privacy-safe revisions on get/live, acknowledgment-first baseline and current-state reconnect recovery.
+Polling/input/cancel remain independently usable. No worker, Mercure dependency or deployed-client qualification is implied.
+
 ## Request-scoped progress and cancellation
 
 `McpToolInvoker::invoke($name, $arguments, $progress)` accepts an optional `McpProgressReporter`. Omission preserves
@@ -1003,10 +1081,10 @@ optional `McpToolAuditMetadata::fieldsFor(McpToolInfo)` implementation may close
 project explicitly allowlisted namespaced scalar fields:
 
 ```php
-$metadata = new McpToolMetadataFilter($auditProjection, ['orders/actorId', 'orders/traceId']);
-$commands->addFilter($metadata);
-$queries->addFilter($metadata);
-$invoker = new McpToolInvoker($tools, $availability, metadata: $metadata);
+$toolMetadataFilter = new McpToolMetadataFilter($auditProjection, ['orders/actorId', 'orders/traceId']);
+$commandPipeline->addFilter($toolMetadataFilter);
+$queryPipeline->addFilter($toolMetadataFilter);
+$invoker = new McpToolInvoker($toolRegistry, $toolAvailability, metadata: $toolMetadataFilter);
 ```
 
 Field declarations reject unnamespaced names, the reserved `fight.mcp/` namespace, and credential/password/secret/
@@ -1040,9 +1118,44 @@ produce centralized JSON-RPC protocol errors without selecting a capability. If 
 the error retains it; otherwise the semantic response has no ID. An unexpected capability failure produces the
 generic internal protocol error and exposes no exception detail.
 
+## Canonical adapter namespaces and 1.x compatibility
+
+MCP-specific runtime adapters live together under `Fight\Common\Adapter\Mcp`. Update imports and configured
+class/service names using this complete map; constructor argument names and HTTP/wire behavior are unchanged.
+Paths below omit the common `Fight\Common\` prefix.
+
+| Deprecated name | Canonical name |
+| --- | --- |
+| `Adapter\Http\Mcp\DenyAllMcpOriginPolicy` | `Adapter\Mcp\Http\DenyAllMcpOriginPolicy` |
+| `Adapter\Http\Mcp\ExactMcpOriginPolicy` | `Adapter\Mcp\Http\ExactMcpOriginPolicy` |
+| `Adapter\Http\Mcp\McpOrigin` | `Adapter\Mcp\Http\McpOrigin` |
+| `Adapter\Http\Mcp\McpHeaderValidator` | `Adapter\Mcp\Http\McpHeaderValidator` |
+| `Adapter\Http\Mcp\McpResponseEmitter` | `Adapter\Mcp\Http\McpResponseEmitter` |
+| `Adapter\Http\Mcp\McpRequestHandler` | `Adapter\Mcp\Http\McpRequestHandler` |
+| `Adapter\Http\Mcp\McpResponseFactory` | `Adapter\Mcp\Http\McpResponseFactory` |
+| `Adapter\Http\Symfony\McpResponseFactory` | `Adapter\Mcp\Symfony\McpResponseFactory` |
+| `Adapter\Http\CodeIgniter\McpResponse` | `Adapter\Mcp\CodeIgniter\McpResponse` |
+
+All nine deprecated names remain functional throughout 1.x, with PHPDoc/documentation-only deprecation and no
+runtime notices. Their first deprecation is planned to ship in v1.5.0, not yet released; removal requires separate
+future-major authorization and at least one actually released minor of deprecation. Existing consumers need not change immediately. Native Symfony
+responses remain usable by Laravel; no extra Laravel adapter or container auto-registration is introduced.
+
+Eight legacy classes are final compatibility subclasses of their canonical implementations. The canonical parents
+are non-final only to preserve these released names; consumer inheritance is **not** a promised extension point.
+`McpOrigin` instead retains an explicit final legacy value implementation: validation delegates to the final canonical
+value while its factory still returns the old concrete class and preserves its original serialized private value.
+The old and canonical Origin values are distinct classes with the same normalized text, not interchangeable type aliases.
+Private serialization of service graphs is not a migration format or a new compatibility promise.
+
+The internal `McpEventStream` and `McpRequestBodyReader` move directly to `Adapter\Mcp\Http`. Their old names carry
+no public compatibility promise. The manifest adds nine public names without removing the nine released public
+names; the two helpers remain internal. This relocation adds no protocol methods, dependencies, permission policy,
+transaction guarantee or consumer runtime qualification. Existing product contracts and release probes remain intact.
+
 ## Guarded HTTP
 
-`Adapter\Http\Mcp\McpRequestHandler` implements PSR-15's `RequestHandlerInterface`. A consumer-owned route
+`Adapter\Mcp\Http\McpRequestHandler` implements PSR-15's `RequestHandlerInterface`. A consumer-owned route
 passes a PSR-7 server request to it and receives a PSR-7 response created through PSR-17 factories. No HTTP framework
 is required. Its constructor requires a registry, `McpOriginPolicy`, `McpInvocationGuard`, and `McpResponseFactory`;
 the response factory requires `McpDiagnostics`. Missing policies fail composition. There is no default allow-all
@@ -1102,11 +1215,11 @@ capabilities needs depth 5; smaller valid settings intentionally cannot admit th
 retains the prior 511-container ceiling. Capability-specific metadata/Tool limits remain independent.
 
 ```php
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpRequestLimits;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 
-$decoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: 2097152, maxDepth: 128));
-// Supply decoder: $decoder to the existing McpRequestHandler constructor.
+$requestDecoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: 2097152, maxDepth: 128));
+// Supply decoder: $requestDecoder to the existing McpRequestHandler constructor.
 // Its limits() value is also used for bounded HTTP reading; there is no second HTTP budget to synchronize.
 ```
 
@@ -1220,7 +1333,7 @@ JSON, discovery, denied Origin, complete mirrors, invocation denial, and sanitiz
 
 ## Progressive HTTP delivery
 
-Enable `McpRequestHandler(..., progressive: true)` only with `Adapter\Http\Mcp\McpResponseEmitter` or the
+Enable `McpRequestHandler(..., progressive: true)` only with `Adapter\Mcp\Http\McpResponseEmitter` or the
 native translations below. A string/integer token on `tools/call` selects one lazy SSE response **after** Origin,
 negotiation, decode, mirrors, version and invocation-guard validation. Zero and empty-string tokens are preserved.
 No-token calls still execute immediately with a fresh no-op reporter and unchanged complete JSON; other methods
@@ -1282,11 +1395,11 @@ reproduce only part of mirror validation in a framework Action.
 ### Shared composition and framework-free PSR
 
 ```php
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use GuzzleHttp\Psr7\HttpFactory;
 
 // Consumer supplies explicit capabilities, a request-scoped McpInvocationGuard,
@@ -1331,7 +1444,7 @@ owns authentication and authorization in either framework.
 For `progressive: true`, use the shared emitter at the consumer-owned send boundary:
 
 ```php
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 
 // Framework-free, or Yii's consumer-owned emitter integration:
 (new McpResponseEmitter())->emit($endpoint->handle($serverRequest));
@@ -1365,7 +1478,7 @@ The generic response bridge is for **direct JSON only**. With `progressive: true
 with the Common native factory, which also handles ordinary JSON:
 
 ```php
-use Fight\Common\Adapter\Http\Symfony\McpResponseFactory as NativeMcpResponses;
+use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory as NativeMcpResponses;
 
 return (new NativeMcpResponses())->fromResponse($endpoint->handle($psrRequest));
 ```
@@ -1405,7 +1518,7 @@ that lost multiplicity was validated. The string-body conversion above is **dire
 For progressive delivery replace that native conversion with:
 
 ```php
-use Fight\Common\Adapter\Http\CodeIgniter\McpResponse;
+use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 
 return new McpResponse($endpoint->handle($psrRequest));
 ```

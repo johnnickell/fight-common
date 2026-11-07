@@ -17,14 +17,14 @@ final class McpSkillFileTest extends UnitTestCase
     {
         $bytes = "雪\r\n{{ template }}";
         $file = McpSkillFile::fromBytes('references/雪 name.md', $bytes, expectedSize: strlen($bytes), expectedDigest: 'sha256:'.hash('sha256', $bytes));
-        self::assertSame($bytes, $file->bytes);
-        self::assertSame('references/雪 name.md', $file->path);
+        self::assertSame($bytes, $file->bytes());
+        self::assertSame('references/雪 name.md', $file->path());
         self::assertSame('references/%E9%9B%AA%20name.md', $file->uriPath());
-        self::assertSame('text/plain', $file->mimeType);
-        self::assertTrue($file->text);
-        self::assertSame('sha256:'.hash('sha256', $bytes), $file->digest);
-        self::assertSame('', McpSkillFile::fromBytes('empty', '')->bytes);
-        self::assertSame("\xff\0", McpSkillFile::fromBytes('binary', "\xff\0", text: false)->bytes);
+        self::assertSame('text/plain', $file->mimeType());
+        self::assertTrue($file->text());
+        self::assertSame('sha256:'.hash('sha256', $bytes), $file->digest());
+        self::assertSame('', McpSkillFile::fromBytes('empty', '')->bytes());
+        self::assertSame("\xff\0", McpSkillFile::fromBytes('binary', "\xff\0", text: false)->bytes());
     }
 
     #[DataProvider('invalidFiles')]

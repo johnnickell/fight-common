@@ -13,8 +13,8 @@ try {
     $arguments = $_SERVER['argv'] ?? [];
     $command = $arguments[1] ?? '';
     if ($command === 'surface' && count($arguments) === 5) {
-        $result = new PackageSurfaceInspector()->inspect($arguments[2], $arguments[3], $arguments[4]);
-        echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
+        $surfaceInspection = new PackageSurfaceInspector()->inspect($arguments[2], $arguments[3], $arguments[4]);
+        echo json_encode($surfaceInspection, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
         exit(0);
     }
 

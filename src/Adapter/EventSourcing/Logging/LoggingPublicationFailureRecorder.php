@@ -17,14 +17,17 @@ use Psr\Log\LogLevel;
  */
 final readonly class LoggingPublicationFailureRecorder implements PublicationFailureRecorder
 {
+    private PublicationFailureRecorder $publicationFailureRecorder;
+
     /**
      * Constructs LoggingPublicationFailureRecorder
      */
     public function __construct(
-        private PublicationFailureRecorder $recorder,
+        PublicationFailureRecorder $recorder,
         private LoggerInterface $logger,
         private string $logLevel = LogLevel::ERROR
     ) {
+        $this->publicationFailureRecorder = $recorder;
     }
 
     /**
@@ -53,6 +56,6 @@ final readonly class LoggingPublicationFailureRecorder implements PublicationFai
             )
         ]);
 
-        $this->recorder->record($failure);
+        $this->publicationFailureRecorder->record($failure);
     }
 }

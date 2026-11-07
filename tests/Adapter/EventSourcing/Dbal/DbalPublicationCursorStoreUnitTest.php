@@ -7,89 +7,112 @@ namespace Fight\Test\Common\Adapter\EventSourcing\Dbal;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStore;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use InvalidArgumentException;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 
 #[CoversClass(DbalPublicationCursorStore::class)]
 final class DbalPublicationCursorStoreUnitTest extends UnitTestCase
 {
-    public function test_that_load_defaults_to_the_start_of_history(): void
-    {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('fetchOne')->once()->andReturnFalse();
+    private Connection&MockInterface $connection;
 
-        self::assertSame(0, (new DbalPublicationCursorStore($connection))->load('orders'));
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->connection = $this->mock(Connection::class);
+        $this->connection->shouldReceive('getDatabasePlatform')->andReturn(new SQLitePlatform());
     }
 
-    public function test_that_load_returns_the_stored_position(): void
+    public static function selections(): iterable
     {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('fetchOne')->once()->andReturn('42');
+        yield 'default' => [null, '"publication_cursors"'];
+        yield 'configured reserved word' => [new DbalTableName('Order'), '"Order"'];
+    }
 
-        self::assertSame(42, (new DbalPublicationCursorStore($connection))->load('orders'));
+    #[DataProvider('selections')]
+    public function test_that_load_binds_the_name_and_returns_stored_progress(?DbalTableName $table, string $sqlTable): void
+    {
+        $this->connection->shouldReceive('fetchOne')->twice()->with(
+            'SELECT global_position FROM '.$sqlTable.' WHERE publication_name = ?', ["orders'pipeline"],
+        )->andReturn(false, '42');
+        $publicationCursorStore = $this->cursorStore($table);
+        self::assertSame(0, $publicationCursorStore->load("orders'pipeline"));
+        self::assertSame(42, $publicationCursorStore->load("orders'pipeline"));
     }
 
     public function test_that_save_rejects_a_negative_position_using_the_current_cursor(): void
     {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('fetchOne')->once()->andReturn(6);
-        $store = new DbalPublicationCursorStore($connection);
-
-        $this->expectException(\InvalidArgumentException::class);
+        $this->connection->shouldReceive('fetchOne')->once()->andReturn(6);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Publication cursor orders cannot move backward from 6 to -1.');
-
-        $store->save('orders', -1);
+        $this->cursorStore(null)->save('orders', -1);
     }
 
-    public function test_that_save_advances_an_existing_cursor_without_an_insert(): void
+    #[DataProvider('selections')]
+    public function test_that_save_advances_without_inserting(?DbalTableName $table, string $sqlTable): void
     {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('executeStatement')->once()->andReturn(1);
-        $connection->shouldNotReceive('insert');
-
-        (new DbalPublicationCursorStore($connection))->save('orders', 7);
+        $this->connection->shouldReceive('executeStatement')->once()->with(
+            'UPDATE '.$sqlTable.' SET global_position = ? WHERE publication_name = ? AND global_position <= ?',
+            [7, 'orders', 7],
+        )->andReturn(1);
+        $this->connection->shouldNotReceive('insert');
+        $this->cursorStore($table)->save('orders', 7);
     }
 
-    public function test_that_save_inserts_a_new_cursor_when_no_existing_cursor_advances(): void
+    #[DataProvider('selections')]
+    public function test_that_save_inserts_new_progress(?DbalTableName $table, string $sqlTable): void
     {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('executeStatement')->once()->andReturn(0);
-        $connection->shouldReceive('insert')->once()->with('publication_cursors', [
-            'publication_name' => 'orders',
-            'global_position' => 7,
+        $this->connection->shouldReceive('executeStatement')->once()->andReturn(0);
+        $this->connection->shouldReceive('insert')->once()->with($sqlTable, [
+            'publication_name' => 'orders', 'global_position' => 7,
         ]);
-
-        (new DbalPublicationCursorStore($connection))->save('orders', 7);
+        $this->cursorStore($table)->save('orders', 7);
     }
 
-    public function test_that_save_retries_an_insert_race_as_an_advance(): void
+    #[DataProvider('selections')]
+    public function test_that_save_retries_insert_races_on_the_selected_table(?DbalTableName $table, string $sqlTable): void
     {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('executeStatement')->twice()->andReturn(0, 1);
-        $connection->shouldReceive('insert')->once()->andThrow($this->uniqueConstraintViolation());
-        $connection->shouldReceive('fetchOne')->once()->andReturn(7);
-
-        (new DbalPublicationCursorStore($connection))->save('orders', 7);
+        $this->connection->shouldReceive('executeStatement')->twice()->with(
+            'UPDATE '.$sqlTable.' SET global_position = ? WHERE publication_name = ? AND global_position <= ?',
+            [7, 'orders', 7],
+        )->andReturn(0, 1);
+        $this->connection->shouldReceive('insert')->once()->with($sqlTable, [
+            'publication_name' => 'orders', 'global_position' => 7,
+        ])->andThrow($this->uniqueConstraintViolation());
+        $this->connection->shouldReceive('fetchOne')->once()->with(
+            'SELECT global_position FROM '.$sqlTable.' WHERE publication_name = ?', ['orders'],
+        )->andReturn(7);
+        $this->cursorStore($table)->save('orders', 7);
     }
 
-    public function test_that_save_rejects_an_insert_race_that_reveals_a_newer_cursor(): void
+    public function test_that_save_rejects_an_insert_race_that_reveals_newer_progress(): void
     {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('executeStatement')->twice()->andReturn(0);
-        $connection->shouldReceive('insert')->once()->andThrow($this->uniqueConstraintViolation());
-        $connection->shouldReceive('fetchOne')->once()->andReturn(8);
-        $store = new DbalPublicationCursorStore($connection);
-
-        $this->expectException(\InvalidArgumentException::class);
+        $this->connection->shouldReceive('executeStatement')->twice()->andReturn(0);
+        $this->connection->shouldReceive('insert')->once()->andThrow($this->uniqueConstraintViolation());
+        $this->connection->shouldReceive('fetchOne')->once()->andReturn(8);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Publication cursor orders cannot move backward from 8 to 7.');
+        $this->cursorStore(new DbalTableName('Order'))->save('orders', 7);
+    }
 
-        $store->save('orders', 7);
+    private function cursorStore(?DbalTableName $table): DbalPublicationCursorStore
+    {
+        if (null === $table) {
+            return new DbalPublicationCursorStore(connection: $this->connection);
+        }
+
+        return new DbalPublicationCursorStore(connection: $this->connection, table: $table);
     }
 
     private function uniqueConstraintViolation(): UniqueConstraintViolationException
     {
-        $driverFailure = new class('forced unique constraint race') extends \RuntimeException implements DriverException {
+        $driverFailure = new class('forced unique constraint race') extends RuntimeException implements DriverException {
             public function getSQLState(): ?string
             {
                 return '23000';

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Fixture\Mcp;
 
 use Fight\Common\Application\Attribute\Validation;
-use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequest;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputResponses;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInteractiveTool;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Messaging\Command\CommandBus;
@@ -30,7 +30,7 @@ final class InteractiveValueTool implements McpInteractiveTool
     public McpInputRequired|McpToolOutput $output;
     public bool $askAgain = false;
 
-    public function __construct(private QueryBus|CommandBus|null $bus = null)
+    public function __construct(private QueryBus|CommandBus|null $interactionBus = null)
     {
         $this->output = McpInputRequired::fromRequests(['details' => McpInputRequest::form(
             'Provide a public label',
@@ -64,10 +64,10 @@ final class InteractiveValueTool implements McpInteractiveTool
         $response = $responses->get('details');
         $result = ['id' => $input->get('id'), 'action' => $response->action()];
         if ($response->action() === 'accept') {
-            if ($this->bus instanceof QueryBus) {
-                $result['value'] = $this->bus->fetch(new SampleQuery($input->get('id')));
-            } elseif ($this->bus instanceof CommandBus) {
-                $this->bus->execute(new SampleCommand($input->get('id')));
+            if ($this->interactionBus instanceof QueryBus) {
+                $result['value'] = $this->interactionBus->fetch(new SampleQuery($input->get('id')));
+            } elseif ($this->interactionBus instanceof CommandBus) {
+                $this->interactionBus->execute(new SampleCommand($input->get('id')));
             }
             $result['label'] = $response->content()->get('label');
         }

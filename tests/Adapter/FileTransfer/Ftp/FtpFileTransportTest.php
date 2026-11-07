@@ -69,17 +69,17 @@ class FtpFileTransportTest extends UnitTestCase
     public function test_that_send_resource_uses_existing_directory_and_closes_resource(): void
     {
         FtpFunctionOverrides::addDirectory('/existing');
-        $contents = fopen('php://temp', 'rb+');
-        fwrite($contents, 'resource payload');
-        rewind($contents);
+        $contentStream = fopen('php://temp', 'rb+');
+        fwrite($contentStream, 'resource payload');
+        rewind($contentStream);
 
-        $this->transport()->sendFile('/existing/file.txt', $contents);
+        $this->transport()->sendFile('/existing/file.txt', $contentStream);
 
         self::assertSame(
             'resource payload',
             FtpFunctionOverrides::uploaded('/existing/file.txt')
         );
-        self::assertFalse(is_resource($contents));
+        self::assertFalse(is_resource($contentStream));
         self::assertSame([], FtpFunctionOverrides::calls('ftp_mkdir'));
     }
 

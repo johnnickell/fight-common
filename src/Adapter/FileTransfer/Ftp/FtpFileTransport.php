@@ -50,9 +50,9 @@ final class FtpFileTransport implements FileTransport
             $contents = $stream;
         }
 
-        $dir = dirname($path);
-        if (!$this->isDirectory($dir)) {
-            $this->makeDirectory($dir);
+        $directory = dirname($path);
+        if (!$this->isDirectory($directory)) {
+            $this->makeDirectory($directory);
         }
 
         $success = @ftp_fput($this->connection, $path, $contents, FTP_BINARY);
@@ -160,12 +160,12 @@ final class FtpFileTransport implements FileTransport
 
             $size    = (int) ($entry['size'] ?? 0);
             $rawMode = isset($entry['unix.mode']) ? (int) $entry['unix.mode'] : 0;
-            $modify  = $entry['modify'] ?? '';
-            $dt      = new DateTimeImmutable();
-            if ($modify !== '') {
-                $parsed = DateTimeImmutable::createFromFormat('YmdHis', $modify);
-                if ($parsed !== false) {
-                    $dt = $parsed;
+            $modificationTimeString = $entry['modify'] ?? '';
+            $modifiedAt = new DateTimeImmutable();
+            if ($modificationTimeString !== '') {
+                $parsedModificationTime = DateTimeImmutable::createFromFormat('YmdHis', $modificationTimeString);
+                if ($parsedModificationTime !== false) {
+                    $modifiedAt = $parsedModificationTime;
                 }
             }
 
@@ -175,8 +175,8 @@ final class FtpFileTransport implements FileTransport
                 0,
                 0,
                 $rawMode,
-                $dt,
-                $dt,
+                $modifiedAt,
+                $modifiedAt,
                 $resourceType
             );
         }
@@ -236,19 +236,19 @@ final class FtpFileTransport implements FileTransport
      */
     private function isDirectory(string $path): bool
     {
-        $pwd = @ftp_pwd($this->connection);
+        $workingDirectory = @ftp_pwd($this->connection);
 
-        if ($pwd === false) {
+        if ($workingDirectory === false) {
             throw new FileTransferException('Unable to resolve the current working directory');
         }
 
         if (@ftp_chdir($this->connection, $path)) {
-            ftp_chdir($this->connection, $pwd);
+            ftp_chdir($this->connection, $workingDirectory);
 
             return true;
         }
 
-        ftp_chdir($this->connection, $pwd);
+        ftp_chdir($this->connection, $workingDirectory);
 
         return false;
     }
@@ -268,7 +268,7 @@ final class FtpFileTransport implements FileTransport
             return;
         }
 
-        $pwd   = ftp_pwd($this->connection);
+        $workingDirectory = ftp_pwd($this->connection);
         $parts = explode('/', $path);
 
         foreach ($parts as $part) {
@@ -285,7 +285,7 @@ final class FtpFileTransport implements FileTransport
             }
         }
 
-        ftp_chdir($this->connection, $pwd);
+        ftp_chdir($this->connection, $workingDirectory);
     }
 
     /**

@@ -16,9 +16,9 @@ final class McpSkillLimitsTest extends UnitTestCase
     public function test_that_defaults_support_the_pinned_static_revision_envelope(): void
     {
         $limits = new McpSkillLimits();
-        self::assertSame([512, 16777216, 65536, 32, 4194304], [$limits->maxFiles, $limits->maxTotalBytes, $limits->maxFrontmatterBytes, $limits->maxDepth, $limits->maxEntryBytes]);
-        self::assertSame(1, (new McpSkillLimits(1, 1, 1, 1, 1))->maxFiles);
-        self::assertSame(64, (new McpSkillLimits(maxFrontmatterBytes: 1048576, maxDepth: 64, maxEntryBytes: 16777216))->maxDepth);
+        self::assertSame([512, 16777216, 65536, 32, 4194304], [$limits->maxFiles(), $limits->maxTotalBytes(), $limits->maxFrontmatterBytes(), $limits->maxDepth(), $limits->maxEntryBytes()]);
+        self::assertSame(1, (new McpSkillLimits(1, 1, 1, 1, 1))->maxFiles());
+        self::assertSame(64, (new McpSkillLimits(maxFrontmatterBytes: 1048576, maxDepth: 64, maxEntryBytes: 16777216))->maxDepth());
     }
 
     #[DataProvider('invalidLimits')]

@@ -10,6 +10,7 @@ use Fight\Common\Application\Auth\Exception\AuthException;
 use Fight\Common\Application\HttpFoundation\HttpStatus;
 use Fight\Common\Domain\Auth\Nonce;
 use Fight\Common\Domain\Auth\NonceRepository;
+use Fight\Common\Domain\Exception\DomainException;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
@@ -31,16 +32,28 @@ final class HmacAuthenticator implements Authenticator
         'X-Nonce'
     ];
     private string $secret;
+    private readonly string $publicCredential;
+    private readonly ?NonceRepository $nonceRepository;
 
     /**
      * Constructs HmacAuthenticator
+     *
+     * Both released repository names remain optional. Null supplies no repository; identical
+     * instances agree, while distinct non-null instances reject before construction effects.
      */
     public function __construct(
-        private readonly string $public,
+        string $public,
         string $private,
         private readonly int $timeTolerance,
-        private readonly ?NonceRepository $nonceRepository = null
+        ?NonceRepository $nonceRepository = null,
+        ?NonceRepository $nonces = null
     ) {
+        if ($nonceRepository !== null && $nonces !== null && $nonceRepository !== $nonces) {
+            throw new DomainException('Conflicting HMAC nonce repositories.');
+        }
+
+        $this->nonceRepository = $nonceRepository ?? $nonces;
+        $this->publicCredential = $public;
         $this->secret = hex2bin($private);
     }
 
@@ -68,7 +81,7 @@ final class HmacAuthenticator implements Authenticator
         }
 
         // validate that the credential matches the public key
-        if ($this->public !== $request->getHeaderLine('Credential')) {
+        if ($this->publicCredential !== $request->getHeaderLine('Credential')) {
             throw new AuthException('Invalid credential', HttpStatus::UNAUTHORIZED);
         }
 

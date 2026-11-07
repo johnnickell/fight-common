@@ -38,11 +38,11 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
         $container->instance(ContainerContract::class, $container);
         $container->instance(EventDispatcherContract::class, new EventDispatcher($container));
         $container->instance(DispatcherContract::class, new BusDispatcher($container));
-        $transactions = new DatabaseTransactionsManager();
-        $container->instance('db.transactions', $transactions);
+        $transactionManager = new DatabaseTransactionsManager();
+        $container->instance('db.transactions', $transactionManager);
         $calls = [];
-        $dispatcher = new QueuedEventMessageIntegrationDispatcher();
-        $dispatcher->addHandler(
+        $eventDispatcher = new QueuedEventMessageIntegrationDispatcher();
+        $eventDispatcher->addHandler(
             ClassName::underscore(QueuedEventMessageIntegrationEvent::class),
             static function (EventMessage $message) use (&$calls): void {
                 $calls[] = ['event-high', $message->id()->toString(), $message->timestamp()->format('Y-m-d H:i:s.u'), $message->payloadType()->toString(), $message->payload()->toArray(), $message->meta()->toArray()];
@@ -50,20 +50,20 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
             },
             20
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(QueuedEventMessageIntegrationEvent::class),
             static function (EventMessage $message) use (&$calls): void {
                 $calls[] = ['event-low', $message->id()->toString(), $message->timestamp()->format('Y-m-d H:i:s.u'), $message->payloadType()->toString(), $message->payload()->toArray(), $message->meta()->toArray()];
             },
             10
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(AllEvents::class),
             static function (EventMessage $message) use (&$calls): void {
                 $calls[] = ['all-events', $message->id()->toString(), $message->timestamp()->format('Y-m-d H:i:s.u'), $message->payloadType()->toString(), $message->payload()->toArray(), $message->meta()->toArray()];
             }
         );
-        $container->instance(EventMessageHandler::class, new EventMessageHandler($dispatcher));
+        $container->instance(EventMessageHandler::class, new EventMessageHandler($eventDispatcher));
         $queue = new RecordingSyncQueue();
         $queue->setContainer($container);
         $queue->setConnectionName('sync');
@@ -74,14 +74,14 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
             Meta::create(['trace_id' => 'trace-70', 'attempt' => 1])
         ));
 
-        $transactions->begin('fight-common', 1);
+        $transactionManager->begin('fight-common', 1);
         /** @phpstan-ignore-next-line Laravel queues accept object jobs despite the inherited contract annotation */
         $queue->push($job);
 
         self::assertSame([], $calls);
 
         try {
-            $transactions->commit('fight-common', 1, 0);
+            $transactionManager->commit('fight-common', 1, 0);
             self::fail('The first queued attempt must fail after complete fan-out.');
         } catch (RuntimeException $exception) {
             self::assertSame('retry queued event delivery', $exception->getMessage());

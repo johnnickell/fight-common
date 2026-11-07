@@ -1,5 +1,8 @@
 FROM php:8.5-cli
 
+# Fail closed if an upstream tag or local override supplies an affected interpreter.
+RUN php -r 'exit(PHP_MAJOR_VERSION === 8 && PHP_MINOR_VERSION === 5 && version_compare(PHP_VERSION, "8.5.12", ">=") ? 0 : 1);'
+
 COPY --from=composer:2.8.12 /usr/bin/composer /usr/local/bin/composer
 
 # Set working directory
@@ -9,6 +12,7 @@ WORKDIR /var/www
 RUN apt-get update \
     && apt-get install -y --allow-downgrades \
         --allow-remove-essential --allow-change-held-packages \
+        ca-certificates \
         wget \
         curl \
         git \
@@ -22,7 +26,8 @@ RUN apt-get update \
         libicu-dev \
     && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
     && locale-gen en_US.UTF-8 \
-    && dpkg-reconfigure --frontend=noninteractive locales
+    && dpkg-reconfigure --frontend=noninteractive locales \
+    && python3 -c 'import ssl; assert not any(v == "emSign ECC Root CA - G3" for cert in ssl.create_default_context().get_ca_certs() for rdn in cert["subject"] for k, v in rdn if k == "commonName")'
 
 # Install extensions
 RUN docker-php-ext-configure intl \
@@ -43,7 +48,7 @@ RUN docker-php-ext-configure intl \
 RUN apt-get -y autoremove && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# The gate runs as the host UID, not root; preserve its memory/coverage settings.
+# The gate runs as the checkout owner; restrictive host umasks must not hide public PHP settings.
 COPY --chmod=0644 ./local.ini /usr/local/etc/php/conf.d/local.ini
 
 # Root-owned proof that release commands are executing in the canonical image.

@@ -18,10 +18,30 @@ final readonly class McpSkillLimits
      * Resource limits independently constrain individual files and their complete encoded read results.
      */
     public function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use maxFiles() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxFiles = 512,
+        /**
+         * @deprecated Planned v1.5.0; use maxTotalBytes() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxTotalBytes = 16777216,
+        /**
+         * @deprecated Planned v1.5.0; use maxFrontmatterBytes() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxFrontmatterBytes = 65536,
+        /**
+         * @deprecated Planned v1.5.0; use maxDepth() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxDepth = 32,
+        /**
+         * @deprecated Planned v1.5.0; use maxEntryBytes() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxEntryBytes = 4194304
     ) {
         if (
@@ -33,5 +53,45 @@ final readonly class McpSkillLimits
         ) {
             throw new DomainException('Skill limits must be finite and within the static interoperability envelope.');
         }
+    }
+
+    /**
+     * Returns the maximum revision member count
+     */
+    public function maxFiles(): int
+    {
+        return $this->maxFiles;
+    }
+
+    /**
+     * Returns the total raw revision byte budget
+     */
+    public function maxTotalBytes(): int
+    {
+        return $this->maxTotalBytes;
+    }
+
+    /**
+     * Returns the JSON frontmatter byte budget
+     */
+    public function maxFrontmatterBytes(): int
+    {
+        return $this->maxFrontmatterBytes;
+    }
+
+    /**
+     * Returns the frontmatter parsing depth limit
+     */
+    public function maxDepth(): int
+    {
+        return $this->maxDepth;
+    }
+
+    /**
+     * Returns the encoded complete entry byte budget
+     */
+    public function maxEntryBytes(): int
+    {
+        return $this->maxEntryBytes;
     }
 }

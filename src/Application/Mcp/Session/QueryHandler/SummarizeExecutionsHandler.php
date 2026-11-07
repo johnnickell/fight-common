@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Application\Mcp\Session\QueryHandler;
+
+use Fight\Common\Application\Mcp\Session\Data\ExecutionSummary;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionReader;
+use Fight\Common\Application\Messaging\Query\QueryHandler;
+use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
+
+/**
+ * Class SummarizeExecutionsHandler
+ */
+final readonly class SummarizeExecutionsHandler implements QueryHandler
+{
+    /**
+     * Constructs SummarizeExecutionsHandler
+     */
+    public function __construct(
+        private ExecutionReadAdmission $executionReadAdmission,
+        private ExecutionReader $executionReader
+    ) {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function queryRegistration(): string
+    {
+        return SummarizeExecutions::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handle(QueryMessage $queryMessage): ExecutionSummary
+    {
+        /**
+         * @var SummarizeExecutions $query
+         */
+        $query = $queryMessage->payload();
+        $access = $this->executionReadAdmission->currentAccess($query->selection());
+
+        return $this->executionReader->summarize($query->selection(), $access);
+    }
+}

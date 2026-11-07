@@ -15,10 +15,30 @@ final readonly class McpSkillFile
      * Constructs McpSkillFile
      */
     private function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use path() instead
+         * Retained until a future major after at least one released minor
+         */
         public string $path,
+        /**
+         * @deprecated Planned v1.5.0; use bytes() instead
+         * Retained until a future major after at least one released minor
+         */
         public string $bytes,
+        /**
+         * @deprecated Planned v1.5.0; use mimeType() instead
+         * Retained until a future major after at least one released minor
+         */
         public string $mimeType,
+        /**
+         * @deprecated Planned v1.5.0; use text() instead
+         * Retained until a future major after at least one released minor
+         */
         public bool $text,
+        /**
+         * @deprecated Planned v1.5.0; use digest() instead
+         * Retained until a future major after at least one released minor
+         */
         public string $digest
     ) {
     }
@@ -72,6 +92,46 @@ final readonly class McpSkillFile
         ) {
             throw new DomainException('Skill members require unambiguous contained relative paths.');
         }
+    }
+
+    /**
+     * Returns the exact decoded relative member path
+     */
+    public function path(): string
+    {
+        return $this->path;
+    }
+
+    /**
+     * Returns the original member bytes
+     */
+    public function bytes(): string
+    {
+        return $this->bytes;
+    }
+
+    /**
+     * Returns the declared media type
+     */
+    public function mimeType(): string
+    {
+        return $this->mimeType;
+    }
+
+    /**
+     * Returns whether the member contains validated UTF-8 text
+     */
+    public function text(): bool
+    {
+        return $this->text;
+    }
+
+    /**
+     * Returns the captured raw-byte digest
+     */
+    public function digest(): string
+    {
+        return $this->digest;
     }
 
     /**

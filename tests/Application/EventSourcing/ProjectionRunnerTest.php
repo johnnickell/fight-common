@@ -37,10 +37,10 @@ final class ProjectionRunnerTest extends UnitTestCase
                 '6ba7b841-9dad-11d1-80b4-00c04fd430c8',
             )],
         );
-        $checkpointStore = new InMemoryProjectionCheckpointStore();
+        $projectionCheckpointStore = new InMemoryProjectionCheckpointStore();
         $initialCollector = new ProjectionEventCollector();
         $initialProjector = new class($initialCollector) implements Projector {
-            public function __construct(private ProjectionEventCollector $collector)
+            public function __construct(private ProjectionEventCollector $eventCollector)
             {
             }
 
@@ -56,21 +56,21 @@ final class ProjectionRunnerTest extends UnitTestCase
 
             public function project(StoredEvent $event): void
             {
-                $this->collector->events[] = $event;
+                $this->eventCollector->events[] = $event;
             }
         };
-        $runner = new ProjectionRunner($eventStore, $checkpointStore);
+        $runner = new ProjectionRunner($eventStore, $projectionCheckpointStore);
 
         $runner->run($initialProjector, 10);
 
         self::assertSame([], $initialCollector->events);
-        self::assertSame(1, $checkpointStore->load('orders.order-summary'));
+        self::assertSame(1, $projectionCheckpointStore->load('orders.order-summary'));
 
         // The consumer stops its worker and clears or recreates the read model before this reset.
-        $checkpointStore->reset('orders.order-summary');
+        $projectionCheckpointStore->reset('orders.order-summary');
         $rebuiltCollector = new ProjectionEventCollector();
         $replacementProjector = new class($rebuiltCollector) implements Projector {
-            public function __construct(private ProjectionEventCollector $collector)
+            public function __construct(private ProjectionEventCollector $eventCollector)
             {
             }
 
@@ -87,7 +87,7 @@ final class ProjectionRunnerTest extends UnitTestCase
 
             public function project(StoredEvent $event): void
             {
-                $this->collector->events[] = $event;
+                $this->eventCollector->events[] = $event;
             }
         };
 
@@ -97,7 +97,7 @@ final class ProjectionRunnerTest extends UnitTestCase
         self::assertSame(1, $rebuiltCollector->events[0]->globalPosition());
         self::assertInstanceOf(CurrentOrderCancelled::class, $rebuiltCollector->events[0]->message()->payload());
         self::assertSame(['order_id' => 'order-1'], $rebuiltCollector->events[0]->message()->payload()->toArray());
-        self::assertSame(1, $checkpointStore->load('orders.order-summary'));
+        self::assertSame(1, $projectionCheckpointStore->load('orders.order-summary'));
     }
 
     public function test_that_a_projector_failure_stops_the_batch_and_resumes_at_the_failed_position(): void
@@ -125,10 +125,10 @@ final class ProjectionRunnerTest extends UnitTestCase
                 ),
             ],
         );
-        $checkpointStore = new RecordingProjectionCheckpointStore([]);
+        $projectionCheckpointStore = new RecordingProjectionCheckpointStore([]);
         $failure = new \RuntimeException('Read model write failed.');
         $projector = new FailingOnceProjectionProjector(2, $failure);
-        $runner = new ProjectionRunner($eventStore, $checkpointStore);
+        $runner = new ProjectionRunner($eventStore, $projectionCheckpointStore);
 
         try {
             $runner->run($projector, 3);
@@ -138,8 +138,8 @@ final class ProjectionRunnerTest extends UnitTestCase
         }
 
         self::assertSame([1, 2], $projector->attemptedPositions);
-        self::assertSame([['orders.order-summary', 1]], $checkpointStore->saves);
-        self::assertSame(1, $checkpointStore->load('orders.order-summary'));
+        self::assertSame([['orders.order-summary', 1]], $projectionCheckpointStore->saves);
+        self::assertSame(1, $projectionCheckpointStore->load('orders.order-summary'));
 
         $runner->run($projector, 3);
 
@@ -150,7 +150,7 @@ final class ProjectionRunnerTest extends UnitTestCase
                 ['orders.order-summary', 2],
                 ['orders.order-summary', 3],
             ],
-            $checkpointStore->saves,
+            $projectionCheckpointStore->saves,
         );
     }
 
@@ -166,9 +166,9 @@ final class ProjectionRunnerTest extends UnitTestCase
             )],
         );
         $failure = new \RuntimeException('Checkpoint write failed.');
-        $checkpointStore = new FailingOnceProjectionCheckpointStore($failure);
+        $projectionCheckpointStore = new FailingOnceProjectionCheckpointStore($failure);
         $projector = new RecordingProjectionProjector();
-        $runner = new ProjectionRunner($eventStore, $checkpointStore);
+        $runner = new ProjectionRunner($eventStore, $projectionCheckpointStore);
 
         try {
             $runner->run($projector, 1);
@@ -178,12 +178,12 @@ final class ProjectionRunnerTest extends UnitTestCase
         }
 
         self::assertSame([1], $projector->projectedPositions);
-        self::assertSame(0, $checkpointStore->load('orders.order-summary'));
+        self::assertSame(0, $projectionCheckpointStore->load('orders.order-summary'));
 
         $runner->run($projector, 1);
 
         self::assertSame([1, 1], $projector->projectedPositions);
-        self::assertSame(1, $checkpointStore->load('orders.order-summary'));
+        self::assertSame(1, $projectionCheckpointStore->load('orders.order-summary'));
     }
 
     public function test_that_a_batch_skips_undeclared_events_and_checkpoints_each_position_in_order(): void
@@ -223,10 +223,10 @@ final class ProjectionRunnerTest extends UnitTestCase
                 ),
             ],
         );
-        $checkpointStore = new RecordingProjectionCheckpointStore(['orders.order-summary' => 1]);
-        $collector = new ProjectionEventCollector();
-        $projector = new class($collector) implements Projector {
-            public function __construct(private ProjectionEventCollector $collector)
+        $projectionCheckpointStore = new RecordingProjectionCheckpointStore(['orders.order-summary' => 1]);
+        $eventCollector = new ProjectionEventCollector();
+        $projector = new class($eventCollector) implements Projector {
+            public function __construct(private ProjectionEventCollector $eventCollector)
             {
             }
 
@@ -242,15 +242,15 @@ final class ProjectionRunnerTest extends UnitTestCase
 
             public function project(StoredEvent $event): void
             {
-                $this->collector->events[] = $event;
+                $this->eventCollector->events[] = $event;
             }
         };
 
-        (new ProjectionRunner($eventStore, $checkpointStore))->run($projector, 3);
+        (new ProjectionRunner($eventStore, $projectionCheckpointStore))->run($projector, 3);
 
         self::assertSame(
             [2, 4],
-            array_map(static fn (StoredEvent $event): int => $event->globalPosition(), $collector->events),
+            array_map(static fn (StoredEvent $event): int => $event->globalPosition(), $eventCollector->events),
         );
         self::assertSame(
             [
@@ -258,9 +258,9 @@ final class ProjectionRunnerTest extends UnitTestCase
                 ['orders.order-summary', 3],
                 ['orders.order-summary', 4],
             ],
-            $checkpointStore->saves,
+            $projectionCheckpointStore->saves,
         );
-        self::assertSame(4, $checkpointStore->load('orders.order-summary'));
+        self::assertSame(4, $projectionCheckpointStore->load('orders.order-summary'));
     }
 
     public function test_that_a_declared_upcasted_event_is_projected_and_checkpointed_by_stable_name(): void
@@ -279,10 +279,10 @@ final class ProjectionRunnerTest extends UnitTestCase
                 [],
             )],
         );
-        $checkpointStore = new InMemoryProjectionCheckpointStore();
-        $collector = new ProjectionEventCollector();
-        $projector = new class($collector) implements Projector {
-            public function __construct(private ProjectionEventCollector $collector)
+        $projectionCheckpointStore = new InMemoryProjectionCheckpointStore();
+        $eventCollector = new ProjectionEventCollector();
+        $projector = new class($eventCollector) implements Projector {
+            public function __construct(private ProjectionEventCollector $eventCollector)
             {
             }
 
@@ -298,20 +298,20 @@ final class ProjectionRunnerTest extends UnitTestCase
 
             public function project(StoredEvent $event): void
             {
-                $this->collector->events[] = $event;
+                $this->eventCollector->events[] = $event;
             }
         };
 
-        (new ProjectionRunner($eventStore, $checkpointStore))->run($projector, 10);
+        (new ProjectionRunner($eventStore, $projectionCheckpointStore))->run($projector, 10);
 
-        self::assertCount(1, $collector->events);
-        self::assertSame(1, $collector->events[0]->globalPosition());
-        self::assertInstanceOf(CurrentOrderPlaced::class, $collector->events[0]->message()->payload());
+        self::assertCount(1, $eventCollector->events);
+        self::assertSame(1, $eventCollector->events[0]->globalPosition());
+        self::assertInstanceOf(CurrentOrderPlaced::class, $eventCollector->events[0]->message()->payload());
         self::assertSame(
             ['order_id' => 'order-42', 'source' => 'historical'],
-            $collector->events[0]->message()->payload()->toArray(),
+            $eventCollector->events[0]->message()->payload()->toArray(),
         );
-        self::assertSame(1, $checkpointStore->load('orders.order-summary'));
+        self::assertSame(1, $projectionCheckpointStore->load('orders.order-summary'));
     }
 
     /**

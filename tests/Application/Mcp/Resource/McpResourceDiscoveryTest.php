@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Resource;
 
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
@@ -55,10 +55,10 @@ final class McpResourceDiscoveryTest extends UnitTestCase
 
     public function test_that_registration_does_not_retain_caller_array_references(): void
     {
-        $provider = $this->provider(['test:/registered']);
-        $providers = [&$provider];
+        $resourceProvider = $this->provider(['test:/registered']);
+        $providers = [&$resourceProvider];
         $discovery = $this->discovery($providers);
-        $provider = $this->provider(['test:/replacement']);
+        $resourceProvider = $this->provider(['test:/replacement']);
         self::assertSame(['test:/registered'], array_column($discovery->handle($this->request())->toArray()['resources'], 'uri'));
     }
 
@@ -75,9 +75,9 @@ final class McpResourceDiscoveryTest extends UnitTestCase
     {
         $discovery = $this->discovery([]);
         self::assertSame(['resultType' => 'complete', 'resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private'], $discovery->handle($this->request())->toArray());
-        $provider = $this->mock(McpResourceProvider::class);
-        $provider->shouldNotReceive('resources');
-        $templates = $this->discovery([$provider]);
+        $resourceProvider = $this->mock(McpResourceProvider::class);
+        $resourceProvider->shouldNotReceive('resources');
+        $templates = $this->discovery([$resourceProvider]);
         self::assertSame(['resultType' => 'complete', 'resourceTemplates' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
             $templates->handle($this->request(['cursor' => ''], 'resources/templates/list'))->toArray());
     }
@@ -142,8 +142,8 @@ final class McpResourceDiscoveryTest extends UnitTestCase
 
     public function test_that_repeated_provider_instances_and_provider_count_overflow_fail_composition(): void
     {
-        $provider = $this->provider([]);
-        foreach ([[$provider, $provider], [$provider, $this->provider([])]] as $providers) {
+        $resourceProvider = $this->provider([]);
+        foreach ([[$resourceProvider, $resourceProvider], [$resourceProvider, $this->provider([])]] as $providers) {
             try {
                 new McpResourceDiscovery($providers, new ResourceAvailability(), self::KEY, 'catalog', new McpResourceLimits(maxProviders: count($providers) === 2 && $providers[0] !== $providers[1] ? 1 : 2));
                 self::fail('Ambiguous or excessive providers accepted.');
@@ -154,10 +154,10 @@ final class McpResourceDiscoveryTest extends UnitTestCase
     #[DataProvider('invalidParameters')]
     public function test_that_invalid_requests_never_enumerate(array $parameters, string $method = 'resources/list'): void
     {
-        $provider = $this->mock(McpResourceProvider::class);
-        $provider->shouldNotReceive('resources');
+        $resourceProvider = $this->mock(McpResourceProvider::class);
+        $resourceProvider->shouldNotReceive('resources');
         $this->expectException(McpProtocolException::class);
-        $this->discovery([$provider])->handle($this->request($parameters, $method));
+        $this->discovery([$resourceProvider])->handle($this->request($parameters, $method));
     }
 
     public static function invalidParameters(): iterable
@@ -172,16 +172,16 @@ final class McpResourceDiscoveryTest extends UnitTestCase
     public function test_that_tampered_foreign_and_stale_cursors_fail_without_disclosing_descriptors(): void
     {
         $availability = new ResourceAvailability();
-        $provider = $this->provider(['test:/a', 'test:/b', 'test:/c']);
-        $discovery = $this->discovery([$provider], $availability);
+        $resourceProvider = $this->provider(['test:/a', 'test:/b', 'test:/c']);
+        $discovery = $this->discovery([$resourceProvider], $availability);
         $cursor = $discovery->handle($this->request())->toArray()['nextCursor'];
         $raw = base64_decode(strtr($cursor, '-_', '+/'));
         $variants = [
             [$discovery, strtr(base64_encode(pack('N', 9).substr($raw, 4)), '+/', '-_')],
             [$discovery, strtr(base64_encode(pack('N', 1).str_repeat('x', 32)), '+/', '-_')],
-            [new McpResourceDiscovery([$provider], $availability, str_repeat('z', 32), 'catalog', new McpResourceLimits(pageSize: 1)), $cursor],
-            [new McpResourceDiscovery([$provider], $availability, self::KEY, 'other', new McpResourceLimits(pageSize: 1)), $cursor],
-            [new McpResourceDiscovery([$provider], $availability, self::KEY, 'catalog', new McpResourceLimits(pageSize: 2)), $cursor],
+            [new McpResourceDiscovery([$resourceProvider], $availability, str_repeat('z', 32), 'catalog', new McpResourceLimits(pageSize: 1)), $cursor],
+            [new McpResourceDiscovery([$resourceProvider], $availability, self::KEY, 'other', new McpResourceLimits(pageSize: 1)), $cursor],
+            [new McpResourceDiscovery([$resourceProvider], $availability, self::KEY, 'catalog', new McpResourceLimits(pageSize: 2)), $cursor],
             [$this->discovery([$this->provider(['test:/b', 'test:/c'])]), $cursor],
         ];
         foreach ($variants as [$capability, $value]) {
@@ -217,7 +217,7 @@ final class McpResourceDiscoveryTest extends UnitTestCase
 
     public function test_that_scan_limits_count_hidden_metadata_and_stop_lazy_providers(): void
     {
-        $provider = new class implements McpResourceProvider {
+        $resourceProvider = new class implements McpResourceProvider {
             public int $yielded = 0;
             public function resources(): iterable {
                 for ($i = 0; $i < 1000000; ++$i) { ++$this->yielded; yield McpResourceInfo::fromArray(['uri' => 'test:/'.sprintf('%07d', $i), 'name' => 'row']); }
@@ -225,8 +225,8 @@ final class McpResourceDiscoveryTest extends UnitTestCase
         };
         $availability = $this->mock(McpResourceAvailability::class);
         $availability->shouldReceive('isAvailable')->twice()->andReturn(false);
-        try { $this->discovery([$provider], $availability, new McpResourceLimits(pageSize: 1, maxDescriptors: 2))->handle($this->request()); self::fail('Unbounded scan accepted.'); }
-        catch (DomainException) { self::assertSame(3, $provider->yielded); }
+        try { $this->discovery([$resourceProvider], $availability, new McpResourceLimits(pageSize: 1, maxDescriptors: 2))->handle($this->request()); self::fail('Unbounded scan accepted.'); }
+        catch (DomainException) { self::assertSame(3, $resourceProvider->yielded); }
         $exact = $this->discovery([$this->provider(['test:/a', 'test:/b'])], limits: new McpResourceLimits(pageSize: 2, maxDescriptors: 2));
         self::assertCount(2, $exact->handle($this->request())->toArray()['resources']);
     }
@@ -256,12 +256,12 @@ final class McpResourceDiscoveryTest extends UnitTestCase
 
     public function test_that_provider_and_availability_failures_are_not_returned_as_partial_success(): void
     {
-        $provider = new class implements McpResourceProvider {
+        $resourceProvider = new class implements McpResourceProvider {
             public function resources(): iterable { yield McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => 'a']); throw new RuntimeException('secret storage detail'); }
         };
         $availability = $this->mock(McpResourceAvailability::class);
         $availability->shouldReceive('isAvailable')->andThrow(new RuntimeException('secret policy detail'));
-        foreach ([$this->discovery([$provider]), $this->discovery([$this->provider(['test:/a'])], $availability)] as $discovery) {
+        foreach ([$this->discovery([$resourceProvider]), $this->discovery([$this->provider(['test:/a'])], $availability)] as $discovery) {
             $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Resources', '1'), [$discovery]));
             $response = $responder->respond($this->wire());
             self::assertSame(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']], $response->toArray());
@@ -271,11 +271,11 @@ final class McpResourceDiscoveryTest extends UnitTestCase
     public function test_that_collaborators_cannot_publish_their_own_protocol_errors(): void
     {
         $failure = new McpProtocolException(McpProtocolError::unsupportedProtocolVersion(['private-revision'], 'secret'), 7);
-        $provider = $this->mock(McpResourceProvider::class);
-        $provider->shouldReceive('resources')->andThrow($failure);
+        $resourceProvider = $this->mock(McpResourceProvider::class);
+        $resourceProvider->shouldReceive('resources')->andThrow($failure);
         $availability = $this->mock(McpResourceAvailability::class);
         $availability->shouldReceive('isAvailable')->andThrow($failure);
-        foreach ([$this->discovery([$provider]), $this->discovery([$this->provider(['test:/a'])], $availability)] as $discovery) {
+        foreach ([$this->discovery([$resourceProvider]), $this->discovery([$this->provider(['test:/a'])], $availability)] as $discovery) {
             $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Resources', '1'), [$discovery]));
             self::assertSame(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']], $responder->respond($this->wire())->toArray());
         }

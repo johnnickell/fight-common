@@ -1,0 +1,54 @@
+services:
+  php:
+    build: ./etc/docker/php
+    init: true
+    command: ["sleep", "infinity"]
+    working_dir: /app
+    user: "${FIGHT_UID}:${FIGHT_GID}"
+    volumes: [".:/app"]
+    environment:
+      HOME: /tmp
+      COMPOSER_HOME: /app/var/cache/composer
+      COMPOSER_CACHE_DIR: /app/var/cache/composer/cache
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /app
+      FIGHT_COMMON_MYSQL_DSN: mysql://fight_common:fight_common@mysql:3306/fight_common
+      FIGHT_COMMON_POSTGRESQL_DSN: postgresql://fight_common:fight_common@postgresql:5432/fight_common
+    depends_on:
+      mysql: {condition: service_healthy}
+      postgresql: {condition: service_healthy}
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
+  mysql:
+    image: mysql:8.4.11
+    environment:
+      MYSQL_DATABASE: fight_common
+      MYSQL_USER: fight_common
+      MYSQL_PASSWORD: fight_common
+      MYSQL_ROOT_PASSWORD: root
+    tmpfs: [/var/lib/mysql, /var/lib/mysql-files]
+    healthcheck:
+      test: [CMD-SHELL, "mysqladmin ping --host=127.0.0.1 --user=root --password=root"]
+      interval: 2s
+      timeout: 5s
+      retries: 45
+    mem_limit: 1g
+    cpus: 1
+    pids_limit: 256
+  postgresql:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: fight_common
+      POSTGRES_USER: fight_common
+      POSTGRES_PASSWORD: fight_common
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready --username=fight_common --dbname=fight_common"]
+      interval: 2s
+      timeout: 5s
+      retries: 45
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128

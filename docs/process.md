@@ -47,8 +47,8 @@ $process = new Process(
     environment:    ['APP_ENV' => 'prod'],
     input:          null,
     timeout:        60.0,          // seconds; null = no timeout (default 60.0)
-    stdout:         $stdoutFn,     // callable(?string $data): void
-    stderr:         $stderrFn,     // callable(?string $data): void
+    stdout:         $stdoutFn,     // callable(?string $outputChunk): void
+    stderr:         $stderrFn,     // callable(?string $outputChunk): void
     outputDisabled: false
 );
 ```
@@ -84,7 +84,7 @@ $process = ProcessBuilder::create('vendor/bin/phpunit')
     ->option('no-coverage')
     ->directory('/var/www/html')
     ->timeout(120)
-    ->stdout(fn(string $data) => print($data))
+    ->stdout(fn(string $outputChunk) => print($outputChunk))
     ->getProcess();
 ```
 
@@ -184,7 +184,7 @@ started up to the concurrency limit; as they finish, the next queued process is 
 ```php
 use Fight\Common\Adapter\Process\Symfony\SymfonyProcessRunner;
 
-$runner = new SymfonyProcessRunner(
+$processRunner = new SymfonyProcessRunner(
     logger:        $logger,       // ?LoggerInterface (default null)
     maxConcurrent: 4,             // max simultaneous processes; 0 = unlimited (default 1)
     delay:         1000,          // microseconds between polling ticks (default 1000)
@@ -198,13 +198,13 @@ $runner = new SymfonyProcessRunner(
 Set `maxConcurrent` to control how many processes run at the same time:
 
 ```php
-$runner = new SymfonyProcessRunner(maxConcurrent: 8);
+$processRunner = new SymfonyProcessRunner(maxConcurrent: 8);
 
 foreach ($jobs as $job) {
-    $runner->attach(new Process($job->command()));
+    $processRunner->attach(new Process($job->command()));
 }
 
-$runner->run();  // runs up to 8 at a time, blocks until all complete
+$processRunner->run();  // runs up to 8 at a time, blocks until all complete
 ```
 
 `maxConcurrent: 0` disables the concurrency limit — all queued processes are started
@@ -216,10 +216,10 @@ When `ProcessErrorBehavior::RETRY` is passed to `run()`, a failed process is re-
 and started again, up to `$tries` total attempts:
 
 ```php
-$runner = new SymfonyProcessRunner(tries: 5);
+$processRunner = new SymfonyProcessRunner(tries: 5);
 
-$runner->attach(new Process('bin/flaky-script'));
-$runner->run(ProcessErrorBehavior::RETRY);
+$processRunner->attach(new Process('bin/flaky-script'));
+$processRunner->run(ProcessErrorBehavior::RETRY);
 // attempts up to 5 times before throwing ProcessFailedException
 ```
 
@@ -236,8 +236,8 @@ Attach per-process callbacks to stream output in real time:
 
 ```php
 $process = ProcessBuilder::create('bin/long-running-task')
-    ->stdout(fn(string $data) => $this->logger->info($data))
-    ->stderr(fn(string $data) => $this->logger->error($data))
+    ->stdout(fn(string $outputChunk) => $this->logger->info($outputChunk))
+    ->stderr(fn(string $outputChunk) => $this->logger->error($outputChunk))
     ->getProcess();
 ```
 
@@ -276,11 +276,11 @@ use Fight\Common\Application\Process\ProcessRunner;
 
 class CacheClearer
 {
-    public function __construct(private ProcessRunner $runner) {}
+    public function __construct(private ProcessRunner $processRunner) {}
 
     public function clear(string $env): void
     {
-        $this->runner->attach(
+        $this->processRunner->attach(
             ProcessBuilder::create('bin/console')
                 ->arg('cache:clear')
                 ->directory('/var/www/html')
@@ -288,7 +288,7 @@ class CacheClearer
                 ->getProcess()
         );
 
-        $this->runner->run();
+        $this->processRunner->run();
     }
 }
 ```
@@ -296,36 +296,36 @@ class CacheClearer
 ### Running Jobs in Parallel
 
 ```php
-$runner = new SymfonyProcessRunner(maxConcurrent: 4);
+$processRunner = new SymfonyProcessRunner(maxConcurrent: 4);
 
 foreach ($files as $file) {
-    $runner->attach(
+    $processRunner->attach(
         ProcessBuilder::create('bin/process-file')
             ->arg($file)
             ->getProcess()
     );
 }
 
-$runner->run();  // 4 at a time until all complete
+$processRunner->run();  // 4 at a time until all complete
 ```
 
 ### Ignoring Failures
 
 ```php
-$runner->attach(new Process('bin/optional-cleanup'));
-$runner->run(ProcessErrorBehavior::IGNORE);  // continue after non-zero exit; configured logging still applies
+$processRunner->attach(new Process('bin/optional-cleanup'));
+$processRunner->run(ProcessErrorBehavior::IGNORE);  // continue after non-zero exit; configured logging still applies
 ```
 
 ### Retrying Flaky Processes
 
 ```php
-$runner = new SymfonyProcessRunner(tries: 3);
-$runner->attach(
+$processRunner = new SymfonyProcessRunner(tries: 3);
+$processRunner->attach(
     ProcessBuilder::create('curl')
         ->arg('https://api.example.com/sync')
         ->getProcess()
 );
-$runner->run(ProcessErrorBehavior::RETRY);
+$processRunner->run(ProcessErrorBehavior::RETRY);
 // retries up to 3 times; throws ProcessFailedException if all attempts fail
 ```
 
@@ -334,15 +334,15 @@ $runner->run(ProcessErrorBehavior::RETRY);
 ```php
 $lines = [];
 
-$runner->attach(
+$processRunner->attach(
     ProcessBuilder::create('bin/generate-report')
-        ->stdout(function (string $data) use (&$lines): void {
-            $lines[] = trim($data);
+        ->stdout(function (string $outputChunk) use (&$lines): void {
+            $lines[] = trim($outputChunk);
         })
         ->getProcess()
 );
 
-$runner->run();
+$processRunner->run();
 ```
 
 ## Operational guidance

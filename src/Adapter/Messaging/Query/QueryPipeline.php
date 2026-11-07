@@ -24,7 +24,7 @@ final class QueryPipeline implements QueryBus, QueryFilter
      * @var LinkedStack<object>
      */
     private ?LinkedStack $executionStack = null;
-    private mixed $results;
+    private mixed $queryResult;
 
     /**
      * Constructs QueryPipeline
@@ -59,10 +59,10 @@ final class QueryPipeline implements QueryBus, QueryFilter
         $this->executionStack = clone $this->filters;
         $this->pipe($queryMessage);
 
-        $results = $this->results;
-        $this->results = null;
+        $queryResult = $this->queryResult;
+        $this->queryResult = null;
 
-        return $results;
+        return $queryResult;
     }
 
     /**
@@ -70,7 +70,7 @@ final class QueryPipeline implements QueryBus, QueryFilter
      */
     public function process(QueryMessage $queryMessage, callable $next): void
     {
-        $this->results = $this->queryBus->dispatch($queryMessage);
+        $this->queryResult = $this->queryBus->dispatch($queryMessage);
     }
 
     /**

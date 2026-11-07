@@ -1,5 +1,48 @@
 # Planning Conventions
 
+## Lightweight work routing
+
+For “What's next?”, `next`, or an unqualified `/ask-matt`, use the routing entry in root AGENTS.md.
+This read-only path precedes general orientation; full implementation, review, QA and delivery requirements
+still apply when the selected workflow is invoked.
+
+1. Run offline read-only `./bin/planning-check` once before selection. Failure stops selection with the actual
+   planning-owner/input gap; do not refresh views. Historical publication checkpoints do not create current
+   merge actions, historical PR scans or recurring post-merge planning work. An explicitly requested delivery
+   observation is read-only and exact-subject-specific under the workflow binding. Without a validator,
+   disclose that limitation and check selected metadata against the authored Board; do not claim generated freshness.
+2. Read only the Board's current human decision, active work, and (if no active work) first ready entry.
+   Use local section names and authoritative order. Return all active TASKs, not a new winner. Inspect selected
+   TASK metadata and its current handoff, plus blocker metadata only as needed. An unresolved contradiction
+   is a named input gap, not permission to audit every record or infer acceptance from `done`.
+3. Read the Wayfinder index's map-status/frontier inventory. Closed or decision-complete maps need no historical
+   reread. For active/open maps, read only current frontier and decision/dependency status or explicit external
+   prerequisite evidence needed for availability. Unknown state or an absent frontier needs its owner's input.
+   Multiple available maps remain independent choices; no global priority is implied.
+4. Use the Board/Roadmap's current planning handoff for unfinished decomposition, including closed maps.
+   Verify the named phase in the owning record's current progress/approval section. Map closure, parent status
+   and child counts do not prove complete decomposition. If the handoff is missing or contradictory, report
+   the missing phase/owner; do not reconstruct it by reading every closed map and descendant.
+5. Read canonical review/QA identity and disposition only when they change the selected route. Unresolved
+   identity is an evidence handoff, never acceptance. Confirm a suggested skill from supplied capability
+   metadata/bindings; load its full instructions and references when invoked, not merely to recommend it.
+
+Prefer heading searches and bounded section reads. Aim to retrieve no more than about 24,000 characters
+of routing evidence; stop with a precise unresolved input before exceeding that scope unless the user requests
+a deeper audit. Do not read append-only task histories, other worktrees' entire tasks, general architecture,
+or all receiving skills to produce a recommendation. Return TASK, WAYFINDER, and relevant PLANNING/HUMAN INPUT;
+stop without invoking a workflow or changing files. Missing indexes are reported, not fabricated.
+
+During authorized planning updates, keep current planning/decomposition handoffs source-linked and concise:
+target, phase, pending decision/owner. Current TASK selection belongs only in the generated Board `next` and
+Roadmap `execution` blocks; do not duplicate mutable TASK status, blockers or merge claims in authored routing
+prose. TASK records own stage/evidence details. Land closes accepted TASKs/current docs during delivery;
+no tracked delivery table, persistent merge queue or recurring post-merge planning chore remains.
+Keep Wayfinder inventory/frontier pointers current. These are navigation aids, not another backlog or proof of
+delivery. Preserve historical decisions in their owning records and label historical strategy/dependency prose.
+
+Routing sources: [TASK Board](tasks/BOARD.md), [Wayfinder inventory](wayfinder/README.md), [Roadmap](ROADMAP.md).
+
 Individual Markdown records own requirements, status, dependencies, and execution priority. Boards, indexes,
 and Roadmap status/frontier tables are generated views. Authored strategy and decision narratives remain editable.
 
@@ -48,21 +91,49 @@ TICKETs require an `epic: EPIC-NNNNN` parent. TASKs use `ticket: TICKET-NNNNN`, 
 `order` is an optional positive priority number, lower first. Unranked rows come last, with IDs breaking ties
 only for deterministic display. `pr` is an optional full PR URL, not an assertion about live GitHub merge state.
 
+### Publication closeout
+
+Land closes the independently accepted TASK, eligible parents and applicable current Board/Roadmap/README/docs
+before final publication. Record the verified `pr` URL as historical publication metadata, not a pending-merge
+queue or live-state claim. Keep exact own-PR/repository/default/base/head/remote observations and required delivery
+checks in the ignored receipt and actual PR under the
+[workflow binding](agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). Human review/merge stays
+separate; preserve open-PR remote heads. No tracked marker/table, live planning-check/reconciliation mode,
+recurring Work/planning intake scan or routine post-merge planning chore remains. This complete-removal amendment
+under central Agent OS TASK-00542 supersedes the former retained-legacy mechanism, not its historical evidence.
+
+Land also retires eligible owned local worktrees/refs and disposable Docker/storage with durable creation/mount
+provenance, fresh identity/all-consumer checks and verified postconditions. Unknown/shared/durable/excluded or
+unavailable inspection holds the affected effect without force/prune, shared shutdown or alternate deletion.
+Resume only missing authorized effects; no watcher or execution after stopping is promised.
+
+`./bin/planning-check` and `--write` stay offline: validation/view freshness and authorized parent rollup/view
+refresh only. Routing, Review and QA remain read-only and do not query historical PRs. Preserve exact historical
+acceptance/publication/reconciliation checkpoints and independent reports. An explicitly requested delivery
+observation checks its exact PR, not a historical portfolio. CLOSED-unmerged, uncertain identity or missing
+integration holds the affected action for its real decision/evidence owner; never infer acceptance or merge.
+
 | Status | Meaning |
 |---|---|
 | `needs-triage` | Scope or ownership is unclassified |
 | `needs-info` | A decision or required evidence is missing |
 | `ready-for-agent` | Decision-complete and executable when dependencies permit |
 | `ready-for-human` | Human judgment or an external action is next |
-| `in-progress` | Implementation or revision is underway |
-| `done` | Implementation acceptance and required local verification are complete for a TASK; parent completion follows terminal child statuses |
+| `in-progress` | Implementation, revision or required independent Review/QA is underway |
+| `done` | TASK implementation acceptance, required verification, independent Review acceptance and required QA are satisfied; parent completion follows terminal child statuses |
 | `wontfix` | Intentionally closed without implementation |
 
-Blocking is derived, not a stored status. Mark TASK implementation `done` before PR publication once implementation
-acceptance and required local verification are complete. A green build alone does not establish acceptance.
-Independent review may still be pending: state that explicitly in completion notes/handoffs and record its outcome,
-publication, merge, release and deployment separately. Done grants none of those authorities. Preserve truthful
-historical records rather than inventing review approval or rewriting prior outcomes.
+Blocking is derived, not a stored status. Keep an implemented TASK `in-progress` while independent Review or
+required QA is pending; name the current stage in its handoff. Use `ready-for-human` only for an actual human
+judgment/external action. Mark `done` only after independent acceptance and satisfied QA, including justified
+overall N/A, plus every required acceptance check. A green build alone is insufficient. Authorized Land normally
+records this administrative closeout; Review/QA publish reports without changing planning. Record publication,
+merge, release and deployment separately; done grants none of those authorities.
+
+This prospective rule was approved in [TASK-00172](tasks/00172-TASK.md). Preserve historical implementation-complete
+statuses and reports under their original policy; do not mass-reopen or infer current acceptance from old `done`.
+The [Delivery contract](../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout) separates
+accepted content from administrative metadata and any required final-head delivery checks.
 
 ## Automatic parent completion
 
@@ -86,7 +157,12 @@ For "What's next?" or `/ask-matt`, return the current human decision/question an
 the first executable TASK in Ready Frontier. Do not start a second TASK merely because its ID is lower. If there
 is no executable work, say so. Execution priority is authored in record metadata rather than generated rows.
 
-`ROADMAP.md` retains strategy and milestone narrative; its EPIC status table and separate Planning frontier are
+The Board's `next` block and Roadmap's `execution` block share the Board's record-derived classification and
+ordering. Both surface Human Action and Needs Info, then all Active Work or the first Ready Frontier row. If neither
+exists they state no TASK is executable and show the first Needs Triage and Waiting rows when present. They do not
+select a workflow stage, infer independent acceptance or query PR state. The complete Board remains authoritative.
+
+`ROADMAP.md` retains historical strategy and milestone narrative; its EPIC status table and separate Planning frontier are
 generated. The frontier shows non-terminal EPICs without TICKETs and TICKETs without TASKs for decomposition,
 counting live and archived children. [Automatic parent completion](#automatic-parent-completion) removes eligible
 parents from unfinished planning work. Do not put decomposition in executable TASK Board rows. Parent
@@ -102,10 +178,13 @@ Generated sections use `<!-- planning:NAME -->` and `<!-- /planning:NAME -->`. A
 ```
 
 The first command validates records and links, closes eligible parents, then refreshes marked sections. The second
-is read-only and fails on pending parent completion, stale views, invalid identifiers/parents, missing links, and
-dependency cycles. Validation errors prevent writes to parent records and generated views. `./bin/build` already runs
-the read-only check and must not rewrite planning as a side effect. Verify documentation and tooling directly;
-do not add tests of Markdown, wrappers, configuration text, or planning tooling to the product suite.
+is read-only and fails on pending parent completion, stale views (including current TASK summaries), invalid
+identifiers/parents, missing links and dependency cycles.
+Validation errors prevent writes to parent records and generated views. `./bin/build` runs the read-only check
+before expensive preparation and again after product/docs verification; neither check rewrites planning or queries
+hosted PRs. A failure requires an explicit owner edit/regeneration followed by a fresh read-only check. Verify
+documentation and tooling directly; do not add tests of Markdown, wrappers, configuration text, or planning
+tooling to the product suite.
 
 ## Wayfinder
 
@@ -121,6 +200,24 @@ The generated map table includes every decision owned by that map, including clo
 WF IDs, title, type, mode, current status, and dependency IDs. Data comes from decision records. Authored Frontier
 and decision summaries retain their meaning. A Closed map has no decision frontier and links to its implementation
 handoff. Wayfinder indexes derive state from maps. Do not invent a frontier when all maps are closed.
+
+## Map-wide planning order
+
+For a selected Wayfinder map, finish its decisions and approved EPIC destinations first, then all accepted
+TICKET decompositions, then all TASK decompositions, before recommending Board-based implementation selection.
+Honor explicit human choices for a narrower slice or different order; do not invent dependencies or global
+priority between maps. A Wayfinder decision may produce zero, one or several EPIC destinations; decision closure
+or a grill-mode label does not itself invoke the EPIC-producing Grill skill. Grill creates one approved EPIC
+per invocation, then returns to the map's remaining destinations.
+
+Track decisions resolved, EPICs written/approved, TICKET decomposition accepted and TASK decomposition accepted
+in the existing map/handoff and owning records. A child table or parent status does not prove complete planning.
+Reuse live/archived records, preserve historical approvals and report uncertain scope instead of allocating
+duplicates. A Closed map may still have a pending linked planning handoff without reopening decisions.
+
+At useful stopping points give an explicit `Next:` command for the actual target and phase under the
+[shared handoff rules](agents/shared-workflows.md#handoffs), or name the precise pending human decision.
+Recommendations never invoke a workflow. The TASK Board still owns execution order and active work.
 
 ## Archive operation
 
@@ -143,9 +240,11 @@ handoff. Archive moves preserve records, repair local Markdown references, and r
 New TASK branches use `feature/task-NNNNN-<slug>` from `develop`, and PR titles use
 `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities without retrospective renaming; release and
 patch conventions remain unchanged. Never commit directly to `develop` or `main`. Choose the main checkout or an
-isolated worktree with the user. Ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/`, and
-`.runs/archive/` hold local execution material. [Review](../docs/engineering/standards/Review.md) owns the canonical
-base-worktree report, independence, criteria and accept/revise contract. Durable requirements and outcomes belong in planning records.
+isolated worktree with the user outside `.runs/`. Ignored `.runs/worktrees/` coordination scratch, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/`, and
+`.runs/archive/` hold local execution material. Use the prospective [evidence layout](agents/shared-workflows.md#ignored-evidence)
+for Build coordination, task runs and canonical QA reports; do not migrate historical evidence implicitly.
+[Review](../docs/engineering/standards/Review.md) and [QA](../docs/engineering/standards/QA.md) own their independent
+base-worktree reports. Durable requirements and outcomes belong in planning records.
 
 Before a commit or PR, record verified acceptance and outstanding review honestly, update the PR link if known,
 refresh views, and satisfy the canonical `./bin/build` gate (or the verified documentation-only reuse rule in

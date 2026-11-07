@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\EventSourcing\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 
 /**
  * Class DbalPublicationCursorStoreSchema
@@ -14,7 +15,12 @@ use Doctrine\DBAL\Schema\Schema;
  */
 final readonly class DbalPublicationCursorStoreSchema
 {
-    private const string TABLE = 'publication_cursors';
+    /**
+     * Constructs DbalPublicationCursorStoreSchema
+     */
+    public function __construct(private DbalTableName $table = new DbalTableName('publication_cursors'))
+    {
+    }
 
     /**
      * Returns the publication-cursor schema definition
@@ -22,10 +28,10 @@ final readonly class DbalPublicationCursorStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $cursors = $schema->createTable(self::TABLE);
-        $cursors->addColumn('publication_name', 'string', ['length' => 255]);
-        $cursors->addColumn('global_position', 'bigint');
-        $cursors->setPrimaryKey(['publication_name']);
+        $cursorTable = $schema->createTable($this->table->schemaName());
+        $cursorTable->addColumn('publication_name', 'string', ['length' => 255]);
+        $cursorTable->addColumn('global_position', 'bigint');
+        $cursorTable->setPrimaryKey(['publication_name']);
 
         return $schema;
     }
@@ -37,8 +43,14 @@ final readonly class DbalPublicationCursorStoreSchema
     {
         $schemaManager = $connection->createSchemaManager();
 
-        if (!$schemaManager->tablesExist([self::TABLE])) {
-            $schemaManager->createTable($this->schema()->getTable(self::TABLE));
+        // PostgreSQL reports case-sensitive names with DBAL quoting markers.
+        $existingTables = array_map(
+            static fn(string $tableName): string => trim($tableName, '`"'),
+            $schemaManager->listTableNames()
+        );
+
+        if (!in_array($this->table->name(), $existingTables, true)) {
+            $schemaManager->createTable($this->schema()->getTable($this->table->name()));
         }
     }
 }

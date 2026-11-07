@@ -13,6 +13,7 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStore;
+use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreTables;
 use Fight\Common\Domain\EventSourcing\EventMapper;
 use Fight\Common\Domain\EventSourcing\EventMapping;
 use Fight\Common\Domain\EventSourcing\EventMappingProvider;
@@ -24,6 +25,7 @@ use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(DbalEventStore::class)]
 final class DbalEventStoreUnitTest extends UnitTestCase
@@ -57,7 +59,7 @@ final class DbalEventStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('fetchOne')->twice()->andReturn(0, 0);
         $connection->shouldReceive('fetchAssociative')->once()->andReturnFalse();
         $connection->shouldReceive('insert')->once()->withArgs(static function (string $table, array $row): bool {
-            return $table === 'event_store_events'
+            return $table === '"event_store_events"'
                 && $row['aggregate_name'] === 'order'
                 && $row['aggregate_identifier'] === 'order-42'
                 && $row['stream_version'] === 1
@@ -65,7 +67,7 @@ final class DbalEventStoreUnitTest extends UnitTestCase
                 && $row['event_name'] === 'orders.placed';
         });
         $connection->shouldReceive('update')->once()->with(
-            'event_store_global_position',
+            '"event_store_global_position"',
             ['position' => 1],
             ['singleton' => 1],
         );
@@ -87,11 +89,11 @@ final class DbalEventStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('fetchOne')->twice()->andReturn(0, 0);
         $connection->shouldReceive('fetchAssociative')->twice()->andReturnFalse();
         $connection->shouldNotReceive('insert');
-        $store = new DbalEventStore($connection, $this->eventMapper());
+        $eventStore = new DbalEventStore($connection, $this->eventMapper());
 
         $this->expectException(OptimisticConcurrencyException::class);
 
-        $store->append(new StreamId('order', 'order-42'), 0, [
+        $eventStore->append(new StreamId('order', 'order-42'), 0, [
             $this->message('6ba7b842-9dad-11d1-80b4-00c04fd430c8', 'one'),
             $this->message('6ba7b842-9dad-11d1-80b4-00c04fd430c8', 'two'),
         ]);
@@ -117,11 +119,11 @@ final class DbalEventStoreUnitTest extends UnitTestCase
                 'stream_version' => 2,
             ],
         );
-        $store = new DbalEventStore($connection, $this->eventMapper());
+        $eventStore = new DbalEventStore($connection, $this->eventMapper());
 
         $this->expectException(OptimisticConcurrencyException::class);
 
-        $store->append(new StreamId('order', 'order-42'), 0, [
+        $eventStore->append(new StreamId('order', 'order-42'), 0, [
             $this->message('6ba7b849-9dad-11d1-80b4-00c04fd430c8', 'one'),
             $this->message('6ba7b850-9dad-11d1-80b4-00c04fd430c8', 'two'),
         ]);
@@ -174,11 +176,11 @@ final class DbalEventStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('transactional')->once()->andThrow($this->uniqueConstraintViolation());
         $connection->shouldReceive('fetchAssociative')->once()->andReturnFalse();
         $connection->shouldReceive('fetchOne')->once()->andReturn(1);
-        $store = new DbalEventStore($connection, $this->eventMapper());
+        $eventStore = new DbalEventStore($connection, $this->eventMapper());
 
         $this->expectException(OptimisticConcurrencyException::class);
 
-        $store->append(new StreamId('order', 'order-42'), 0, [$message]);
+        $eventStore->append(new StreamId('order', 'order-42'), 0, [$message]);
     }
 
     public function test_that_a_unique_constraint_race_with_an_existing_message_identifier_becomes_an_optimistic_conflict(): void
@@ -188,11 +190,11 @@ final class DbalEventStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('transactional')->once()->andThrow($this->uniqueConstraintViolation());
         $connection->shouldReceive('fetchAssociative')->once()->andReturnFalse();
         $connection->shouldReceive('fetchOne')->twice()->andReturn(0, (string) $message->id());
-        $store = new DbalEventStore($connection, $this->eventMapper());
+        $eventStore = new DbalEventStore($connection, $this->eventMapper());
 
         $this->expectException(OptimisticConcurrencyException::class);
 
-        $store->append(new StreamId('order', 'order-42'), 0, [$message]);
+        $eventStore->append(new StreamId('order', 'order-42'), 0, [$message]);
     }
 
     public function test_that_an_unrelated_unique_constraint_race_propagates_unchanged(): void
@@ -203,11 +205,11 @@ final class DbalEventStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('transactional')->once()->andThrow($failure);
         $connection->shouldReceive('fetchAssociative')->once()->andReturnFalse();
         $connection->shouldReceive('fetchOne')->twice()->andReturn(0, false);
-        $store = new DbalEventStore($connection, $this->eventMapper());
+        $eventStore = new DbalEventStore($connection, $this->eventMapper());
 
         $this->expectExceptionObject($failure);
 
-        $store->append(new StreamId('order', 'order-42'), 0, [$message]);
+        $eventStore->append(new StreamId('order', 'order-42'), 0, [$message]);
     }
 
     public function test_that_stream_and_global_reads_hydrate_records_in_storage_order(): void
@@ -227,17 +229,61 @@ final class DbalEventStoreUnitTest extends UnitTestCase
         ];
         $connection->shouldReceive('fetchAllAssociative')->once()->andReturn([$record]);
         $connection->shouldReceive('fetchAllAssociative')->once()->with(
-            'SELECT * FROM event_store_events WHERE global_position > ? ORDER BY global_position ASC LIMIT ?',
+            'SELECT * FROM "event_store_events" WHERE global_position > ? ORDER BY global_position ASC LIMIT ?',
             [0, 10],
             [ParameterType::INTEGER, ParameterType::INTEGER],
         )->andReturn([$record]);
-        $store = new DbalEventStore($connection, $this->eventMapper());
+        $eventStore = new DbalEventStore($connection, $this->eventMapper());
 
-        $events = [...$store->readStream(new StreamId('order', 'order-42'))];
+        $events = [...$eventStore->readStream(new StreamId('order', 'order-42'))];
 
         self::assertSame(4, $events[0]->globalPosition());
         self::assertSame(['order_id' => 'order-42'], $events[0]->message()->payload()->toArray());
-        self::assertSame(4, [...$store->readAllAfter(0, 10)][0]->globalPosition());
+        self::assertSame(4, [...$eventStore->readAllAfter(0, 10)][0]->globalPosition());
+    }
+
+    #[DataProvider('configuredRaceOutcomes')]
+    public function test_that_post_rollback_retry_classification_uses_only_selected_storage(string $outcome): void
+    {
+        $connection = $this->sqliteConnection();
+        $failure = $this->uniqueConstraintViolation();
+        $message = $this->message('6ba7b852-9dad-11d1-80b4-00c04fd430c8', 'order-42');
+        $connection->shouldReceive('transactional')->once()->andThrow($failure);
+        $record = $outcome === 'exact' ? [
+            'aggregate_name' => 'order',
+            'aggregate_identifier' => 'order-42',
+            'stream_version' => 1,
+        ] : false;
+        $connection->shouldReceive('fetchAssociative')->once()->with(
+            'SELECT aggregate_name, aggregate_identifier, stream_version FROM "Order" WHERE message_id = ?',
+            [(string) $message->id()],
+        )->andReturn($record);
+        if ($outcome !== 'exact') {
+            $connection->shouldReceive('fetchOne')->once()->with(
+                'SELECT COUNT(*) FROM "Order" WHERE aggregate_name = ? AND aggregate_identifier = ?',
+                ['order', 'order-42'],
+            )->andReturn($outcome === 'version' ? 1 : 0);
+            if ($outcome !== 'version') {
+                $connection->shouldReceive('fetchOne')->once()->with(
+                    'SELECT message_id FROM "Order" WHERE message_id = ?',
+                    [(string) $message->id()],
+                )->andReturn($outcome === 'identity' ? (string) $message->id() : false);
+            }
+            if ($outcome === 'unrelated') {
+                $this->expectExceptionObject($failure);
+            } else {
+                $this->expectException(OptimisticConcurrencyException::class);
+            }
+        }
+        $eventStore = new DbalEventStore($connection, $this->eventMapper(), new DbalEventStoreTables('Order', 'Group'));
+        $eventStore->append(new StreamId('order', 'order-42'), 0, [$message]);
+    }
+
+    public static function configuredRaceOutcomes(): iterable
+    {
+        foreach (['exact', 'version', 'identity', 'unrelated'] as $outcome) {
+            yield $outcome => [$outcome];
+        }
     }
 
     private function sqliteConnection(int $platformCalls = 1): Connection

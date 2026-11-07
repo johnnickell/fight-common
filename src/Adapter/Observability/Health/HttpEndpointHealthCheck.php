@@ -16,15 +16,20 @@ use Throwable;
  */
 final readonly class HttpEndpointHealthCheck implements HealthCheck
 {
+    private HttpClient $httpClient;
+    private MessageFactory $messageFactory;
+
     /**
      * Constructs HttpEndpointHealthCheck
      */
     public function __construct(
-        private HttpClient $client,
-        private MessageFactory $factory,
+        HttpClient $client,
+        MessageFactory $factory,
         private string $url,
         private string $checkName = 'http'
     ) {
+        $this->httpClient = $client;
+        $this->messageFactory = $factory;
     }
 
     /**
@@ -41,9 +46,9 @@ final readonly class HttpEndpointHealthCheck implements HealthCheck
     public function check(): HealthResult
     {
         try {
-            $request = $this->factory->createRequest('GET', $this->url);
+            $request = $this->messageFactory->createRequest('GET', $this->url);
             $start = hrtime(true);
-            $response = $this->client->send($request);
+            $response = $this->httpClient->send($request);
             $elapsed = round((hrtime(true) - $start) / 1e6, 2);
 
             $statusCode = $response->getStatusCode();

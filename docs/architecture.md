@@ -60,14 +60,38 @@ not.
 </div>
 
 Repositories use the same separation. Domain-owned <code>Pagination</code> and <code>ResultSet</code> express
-business-facing query vocabulary. Application-owned <code>TransactionalUnitOfWork</code> marks the atomic use-case
-boundary. The <code>DoctrineTransactionalUnitOfWork</code> adapter supplies the ORM-specific implementation. Your
-application owns its aggregate repository port because only your application can define what loading and saving
-that aggregate means.
+business-facing query vocabulary. An aggregate's Domain owner defines its repository: Common for its reusable
+aggregates, the consumer for consumer-specific business aggregates. Application-owned
+<code>TransactionalUnitOfWork</code> marks the separate atomic use-case boundary. The existing
+<code>DoctrineTransactionalUnitOfWork</code> supplies the ORM-specific implementation; it is not a substitute for
+DBAL transaction ownership. <code>DbalTransactionalUnitOfWork</code> supplies reusable DBAL-only mechanics under
+[TASK-00184](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00184-TASK.md);
+execution composes it with its adapter-owned schema serialization and storage-failure translation.
 
 Framework packages belong at the composition edge. Their service providers, compiler passes, and configuration
 bind Fight Common contracts to selected adapters. They may call inward; they do not move framework types into
 Domain or portable Application code.
+
+## Aggregate-oriented ownership
+
+The contributor [Architecture standard](https://github.com/johnnickell/fight-common/blob/develop/docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces)
+is the normative owner for placement, value classification, handler responsibilities and finite package exceptions;
+[Naming](https://github.com/johnnickell/fight-common/blob/develop/docs/engineering/standards/Naming.md#variables-properties-and-parameters) owns descriptive collaborator names.
+Start with the aggregate's identity and invariants, then place its messages and repository beside that owner.
+Application mirrors the aggregate for its handlers and policies; adapters supply persistence and presentation.
+A shared low-level library primitive is not an artificial aggregate, and an immutable result DTO is not necessarily
+a value object.
+
+John approved this correction in [TASK-00183](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00183-TASK.md). It is a target for the dependent
+refactors, not a claim that every current MCP type conforms. Task persistence now separates repository and
+transaction ownership, and its eight CommandHandlers/three QueryHandlers own their operation-specific coordination
+without lifecycle forwarding services. Notice likewise separates repository, transaction and coherent recovery
+reads; Task disclosure projection is Application-owned. Execution Application homes now mirror Domain directly,
+concrete Query-to-Tool mapping lives in `Adapter\Mcp\Tool\{Aggregate}`, and MCP DBAL persistence uses
+`Adapter\Mcp\Persistence\{Aggregate}\Dbal` with genuinely shared execution support kept separate. The
+[MCP namespace map](https://johnnickell.github.io/fight-common/mcp-namespaces/#approved-aggregate-alignment-target)
+records current canonical homes and direct never-released moves. ADR 0023 preserves earlier decisions and released
+bridges. No schema, permission or delivery guarantee changes with these namespace corrections.
 
 ## CQRS message flows
 
@@ -126,7 +150,8 @@ subscriber turns into a follow-up command.
 ## Repository enforcement
 
 The architecture exists in the public contracts and dependency direction first. Deptrac is repository evidence
-that the implementation still matches that model.
+for the enforced layer boundaries. It does not prove aggregate-level placement or semantic ownership conformance;
+those still require source review against the approved standard.
 
 ~~~bash
 ./bin/deptrac

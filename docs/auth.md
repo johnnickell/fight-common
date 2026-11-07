@@ -38,6 +38,13 @@ validation can optionally consume request nonces through a `Domain\Auth\NonceRep
 repository shared by all accepting instances for replay-sensitive traffic. The shipped in-memory
 repository is process-local; the Doctrine repository provides a durable shared boundary.
 
+`DoctrineNonceRepository` defaults to `nonces` through `database/schema/Auth.Nonce.orm.xml`. Consumer native ORM
+mappings/metadata remain the sole table-name authority, including native quoting and supported schema mapping.
+Both immediate raw-SQL consumption and expired purge use Doctrine's configured quote strategy and platform.
+Changing the mapping never transfers replay memory, creates storage or falls back to populated defaults. See
+[table names and native ORM composition](../../table-names.md#native-orm-authority-for-nonce-and-audit-tables) for setup,
+expiry/exception semantics and the complete ownership inventory.
+
 ---
 
 ## Table of Contents
@@ -65,6 +72,13 @@ repository is process-local; the Doctrine repository provides a durable shared b
 `Application\Auth\OAuth` supplies metadata, normalized scope/claim values, explicit validation requirements,
 consumer ports and resource-server orchestration. `Adapter\Http\OAuth` supplies optional PSR-15/PSR-17 adapters.
 There is no OAuth authorization server, key fetcher, JWT validator, route, identity model or permission policy.
+
+Read OAuth value/configuration state through typed property-name getters such as
+`$requirements->metadata()->resource()`, `$claims->claims()` and `$claims->grantedScopes()->values()`.
+The old public readonly properties remain supported; documentation-only deprecation is planned to first ship
+in v1.5.0, not yet released. The complete map and
+release window are documented in `docs/maintenance/public-property-getters.md`.
+Getter access does not validate a token or make claims safe to publish.
 
 ### Resource metadata and composition
 
@@ -106,10 +120,10 @@ $requirements = OAuthTokenRequirements::fromConfiguration(
     clockSkewSeconds: 0
 );
 // Consumer-supplied PSR factories, complete validator, request-scoped handoff and redacting diagnostics.
-$responses = new OAuthResponseFactory($responseFactory, $streamFactory);
-$metadataHandler = new OAuthMetadataHandler($metadata, $responses);
+$oauthResponseFactory = new OAuthResponseFactory($responseFactory, $streamFactory);
+$metadataHandler = new OAuthMetadataHandler($metadata, $oauthResponseFactory);
 $resourceServer = new OAuthResourceServer($requirements, $validator, $handoff, $diagnostics);
-$protection = new OAuthMiddleware($resourceServer, OAuthScopeSet::fromArray(['mcp:read']), $responses);
+$protection = new OAuthMiddleware($resourceServer, OAuthScopeSet::fromArray(['mcp:read']), $oauthResponseFactory);
 // The consumer routes metadata GETs to $metadataHandler, and protected MCP requests through:
 $response = $protection->process($request, $guardedMcpEndpoint);
 ```
@@ -265,16 +279,25 @@ final class HmacAuthenticator implements Authenticator
         private string $public,
         string $private,
         private int $timeTolerance,
-        private ?NonceRepository $nonceRepository = null,
+        ?NonceRepository $nonceRepository = null,
+        ?NonceRepository $nonces = null,
     ) {}
 }
 ```
 
 | Parameter | Description |
 |---|---|
-| `$public` | Public key identifier (sent in the `Credential` header) |
+| `$public` | Public credential value (sent in the `Credential` header) |
 | `$private` | Hex-encoded shared secret (converted to binary internally) |
 | `$timeTolerance` | Allowed clock skew in seconds for `X-Timestamp` |
+| `$nonceRepository` | Optional replay storage; retains fourth positional and later released named construction |
+| `$nonces` | Historical canonical `1.1.0` named spelling for the same optional repository |
+
+Both spellings remain supported. Null means no supplied repository; one non-null repository selects that exact
+instance. Supplying the identical object through both spellings agrees and consumes once. Distinct non-null
+instances raise `DomainException` at construction, before authentication or repository effects. Omission or
+explicit null remains valid and provides no replay protection. The historical authority is the canonical bare
+`1.1.0` tag at `1666dbaa503e40ea2fc652bccbeba22e6cda6b70`, not the different lightweight `v1.1.0` lineage.
 
 ### Validation flow
 
@@ -294,7 +317,7 @@ final class HmacAuthenticator implements Authenticator
    request from being replayed within the tolerance window.
 
 ```php-inline
-$authenticator = new HmacAuthenticator($publicKey, $privateKey, 300, $nonceRepository);
+$authenticator = new HmacAuthenticator($publicCredential, $sharedSecretHex, 300, $nonceRepository);
 $valid = $authenticator->validate($serverRequest);
 ```
 
@@ -319,7 +342,7 @@ final class HmacRequestService implements RequestService
 
 | Parameter | Description |
 |---|---|
-| `$public` | Public key identifier |
+| `$public` | Public credential value |
 | `$private` | Hex-encoded shared secret (converted to binary internally) |
 
 ### Signing flow
@@ -333,8 +356,8 @@ final class HmacRequestService implements RequestService
 6. Sorts all headers by key and returns the modified request
 
 ```php-inline
-$service = new HmacRequestService($publicKey, $privateKey);
-$signedRequest = $service->signRequest($request);
+$requestSigner = new HmacRequestService($publicCredential, $sharedSecretHex);
+$signedRequest = $requestSigner->signRequest($request);
 ```
 
 ---
@@ -400,11 +423,11 @@ final class HmacKeyGenerator
 ```
 
 Returns `bin2hex(random_bytes($bytes))`. Default 16 bytes produces a 32-character hex
-string suitable for use as a public or private HMAC key.
+string suitable for use as a public credential value or a shared HMAC signing secret.
 
 ```php-inline
-$public  = HmacKeyGenerator::generateSecureRandom();
-$private = HmacKeyGenerator::generateSecureRandom(32);  // 64 hex chars
+$publicCredential = HmacKeyGenerator::generateSecureRandom();
+$sharedSecretHex = HmacKeyGenerator::generateSecureRandom(32);  // 64 hex chars
 ```
 
 ---
@@ -478,12 +501,12 @@ final readonly class PhpPasswordValidator implements PasswordValidator
 | `needsRehash()` | `password_needs_rehash()` |
 
 ```php-inline
-$hasher    = new PhpPasswordHasher(PASSWORD_BCRYPT, ['cost' => 12]);
-$validator = new PhpPasswordValidator(PASSWORD_BCRYPT, ['cost' => 12]);
+$passwordHasher = new PhpPasswordHasher(PASSWORD_BCRYPT, ['cost' => 12]);
+$passwordValidator = new PhpPasswordValidator(PASSWORD_BCRYPT, ['cost' => 12]);
 
-$hash = $hasher->hash('s3cret!');
-$validator->validate('s3cret!', $hash);  // true
-$validator->needsRehash($hash);           // false (same cost)
+$hash = $passwordHasher->hash('s3cret!');
+$passwordValidator->validate('s3cret!', $hash);  // true
+$passwordValidator->needsRehash($hash);           // false (same cost)
 ```
 
 Laravel applications can instead bind `LaravelPasswordHasher` and `LaravelPasswordValidator` to
@@ -537,8 +560,8 @@ Registered claims (`iss`, `sub`, `aud`, `nbf`, `iat`, `jti`) are extracted from 
 `$builder->withClaim()`. The `exp` claim is set from the `$expiration` parameter.
 
 ```php-inline
-$encoder = new JwtEncoder($hexSecret, 'HS256');
-$token   = $encoder->encode(
+$tokenEncoder = new JwtEncoder($hexSecret, 'HS256');
+$token = $tokenEncoder->encode(
     ['sub' => 'user_123', 'role' => 'admin'],
     new DateTimeImmutable('+1 hour')
 );
@@ -572,8 +595,8 @@ The consuming authentication policy must validate every required claim and time 
 trusting the returned array. Decoding is signature verification, not a complete login decision.
 
 ```php-inline
-$decoder = new JwtDecoder($hexSecret, 'HS256');
-$claims  = $decoder->decode($token);
+$tokenDecoder = new JwtDecoder($hexSecret, 'HS256');
+$claims = $tokenDecoder->decode($token);
 // ['sub' => 'user_123', 'role' => 'admin', 'exp' => ..., ...]
 ```
 
@@ -699,16 +722,16 @@ services:
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleMessageFactory;
 
-$signer  = new HmacRequestService($publicKey, $privateKey);
+$requestSigner = new HmacRequestService($publicCredential, $sharedSecretHex);
 $factory = new GuzzleMessageFactory();
 
 $request  = $factory->createRequest('POST', '/api/orders', [
     'Content-Type' => 'application/json',
 ], json_encode(['product' => 'widget']));
 
-$signed = $signer->signRequest($request);
+$signedRequest = $requestSigner->signRequest($request);
 
-// Now send $signed with any HTTP client
+// Now send $signedRequest with any HTTP client
 ```
 
 ### HMAC — Validating an Incoming Request
@@ -716,7 +739,7 @@ $signed = $signer->signRequest($request);
 ```php-inline
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 
-$authenticator = new HmacAuthenticator($publicKey, $privateKey, 300);
+$authenticator = new HmacAuthenticator($publicCredential, $sharedSecretHex, 300);
 
 if (!$authenticator->validate($serverRequest)) {
     // Invalid signature — return 401
@@ -731,21 +754,21 @@ if (!$authenticator->validate($serverRequest)) {
 use Fight\Common\Adapter\Auth\Security\PhpPasswordHasher;
 use Fight\Common\Adapter\Auth\Security\PhpPasswordValidator;
 
-$hasher    = new PhpPasswordHasher(PASSWORD_BCRYPT, ['cost' => 12]);
-$validator = new PhpPasswordValidator(PASSWORD_BCRYPT, ['cost' => 12]);
+$passwordHasher = new PhpPasswordHasher(PASSWORD_BCRYPT, ['cost' => 12]);
+$passwordValidator = new PhpPasswordValidator(PASSWORD_BCRYPT, ['cost' => 12]);
 
 // Registration
-$hash = $hasher->hash($plaintextPassword);
+$hash = $passwordHasher->hash($plaintextPassword);
 // Store $hash in the database
 
 // Login
-if (!$validator->validate($plaintextPassword, $storedHash)) {
+if (!$passwordValidator->validate($plaintextPassword, $storedHash)) {
     throw new RuntimeException('Invalid password');
 }
 
 // During login, check if rehashing is needed
-if ($validator->needsRehash($storedHash)) {
-    $newHash = $hasher->hash($plaintextPassword);
+if ($passwordValidator->needsRehash($storedHash)) {
+    $newHash = $passwordHasher->hash($plaintextPassword);
     // Update stored hash
 }
 ```
@@ -756,18 +779,18 @@ if ($validator->needsRehash($storedHash)) {
 use Fight\Common\Adapter\Auth\Security\JwtEncoder;
 use Fight\Common\Adapter\Auth\Security\JwtDecoder;
 
-$encoder = new JwtEncoder($hexSecret, 'HS256');
-$decoder = new JwtDecoder($hexSecret, 'HS256');
+$tokenEncoder = new JwtEncoder($hexSecret, 'HS256');
+$tokenDecoder = new JwtDecoder($hexSecret, 'HS256');
 
 // Issue
-$token = $encoder->encode(
+$token = $tokenEncoder->encode(
     ['sub' => 'user_456', 'role' => 'editor'],
     new DateTimeImmutable('+2 hours')
 );
 
 // Validate
 try {
-    $claims = $decoder->decode($token);
+    $claims = $tokenDecoder->decode($token);
     echo $claims['sub'];  // 'user_456'
 } catch (TokenException $e) {
     // Expired, invalid signature, or malformed

@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\Common\TestCase\Mcp\Execution;
+
+use Closure;
+use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
+use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Mcp\Detail\CommandHandler\RemoveCapturedDetailHandler;
+use Fight\Common\Application\Mcp\Detail\Exception\DetailRemovalRejected;
+use Fight\Common\Application\Mcp\Detail\Service\DetailRemovalAdmission;
+use Fight\Common\Application\Mcp\Detail\Service\DetailRemover;
+use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
+use Fight\Common\Domain\Mcp\Detail\DetailSelection;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
+use Fight\Common\Domain\Mcp\Observation\Observation;
+
+final class RemovalFixture implements DetailRemovalAdmission
+{
+    public bool $allowed = true;
+    public int $admissions = 0;
+    public ?Closure $onAdmit = null;
+    public readonly RoutingCommandBus $commandBus;
+
+    public function __construct(DbalRecordingTransaction $recordingTransaction, ?Closure $afterDelete = null)
+    {
+        $protectedContentRepository = new DbalProtectedContentRepository($recordingTransaction);
+        if ($afterDelete !== null) {
+            $protectedContentRepository = new class($protectedContentRepository, $afterDelete) implements ProtectedContentRepository {
+                public function __construct(private ProtectedContentRepository $innerProtectedContentRepository, private Closure $afterDelete) {}
+                public function getFor(Observation $detail): ?ProtectedContent { return $this->innerProtectedContentRepository->getFor($detail); }
+                public function add(Observation $detail, ProtectedContent $content): void { $this->innerProtectedContentRepository->add($detail, $content); }
+                public function removeFor(Observation $detail): void { $this->innerProtectedContentRepository->removeFor($detail); ($this->afterDelete)(); }
+            };
+        }
+        $remover = new DetailRemover($recordingTransaction, new DbalObservationRepository($recordingTransaction), $protectedContentRepository, $this);
+        $router = new InMemoryCommandRouter();
+        $router->registerHandler(RemoveCapturedDetailHandler::commandRegistration(), new RemoveCapturedDetailHandler($remover));
+        $this->commandBus = new RoutingCommandBus($router);
+    }
+
+    public function admit(RemoveCapturedDetail $command): void
+    {
+        ++$this->admissions;
+        if (!$this->allowed || $command->selection()->execution()->toArray() !== ['project_id' => 'project', 'session_id' => 'session'] || $command->selection()->phaseId() !== 'phase' || $command->selection()->producerId() !== 'instrumentation') {
+            throw new DetailRemovalRejected();
+        }
+        if ($this->onAdmit !== null) { ($this->onAdmit)($command); }
+    }
+
+    public static function command(Observation $detail): RemoveCapturedDetail
+    {
+        return new RemoveCapturedDetail(DetailSelection::create($detail->session()->projectId(), $detail->session()->sessionId(), $detail->phase()->phaseId(), $detail->producerId(), $detail->detail()->activityId()->toString()), $detail->id(), $detail->detail()->kind());
+    }
+}

@@ -23,20 +23,20 @@ class MailServiceTest extends UnitTestCase
     /** @var MockInterface|MailFactory */
     private $factory;
 
-    private MailService $service;
+    private MailService $mailService;
 
     #[Override]
     protected function setUp(): void
     {
         $this->transport = $this->mock(MailTransport::class);
         $this->factory = $this->mock(MailFactory::class);
-        $this->service = new MailService($this->transport, $this->factory);
+        $this->mailService = new MailService($this->transport, $this->factory);
     }
 
     public function test_that_construction_creates_service_implementing_both_interfaces(): void
     {
-        self::assertInstanceOf(MailTransport::class, $this->service);
-        self::assertInstanceOf(MailFactory::class, $this->service);
+        self::assertInstanceOf(MailTransport::class, $this->mailService);
+        self::assertInstanceOf(MailFactory::class, $this->mailService);
     }
 
     public function test_that_send_delegates_to_transport(): void
@@ -48,7 +48,7 @@ class MailServiceTest extends UnitTestCase
             ->once()
             ->with($message);
 
-        $this->service->send($message);
+        $this->mailService->send($message);
     }
 
     public function test_that_create_message_delegates_to_factory_and_returns_message(): void
@@ -60,7 +60,7 @@ class MailServiceTest extends UnitTestCase
             ->once()
             ->andReturn($message);
 
-        $result = $this->service->createMessage();
+        $result = $this->mailService->createMessage();
 
         self::assertSame($message, $result);
     }
@@ -76,7 +76,7 @@ class MailServiceTest extends UnitTestCase
             ->with('data', 'file.pdf', 'application/pdf', 'embed-1')
             ->andReturn($attachment);
 
-        $result = $this->service->createAttachmentFromString('data', 'file.pdf', 'application/pdf', 'embed-1');
+        $result = $this->mailService->createAttachmentFromString('data', 'file.pdf', 'application/pdf', 'embed-1');
 
         self::assertSame($attachment, $result);
     }
@@ -92,7 +92,7 @@ class MailServiceTest extends UnitTestCase
             ->with('/tmp/file.pdf', 'file.pdf', 'application/pdf', null)
             ->andReturn($attachment);
 
-        $result = $this->service->createAttachmentFromPath('/tmp/file.pdf', 'file.pdf', 'application/pdf');
+        $result = $this->mailService->createAttachmentFromPath('/tmp/file.pdf', 'file.pdf', 'application/pdf');
 
         self::assertSame($attachment, $result);
     }
@@ -104,7 +104,7 @@ class MailServiceTest extends UnitTestCase
             ->once()
             ->andReturn('cid:abc123');
 
-        $result = $this->service->generateEmbedId();
+        $result = $this->mailService->generateEmbedId();
 
         self::assertSame('cid:abc123', $result);
     }

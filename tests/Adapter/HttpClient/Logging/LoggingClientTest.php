@@ -174,8 +174,8 @@ class LoggingClientTest extends UnitTestCase
         /** @var MockInterface|Promise $innerPromise */
         $innerPromise = $this->mock(Promise::class);
         $innerPromise->shouldReceive('then')
-            ->withArgs(function (callable $f, callable $r) use (&$capturedFulfilled) {
-                $capturedFulfilled = $f;
+            ->withArgs(function (callable $onFulfilled, callable $onRejected) use (&$capturedFulfilled) {
+                $capturedFulfilled = $onFulfilled;
                 return true;
             })
             ->andReturnSelf();

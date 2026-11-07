@@ -18,11 +18,35 @@ final readonly class McpRequestLimits
      * at most maxDepth minus one nested containers, including empty containers and the root object.
      */
     public function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use maxBytes() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxBytes = 1048576,
+        /**
+         * @deprecated Planned v1.5.0; use maxDepth() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxDepth = 512
     ) {
         if ($maxBytes < 1 || $maxBytes > 67108864 || $maxDepth < 1 || $maxDepth > 512) {
             throw new DomainException('MCP request limits require 1–67108864 bytes and a JSON depth of 1–512.');
         }
+    }
+
+    /**
+     * Returns the complete encoded request byte budget
+     */
+    public function maxBytes(): int
+    {
+        return $this->maxBytes;
+    }
+
+    /**
+     * Returns the PHP JSON decoding depth limit
+     */
+    public function maxDepth(): int
+    {
+        return $this->maxDepth;
     }
 }

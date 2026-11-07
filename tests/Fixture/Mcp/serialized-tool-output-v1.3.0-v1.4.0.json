@@ -1,0 +1,11 @@
+{
+    "provenance": {
+        "tags": {
+            "v1.3.0": "7de6cad6e8a9752973ad9f8e27e285b0c1510582",
+            "v1.4.0": "87b9580c072f3149d574e09865daa79620c92118"
+        },
+        "method": "Each tag's complete src tree was exported with git archive and autoloaded alone in a fresh PHP 8.5 process, without current/vendor autoload. Both independently produced identical native serialize() bytes, Base64 encoded below.",
+        "factory": "McpToolOutput::structuredWithResourceLinks(['value' => 'tagged 雪', 'empty' => (object) [], 'list' => [1, null, true]], McpResourceInfo::fromArray(['uri' => 'fixture://tagged/document', 'name' => 'Tagged document', 'mimeType' => 'text/plain']))"
+    },
+    "nativeOutput": "Tzo0NzoiRmlnaHRcQ29tbW9uXEFwcGxpY2F0aW9uXE1jcFxUb29sXE1jcFRvb2xPdXRwdXQiOjI6e3M6NTY6IgBGaWdodFxDb21tb25cQXBwbGljYXRpb25cTWNwXFRvb2xcTWNwVG9vbE91dHB1dABjb250ZW50IjtPOjQyOiJGaWdodFxDb21tb25cRG9tYWluXFZhbHVlXEJhc2ljXFN0cmljdEpzb24iOjI6e3M6NDg6IgBGaWdodFxDb21tb25cRG9tYWluXFZhbHVlXEJhc2ljXFN0cmljdEpzb24AZGF0YSI7YTozOntzOjU6InZhbHVlIjtzOjEwOiJ0YWdnZWQg6ZuqIjtzOjU6ImVtcHR5IjtPOjQyOiJGaWdodFxDb21tb25cRG9tYWluXFZhbHVlXEJhc2ljXFN0cmljdEpzb24iOjI6e3M6NDg6IgBGaWdodFxDb21tb25cRG9tYWluXFZhbHVlXEJhc2ljXFN0cmljdEpzb24AZGF0YSI7YTowOnt9czo1MDoiAEZpZ2h0XENvbW1vblxEb21haW5cVmFsdWVcQmFzaWNcU3RyaWN0SnNvbgBvYmplY3QiO2I6MTt9czo0OiJsaXN0IjthOjM6e2k6MDtpOjE7aToxO047aToyO2I6MTt9fXM6NTA6IgBGaWdodFxDb21tb25cRG9tYWluXFZhbHVlXEJhc2ljXFN0cmljdEpzb24Ab2JqZWN0IjtiOjE7fXM6NTg6IgBGaWdodFxDb21tb25cQXBwbGljYXRpb25cTWNwXFRvb2xcTWNwVG9vbE91dHB1dAByZXNvdXJjZXMiO2E6MTp7aTowO086NTM6IkZpZ2h0XENvbW1vblxBcHBsaWNhdGlvblxNY3BcUmVzb3VyY2VcTWNwUmVzb3VyY2VJbmZvIjoxOntzOjYzOiIARmlnaHRcQ29tbW9uXEFwcGxpY2F0aW9uXE1jcFxSZXNvdXJjZVxNY3BSZXNvdXJjZUluZm8AbWV0YWRhdGEiO086NDI6IkZpZ2h0XENvbW1vblxEb21haW5cVmFsdWVcQmFzaWNcU3RyaWN0SnNvbiI6Mjp7czo0ODoiAEZpZ2h0XENvbW1vblxEb21haW5cVmFsdWVcQmFzaWNcU3RyaWN0SnNvbgBkYXRhIjthOjM6e3M6MzoidXJpIjtzOjI1OiJmaXh0dXJlOi8vdGFnZ2VkL2RvY3VtZW50IjtzOjQ6Im5hbWUiO3M6MTU6IlRhZ2dlZCBkb2N1bWVudCI7czo4OiJtaW1lVHlwZSI7czoxMDoidGV4dC9wbGFpbiI7fXM6NTA6IgBGaWdodFxDb21tb25cRG9tYWluXFZhbHVlXEJhc2ljXFN0cmljdEpzb24Ab2JqZWN0IjtiOjE7fX19fQ=="
+}

@@ -16,6 +16,9 @@ final readonly class SafeHttpPresentation
 {
     /**
      * @var array<array-key, mixed>|null
+     *
+     * @deprecated Planned v1.5.0; use data() instead
+     * Retained until a future major after at least one released minor
      */
     public ?array $data;
 
@@ -27,8 +30,16 @@ final readonly class SafeHttpPresentation
      * @param SafeHttpMetadata|null        $metadata Explicit protocol metadata.
      */
     public function __construct(
+        /**
+         * @deprecated Planned v1.5.0; use message() instead
+         * Retained until a future major after at least one released minor
+         */
         public ?string $message = null,
         ?array $data = null,
+        /**
+         * @deprecated Planned v1.5.0; use metadata() instead
+         * Retained until a future major after at least one released minor
+         */
         public ?SafeHttpMetadata $metadata = null
     ) {
         if ($message !== null && preg_match('//u', $message) !== 1) {
@@ -50,6 +61,32 @@ final readonly class SafeHttpPresentation
         }
 
         $this->data = $snapshot;
+    }
+
+    /**
+     * Returns the deliberately public data snapshot
+     *
+     * @phpstan-return array<array-key, mixed>|null
+     */
+    public function data(): ?array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Returns the deliberately public message
+     */
+    public function message(): ?string
+    {
+        return $this->message;
+    }
+
+    /**
+     * Returns the selected protocol metadata
+     */
+    public function metadata(): ?SafeHttpMetadata
+    {
+        return $this->metadata;
     }
 
     /**

@@ -197,12 +197,12 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
     public function test_that_rename_restores_a_staged_target_when_the_native_move_fails(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
         $backup = null;
-        $native->shouldReceive('exists')->once()->with('/origin')->andReturnTrue();
-        $native->shouldReceive('exists')->once()->with('/target')->andReturnTrue();
-        $native->shouldReceive('move')->once()->with(
+        $nativeFilesystem->shouldReceive('exists')->once()->with('/origin')->andReturnTrue();
+        $nativeFilesystem->shouldReceive('exists')->once()->with('/target')->andReturnTrue();
+        $nativeFilesystem->shouldReceive('move')->once()->with(
             '/target',
             Mockery::on(static function (string $path) use (&$backup): bool {
                 $backup = $path;
@@ -210,10 +210,10 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
                 return str_starts_with($path, '/target.fight-backup-');
             })
         )->andReturnTrue();
-        $native->shouldReceive('move')->once()->with('/origin', '/target')->andThrow(
+        $nativeFilesystem->shouldReceive('move')->once()->with('/origin', '/target')->andThrow(
             new RuntimeException('move failed')
         );
-        $native->shouldReceive('move')->once()->with(
+        $nativeFilesystem->shouldReceive('move')->once()->with(
             Mockery::on(static function (string $path) use (&$backup): bool {
                 return $path === $backup;
             }),
@@ -222,14 +222,14 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
         $this->expectException(FilesystemException::class);
 
-        (new LaravelFilesystem($native))->rename('/origin', '/target', true);
+        (new LaravelFilesystem($nativeFilesystem))->rename('/origin', '/target', true);
     }
 
     public function test_that_native_warnings_are_translated_without_leaking_to_the_caller(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('get')->once()->with('/warning')->andReturnUsing(
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('get')->once()->with('/warning')->andReturnUsing(
             static fn (): string|false => file_get_contents('/fight-missing-native-warning')
         );
         $warnings = [];
@@ -240,7 +240,7 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
         });
 
         try {
-            (new LaravelFilesystem($native))->get('/warning');
+            (new LaravelFilesystem($nativeFilesystem))->get('/warning');
             self::fail('A native warning must fail.');
         } catch (FilesystemException $exception) {
             self::assertInstanceOf(ErrorException::class, $exception->getPrevious());
@@ -282,12 +282,12 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
     public function test_that_mirror_preserves_a_root_origin_in_its_failure_path(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('isDirectory')->once()->with('/')->andReturnFalse();
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('isDirectory')->once()->with('/')->andReturnFalse();
 
         try {
-            (new LaravelFilesystem($native))->mirror('/', '/target');
+            (new LaravelFilesystem($nativeFilesystem))->mirror('/', '/target');
             self::fail('A missing root must fail through the Fight boundary.');
         } catch (FileNotFoundException $exception) {
             self::assertSame('/', $exception->getPath());
@@ -296,12 +296,12 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
     public function test_that_mirror_preserves_a_windows_drive_root_in_its_failure_path(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('isDirectory')->once()->with('C:\\')->andReturnFalse();
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('isDirectory')->once()->with('C:\\')->andReturnFalse();
 
         try {
-            (new LaravelFilesystem($native, true))->mirror('C:\\', 'D:\\target');
+            (new LaravelFilesystem($nativeFilesystem, true))->mirror('C:\\', 'D:\\target');
             self::fail('A missing drive root must fail through the Fight boundary.');
         } catch (FileNotFoundException $exception) {
             self::assertSame('C:\\', $exception->getPath());
@@ -310,12 +310,12 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
     public function test_that_mirror_translates_iterator_failures_to_the_fight_boundary(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('isDirectory')->once()->with('/raced-origin')->andReturnTrue();
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('isDirectory')->once()->with('/raced-origin')->andReturnTrue();
 
         try {
-            (new LaravelFilesystem($native))->mirror('/raced-origin', '/target');
+            (new LaravelFilesystem($nativeFilesystem))->mirror('/raced-origin', '/target');
             self::fail('A raced origin must fail through the Fight boundary.');
         } catch (FilesystemException $exception) {
             self::assertSame('/raced-origin', $exception->getPath());
@@ -397,10 +397,10 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
     public function test_that_native_failures_are_translated_to_the_fight_exception_boundary(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('get')->once()->with('/broken')->andThrow(new RuntimeException('native failure'));
-        $filesystem = new LaravelFilesystem($native);
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('get')->once()->with('/broken')->andThrow(new RuntimeException('native failure'));
+        $filesystem = new LaravelFilesystem($nativeFilesystem);
 
         try {
             $filesystem->get('/broken');
@@ -414,27 +414,27 @@ final class LaravelFilesystemTest extends FilesystemConformanceTestCase
 
     public function test_that_silent_native_failures_use_the_fight_exception_boundary(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('isDirectory')->once()->with('/failure')->andReturnFalse();
-        $native->shouldReceive('makeDirectory')->once()->with('/failure', 0775, true, true)->andReturnFalse();
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('isDirectory')->once()->with('/failure')->andReturnFalse();
+        $nativeFilesystem->shouldReceive('makeDirectory')->once()->with('/failure', 0775, true, true)->andReturnFalse();
 
         $this->expectException(FilesystemException::class);
 
-        (new LaravelFilesystem($native))->mkdir('/failure');
+        (new LaravelFilesystem($nativeFilesystem))->mkdir('/failure');
     }
 
     public function test_that_directory_removal_verifies_laravels_success_result(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('isFile')->once()->with('/stuck')->andReturnFalse();
-        $native->shouldReceive('isDirectory')->twice()->with('/stuck')->andReturnTrue();
-        $native->shouldReceive('deleteDirectory')->once()->with('/stuck')->andReturnTrue();
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('isFile')->once()->with('/stuck')->andReturnFalse();
+        $nativeFilesystem->shouldReceive('isDirectory')->twice()->with('/stuck')->andReturnTrue();
+        $nativeFilesystem->shouldReceive('deleteDirectory')->once()->with('/stuck')->andReturnTrue();
 
         $this->expectException(FilesystemException::class);
 
-        (new LaravelFilesystem($native))->remove('/stuck');
+        (new LaravelFilesystem($nativeFilesystem))->remove('/stuck');
     }
 
     public function test_that_link_ownership_uses_link_aware_native_operations(): void

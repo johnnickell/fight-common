@@ -1,0 +1,404 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Detail\Dbal;
+
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Tools\DsnParser;
+use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalDetailReader;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseReader;
+use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalExecutionReader;
+use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
+use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+use Fight\Common\Application\Mcp\Detail\Exception\DetailRemovalRejected;
+use Fight\Common\Application\Mcp\Detail\QueryHandler\GetCapturedDetailHandler;
+use Fight\Common\Application\Mcp\Detail\QueryHandler\ListCapturedMessagesHandler;
+use Fight\Common\Application\Mcp\Detail\Service\DetailAccess;
+use Fight\Common\Application\Mcp\Detail\Service\DetailReadAdmission;
+use Fight\Common\Application\Mcp\Observation\Exception\ObservationConflict;
+use Fight\Common\Application\Mcp\Observation\Exception\ObservationStorageFailed;
+use Fight\Common\Application\Mcp\Observation\Exception\ProtectedContentRemoved;
+use Fight\Common\Application\Mcp\Observation\QueryHandler\ListPhaseActivityHandler;
+use Fight\Common\Application\Mcp\Phase\QueryHandler\ListExecutionPhasesHandler;
+use Fight\Common\Application\Mcp\Session\QueryHandler\GetExecutionHandler;
+use Fight\Common\Application\Mcp\Session\QueryHandler\SummarizeExecutionsHandler;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Domain\Mcp\Detail\CaptureCompleteness;
+use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
+use Fight\Common\Domain\Mcp\Detail\DetailCapture;
+use Fight\Common\Domain\Mcp\Detail\DetailKind;
+use Fight\Common\Domain\Mcp\Detail\DetailSelection;
+use Fight\Common\Domain\Mcp\Detail\OutputSegment;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
+use Fight\Common\Domain\Mcp\Detail\Query\GetCapturedDetail;
+use Fight\Common\Domain\Mcp\Detail\Query\ListCapturedMessages;
+use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
+use Fight\Common\Domain\Mcp\Observation\Observation;
+use Fight\Common\Domain\Mcp\Observation\ObservationId;
+use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
+use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
+use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
+use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
+use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
+use Fight\Common\Domain\Mcp\Session\SessionReference;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Utility\ClassName;
+use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
+use Fight\Test\Common\TestCase\Mcp\Execution\RecordingFixture;
+use Fight\Test\Common\TestCase\Mcp\Execution\RemovalFixture;
+use Fight\Test\Common\TestCase\UnitTestCase;
+use LogicException;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
+use Symfony\Component\Process\Process;
+
+#[CoversNothing]
+final class DbalDetailRemovalIntegrationTest extends UnitTestCase
+{
+    private array $connections = [];
+    private array $directories = [];
+
+    #[DataProvider('databases')]
+    public function test_that_public_removal_commits_all_kinds_and_preserves_summary_links_and_truthful_queries(string $backend, DbalObservationTables $tables): void
+    {
+        $db = $this->database($backend, $tables); $recordingTransaction = new DbalRecordingTransaction($db, $tables);
+        $contentTable = $tables->contentTable()->quoted($db->getDatabasePlatform());
+        $record = $this->seed($recordingTransaction); $remove = new RemovalFixture($recordingTransaction);
+        $events = 0; $record->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+        [$queryBus] = $this->queries($db, $tables);
+        foreach (DetailKind::cases() as $kind) {
+            foreach (CaptureCompleteness::cases() as $completeness) {
+                $capture = DetailCapture::create(ObservationFixture::activity()->id(), $kind, 'text/plain', $completeness, $kind === DetailKind::PROCESS_OUTPUT ? OutputSegment::create('stdout', 0, 0) : null);
+                $detail = ObservationFixture::detail(['observation_id' => ObservationId::generate()->toString(), 'detail' => $capture->toArray()]);
+                $hasBody = in_array($completeness, [CaptureCompleteness::COMPLETE, CaptureCompleteness::PARTIAL], true);
+                $record->record($detail, ProtectedContent::create($capture, $hasBody ? 'PROTECTED-ERASE-ME' : null));
+                $command = RemovalFixture::command($detail);
+                $query = new GetCapturedDetail($command->selection(), $detail->id(), $kind);
+                $before = $queryBus->fetch($query)->toArray();
+                self::assertSame($hasBody ? 'retained' : $completeness->value, $before['reference']['availability']);
+                $safe = $this->safeState($db, $tables); $summary = $this->summary($queryBus); $eventCount = $events;
+                $envelope = CommandMessage::arrayDeserialize(CommandMessage::create($command)->arraySerialize());
+                $remove->commandBus->dispatch($envelope);
+                self::assertFalse($db->isTransactionActive());
+                $other = $this->connect($db->getParams());
+                self::assertSame(0, (int) $other->fetchOne('SELECT COUNT(*) FROM '.$tables->contentTable()->quoted($other->getDatabasePlatform()).' WHERE observation_id = ?', [$detail->id()->toString()]), 'Acknowledgment must follow a commit visible on an independent connection.');
+                $after = $queryBus->fetch($query)->toArray();
+                self::assertNull($after['chunk']);
+                self::assertSame($hasBody ? 'missing' : $completeness->value, $after['reference']['availability']);
+                self::assertSame($before['reference']['capture'], $after['reference']['capture']);
+                self::assertSame($safe, $this->safeState($db, $tables));
+                self::assertSame($summary, $this->summary($queryBus));
+                $activity = $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase'))->toArray();
+                $references = $activity['activities'][0]['details'];
+                $reference = array_values(array_filter($references, static fn ($ref) => $ref['observation_id'] === $detail->id()->toString()))[0];
+                self::assertSame($after['reference'], $reference);
+                self::assertStringNotContainsString('PROTECTED-ERASE-ME', json_encode([$activity, $summary, $after]));
+                $remove->commandBus->execute($command);
+                self::assertSame($eventCount, $events, 'Removal and reads publish no events.');
+            }
+        }
+        self::assertSame(40, $remove->admissions);
+        self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$contentTable));
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_read_grants_do_not_authorize_removal_and_repeats_recheck_current_scope(string $backend, DbalObservationTables $tables): void
+    {
+        $db = $this->database($backend, $tables); $recordingTransaction = new DbalRecordingTransaction($db, $tables); $record = $this->seed($recordingTransaction);
+        $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'PRIVATE'));
+        [$queryBus, $readAdmission] = $this->queries($db, $tables); $remove = new RemovalFixture($recordingTransaction); $command = RemovalFixture::command($detail);
+        self::assertNotNull($queryBus->fetch(new GetCapturedDetail($command->selection(), $detail->id(), DetailKind::MESSAGE))->toArray()['chunk']);
+        $remove->allowed = false; $before = $this->allState($db, $tables);
+        $this->rejects(static fn () => $remove->commandBus->execute($command));
+        self::assertSame($before, $this->allState($db, $tables));
+        $remove->allowed = true; $readAdmission->access = DetailAccess::create([]);
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($command->selection(), $detail->id(), DetailKind::MESSAGE)));
+        $remove->commandBus->execute($command); // Removal does not require read access.
+        $remove->allowed = false; $this->rejects(static fn () => $remove->commandBus->execute($command));
+        $remove->allowed = true;
+        foreach (['project_id', 'session_id', 'phase_id', 'producer_id', 'activity_id'] as $field) {
+            $selection = $command->selection()->toArray(); $selection[$field] = $field === 'activity_id' ? ObservationId::generate()->toString() : 'concealed';
+            $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail(DetailSelection::fromArray($selection), $detail->id(), DetailKind::MESSAGE)));
+        }
+        $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail($command->selection(), $detail->id(), DetailKind::TOOL_RESULT)));
+        $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail($command->selection(), ObservationId::generate(), DetailKind::MESSAGE)));
+        $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail($command->selection(), ObservationFixture::phase()->id(), DetailKind::MESSAGE)));
+        $remove->commandBus->execute($command);
+        self::assertSame(12, $remove->admissions);
+        self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->contentTable()->quoted($db->getDatabasePlatform())));
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_failure_after_real_delete_rolls_back_and_outer_transactions_preserve_caller_work(string $backend, DbalObservationTables $tables): void
+    {
+        $db = $this->database($backend, $tables); $recordingTransaction = new DbalRecordingTransaction($db, $tables); $record = $this->seed($recordingTransaction);
+        $contentTable = $tables->contentTable()->quoted($db->getDatabasePlatform());
+        $sessionTable = $tables->sessionTable()->quoted($db->getDatabasePlatform());
+        $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'PRIVATE'));
+        $command = RemovalFixture::command($detail); $before = $this->allState($db, $tables);
+        $failing = new RemovalFixture($recordingTransaction, static function () use ($db, $contentTable): void {
+            self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$contentTable));
+            throw new RuntimeException('Injected failure after deletion.');
+        });
+        try { $failing->commandBus->execute($command); self::fail('Expected rollback.'); }
+        catch (RuntimeException $failure) { self::assertSame('Injected failure after deletion.', $failure->getMessage()); }
+        self::assertSame($before, $this->allState($this->connect($db->getParams()), $tables));
+        self::assertFalse($recordingTransaction->isClosed());
+        $remove = new RemovalFixture($recordingTransaction);
+        $db->beginTransaction();
+        $db->insert($sessionTable, SessionReference::fromStrings('caller', 'unrelated', 'owned')->toArray());
+        try { $remove->commandBus->execute($command); self::fail('Expected outer transaction rejection.'); }
+        catch (LogicException) { self::assertTrue($db->isTransactionActive()); self::assertSame(0, $remove->admissions); }
+        self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$contentTable));
+        self::assertSame(2, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$sessionTable));
+        $db->commit();
+        self::assertSame(2, (int) $this->connect($db->getParams())->fetchOne('SELECT COUNT(*) FROM '.$sessionTable));
+        $remove->commandBus->execute($command);
+        self::assertSame(0, (int) $this->connect($db->getParams())->fetchOne('SELECT COUNT(*) FROM '.$contentTable));
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_lost_commit_acknowledgment_is_uncertain_and_fresh_removal_safely_rechecks_admission(string $backend, DbalObservationTables $tables): void
+    {
+        $db = $this->database($backend, $tables); $record = $this->seed(new DbalRecordingTransaction($db, $tables));
+        $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'PRIVATE'));
+        $proxy = $this->mock(Connection::class);
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'delete'] as $method) {
+            $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $db->$method(...$arguments));
+        }
+        $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($db): void { $db->commit(); throw new RuntimeException('Lost acknowledgment.'); });
+        $proxy->shouldNotReceive('rollBack');
+        $recordingTransaction = new DbalRecordingTransaction($proxy, $tables); $remove = new RemovalFixture($recordingTransaction);
+        try { $remove->commandBus->execute(RemovalFixture::command($detail)); self::fail('Must report uncertain outcome.'); }
+        catch (ObservationStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
+        self::assertTrue($recordingTransaction->isClosed()); self::assertSame(1, $remove->admissions);
+        $fresh = $this->connect($db->getParams());
+        self::assertSame(0, (int) $fresh->fetchOne('SELECT COUNT(*) FROM '.$tables->contentTable()->quoted($fresh->getDatabasePlatform())));
+        $repeat = new RemovalFixture(new DbalRecordingTransaction($fresh, $tables)); $repeat->commandBus->execute(RemovalFixture::command($detail));
+        self::assertSame(1, $repeat->admissions);
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_removal_has_no_page_or_chunk_lease_and_uncommitted_deletion_does_not_leak(string $backend, DbalObservationTables $tables): void
+    {
+        $db = $this->database($backend, $tables); $record = $this->seed(new DbalRecordingTransaction($db, $tables));
+        $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'abcdef'));
+        $second = ObservationFixture::detail(['observation_id' => ObservationId::generate()->toString()]); $record->record($second, ProtectedContent::create($second->detail(), 'other'));
+        [$queryBus] = $this->queries($db, $tables); $selection = RemovalFixture::command($detail)->selection();
+        self::assertSame(2, $queryBus->fetch(new ListCapturedMessages($selection, 1, 1))->toArray()['total']);
+        self::assertSame(3, $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk']['next_offset']);
+        $temporaryDirectory = $this->directory(); $config = $temporaryDirectory.'/config.json';
+        file_put_contents($config, json_encode(['params' => $db->getParams(), 'tables' => $this->tableConfiguration($tables), 'observation' => $detail->toArray(), 'operations' => ['first' => 'remove'], 'pause_after_delete' => true], JSON_THROW_ON_ERROR));
+        $worker = $this->worker($config, 'first');
+        try {
+            $worker->start(); $this->waitFor($temporaryDirectory.'/first-deleted', $worker);
+            $during = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray();
+            self::assertSame('def', base64_decode($during['chunk']['data'], true), 'Independent read wins before commit and sees the old committed body.');
+            file_put_contents($temporaryDirectory.'/release', 'commit'); self::assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            self::assertSame('removed', json_decode($worker->getOutput(), true, flags: JSON_THROW_ON_ERROR)['status']);
+            $after = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray();
+            self::assertNull($after['chunk']); self::assertSame('missing', $after['reference']['availability']);
+            $pages = [];
+            foreach ([1, 2] as $page) { $pages = [...$pages, ...$queryBus->fetch(new ListCapturedMessages($selection, $page, 1))->toArray()['messages']]; }
+            $removed = array_values(array_filter($pages, static fn ($row) => $row['reference']['observation_id'] === $detail->id()->toString()))[0];
+            self::assertNull($removed['chunk']); self::assertSame('missing', $removed['reference']['availability']);
+        } finally { $worker->stop(); }
+    }
+
+    #[DataProvider('races')]
+    public function test_that_competing_public_removals_and_recording_retries_obey_retained_comparison_boundaries(string $backend, string $competitor, bool $removalFirst, bool $retained, DbalObservationTables $tables): void
+    {
+        $db = $this->database($backend, $tables); $recordingTransaction = new DbalRecordingTransaction($db, $tables); $record = $this->seed($recordingTransaction);
+        $observationTable = $tables->observationTable()->quoted($db->getDatabasePlatform());
+        $detail = ObservationFixture::detail(); $content = ProtectedContent::create($detail->detail(), 'private-body'); $record->record($detail, $content);
+        if (!$retained) {
+            // Consumer-owned identity purge fixture, deliberately not a public metadata-purge capability.
+            (new RemovalFixture($recordingTransaction))->commandBus->execute(RemovalFixture::command($detail));
+            $recordingTransaction->commitTransactional(static fn () => $db->delete($observationTable, ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]));
+        }
+        $operations = $removalFirst ? ['first' => 'remove', 'second' => $competitor] : ['first' => $competitor, 'second' => 'remove'];
+        $temporaryDirectory = $this->directory(); $config = $temporaryDirectory.'/config.json';
+        file_put_contents($config, json_encode(['params' => $db->getParams(), 'tables' => $this->tableConfiguration($tables), 'observation' => $detail->toArray(), 'content' => $content->toArray(), 'operations' => $operations], JSON_THROW_ON_ERROR));
+        $first = $this->worker($config, 'first'); $second = $this->worker($config, 'second');
+        try {
+            $first->start(); $this->waitFor($temporaryDirectory.'/first-admitted', $first);
+            $second->start(); $this->waitFor($temporaryDirectory.'/second-started', $second);
+            self::assertFileDoesNotExist($temporaryDirectory.'/second-admitted', 'First worker already owns the common serialization lock.');
+            file_put_contents($temporaryDirectory.'/release', 'proceed');
+            self::assertSame(0, $first->wait(), $first->getErrorOutput()); self::assertSame(0, $second->wait(), $second->getErrorOutput());
+            $firstResult = json_decode($first->getOutput(), true, flags: JSON_THROW_ON_ERROR); $secondResult = json_decode($second->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+            $removal = $removalFirst ? $firstResult : $secondResult; $retry = $removalFirst ? $secondResult : $firstResult;
+            self::assertSame(!$retained && $removalFirst ? DetailRemovalRejected::class : 'removed', $removal['status']);
+            $expected = 'recorded';
+            if ($retained && $competitor === 'remove') { $expected = 'removed'; }
+            elseif ($retained && $competitor === 'metadata-conflict') { $expected = ObservationConflict::class; }
+            elseif ($retained && $removalFirst) { $expected = ProtectedContentRemoved::class; }
+            elseif ($retained && $competitor === 'body-conflict') { $expected = ObservationConflict::class; }
+            self::assertSame($expected, $retry['status']);
+            self::assertSame(1, $firstResult['admissions']); self::assertSame(1, $secondResult['admissions']);
+            self::assertSame(0, $removal['events']); self::assertSame($retained ? 0 : 1, $retry['events']);
+            $body = $db->fetchOne('SELECT payload FROM '.$tables->contentTable()->quoted($db->getDatabasePlatform()));
+            if (!$retained && $removalFirst) {
+                self::assertIsString($body);
+                self::assertSame($competitor === 'body-conflict' ? 'changed-private-body' : 'private-body', json_decode($body, true, flags: JSON_THROW_ON_ERROR)['body']);
+            } else { self::assertFalse($body); }
+            self::assertSame(4, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$observationTable));
+            self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->sessionTable()->quoted($db->getDatabasePlatform())));
+            self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->phaseTable()->quoted($db->getDatabasePlatform())));
+        } finally { $first->stop(); $second->stop(); }
+    }
+
+    public static function databases(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach (self::tableSelections() as $selection => $tables) {
+                yield $backend.'-'.$selection => [$backend, $tables];
+            }
+        }
+    }
+
+    public static function races(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach (self::tableSelections() as $selection => $tables) {
+                foreach (['remove', 'retry', 'body-conflict', 'metadata-conflict'] as $competitor) {
+                    foreach ([true, false] as $first) {
+                        yield $backend.'-'.$selection.'-'.$competitor.'-'.($first ? 'remove-first' : 'retry-first').'-retained' => [$backend, $competitor, $first, true, $tables];
+                        if (in_array($competitor, ['retry', 'body-conflict'], true)) {
+                            yield $backend.'-'.$selection.'-'.$competitor.'-'.($first ? 'remove-first' : 'retry-first').'-purged' => [$backend, $competitor, $first, false, $tables];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static function tableSelections(): iterable
+    {
+        yield 'default' => new DbalObservationTables();
+        yield 'configured' => new DbalObservationTables(
+            schemaTable: 'RemovalState',
+            sessionTable: 'RemovalSessions',
+            phaseTable: 'RemovalPhases',
+            observationTable: 'RemovalObservations',
+            contentTable: 'Where'
+        );
+    }
+
+    private function seed(DbalRecordingTransaction $recordingTransaction): RecordingFixture
+    {
+        $fixture = new RecordingFixture($recordingTransaction);
+        foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $observation) { $fixture->record($observation); }
+        return $fixture;
+    }
+
+    private function queries(Connection $db, DbalObservationTables $tables): array
+    {
+        $detailAdmission = new class implements DetailReadAdmission {
+            public DetailAccess $access;
+            public function __construct() { $this->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => null], bodyGrants: ['project' => null]); }
+            public function currentAccess(DetailSelection $selection): DetailAccess { return $this->access; }
+        };
+        $safeAdmission = new class implements ExecutionReadAdmission {
+            public function currentAccess(ExecutionSelection $selection): ExecutionAccess { return ExecutionAccess::create(['project' => null], detailGrants: ['project' => null]); }
+        };
+        $router = new InMemoryQueryRouter();
+        $router->registerHandler(GetCapturedDetailHandler::queryRegistration(), new GetCapturedDetailHandler($detailAdmission, new DbalDetailReader(connection: $db, tables: $tables)));
+        $router->registerHandler(ListCapturedMessagesHandler::queryRegistration(), new ListCapturedMessagesHandler($detailAdmission, new DbalDetailReader(connection: $db, tables: $tables)));
+        $router->registerHandler(ListPhaseActivityHandler::queryRegistration(), new ListPhaseActivityHandler($safeAdmission, new DbalActivityReader(connection: $db, tables: $tables)));
+        $router->registerHandler(GetExecutionHandler::queryRegistration(), new GetExecutionHandler($safeAdmission, new DbalExecutionReader(connection: $db, tables: $tables)));
+        $router->registerHandler(SummarizeExecutionsHandler::queryRegistration(), new SummarizeExecutionsHandler($safeAdmission, new DbalExecutionReader(connection: $db, tables: $tables)));
+        $router->registerHandler(ListExecutionPhasesHandler::queryRegistration(), new ListExecutionPhasesHandler($safeAdmission, new DbalPhaseReader(connection: $db, tables: $tables)));
+        return [new RoutingQueryBus($router), $detailAdmission];
+    }
+
+    private function summary(RoutingQueryBus $queryBus): array
+    {
+        return [$queryBus->fetch(new GetExecution('project', 'session'))->toArray(), $queryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray(), $queryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray()];
+    }
+
+    private function rejects(callable $operation): void
+    {
+        try { $operation(); self::fail('Expected concealed removal rejection.'); }
+        catch (DetailRemovalRejected $failure) { self::assertSame('Captured detail removal was not admitted.', $failure->getMessage()); }
+    }
+
+    private function safeState(Connection $db, DbalObservationTables $tables): array
+    {
+        return array_map(static fn ($table) => $db->fetchAllAssociative('SELECT * FROM '.$table->quoted($db->getDatabasePlatform())), array_slice($this->tableIdentifiers($tables), 0, -1));
+    }
+
+    private function allState(Connection $db, DbalObservationTables $tables): array
+    {
+        return array_map(static fn ($table) => $db->fetchAllAssociative('SELECT * FROM '.$table->quoted($db->getDatabasePlatform())), $this->tableIdentifiers($tables));
+    }
+
+    private function tableIdentifiers(DbalObservationTables $tables): array
+    {
+        return [$tables->schemaTable(), $tables->sessionTable(), $tables->phaseTable(), $tables->observationTable(), $tables->contentTable()];
+    }
+
+    private function tableConfiguration(DbalObservationTables $tables): array
+    {
+        return array_combine(['schemaTable', 'sessionTable', 'phaseTable', 'observationTable', 'contentTable'], array_map(static fn ($table) => $table->name(), $this->tableIdentifiers($tables)));
+    }
+
+    private function database(string $backend, DbalObservationTables $tables): Connection
+    {
+        if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'path' => $this->directory().'/observations.sqlite']; }
+        else {
+            $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN');
+            self::assertIsString($dsn, 'Actual disposable '.$backend.' is required; skips do not qualify removal.');
+            $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
+        }
+        $db = $this->connect($params);
+        foreach (array_reverse($this->tableIdentifiers($tables)) as $table) { $db->executeStatement('DROP TABLE IF EXISTS '.$table->quoted($db->getDatabasePlatform())); }
+        (new DbalObservationSchema($tables))->install($db);
+        return $db;
+    }
+
+    private function connect(array $params): Connection
+    {
+        $db = DriverManager::getConnection($params);
+        if ($params['driver'] === 'pdo_sqlite') { $db->executeStatement('PRAGMA foreign_keys = ON'); $db->executeStatement('PRAGMA busy_timeout = 10000'); }
+        $this->connections[] = $db;
+        return $db;
+    }
+
+    private function directory(): string
+    {
+        $path = sys_get_temp_dir().'/fight-removal-'.bin2hex(random_bytes(8));
+        self::assertTrue(mkdir($path, 0700)); $this->directories[] = $path;
+        return $path;
+    }
+
+    private function worker(string $config, string $role): Process
+    {
+        return new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Execution/remove-worker.php', $config, $role], timeout: 20);
+    }
+
+    private function waitFor(string $path, Process $worker): void
+    {
+        $deadline = microtime(true) + 10;
+        while (!file_exists($path)) {
+            if (!$worker->isRunning() || microtime(true) > $deadline) { self::fail('Worker barrier failed: '.$worker->getErrorOutput().$worker->getOutput()); }
+            usleep(10000);
+        }
+        self::assertFileExists($path);
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->connections as $connection) { $connection->close(); }
+        foreach ($this->directories as $directory) { $this->removeTemporaryDirectory($directory, 'fight-removal-'); }
+        parent::tearDown();
+    }
+}

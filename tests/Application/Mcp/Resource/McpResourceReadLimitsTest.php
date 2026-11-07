@@ -17,11 +17,11 @@ final class McpResourceReadLimitsTest extends UnitTestCase
     public function test_that_defaults_and_finite_overrides_reserve_worst_case_encoding(): void
     {
         $defaults = new McpResourceReadLimits();
-        self::assertSame(1048576, $defaults->maxContentBytes);
-        self::assertSame(8388608, $defaults->maxResultBytes);
+        self::assertSame(1048576, $defaults->maxContentBytes());
+        self::assertSame(8388608, $defaults->maxResultBytes());
         $max = new McpResourceReadLimits(8388608, 67108864);
         $max->validate(McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => '', 'size' => 8388608]));
-        self::assertSame(8388608, $max->maxContentBytes);
+        self::assertSame(8388608, $max->maxContentBytes());
         $info = McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => '', 'size' => 1]);
         $exact = 6 + strlen(json_encode(['uri' => 'test:/a'])) + 256;
         (new McpResourceReadLimits(1, $exact))->validate($info);

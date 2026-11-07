@@ -15,11 +15,14 @@ use Twilio\Rest\Client;
  */
 final readonly class TwilioSmsTransport implements SmsTransport
 {
+    private Client $twilioClient;
+
     /**
      * Constructs TwilioSmsTransport
      */
-    public function __construct(private Client $client)
+    public function __construct(Client $client)
     {
+        $this->twilioClient = $client;
     }
 
     /**
@@ -27,22 +30,22 @@ final readonly class TwilioSmsTransport implements SmsTransport
      */
     public function send(SmsMessage $message): void
     {
-        $args = [
+        $messageOptions = [
             'from' => $message->getFrom()
         ];
 
         if ($message->getBody() !== null) {
-            $args['body'] = $message->getBody();
+            $messageOptions['body'] = $message->getBody();
         }
 
         $media = $message->getMedia();
 
         if ($media !== []) {
-            $args['mediaUrl'] = array_map(strval(...), $media);
+            $messageOptions['mediaUrl'] = array_map(strval(...), $media);
         }
 
         try {
-            $this->client->messages->create($message->getTo(), $args);
+            $this->twilioClient->messages->create($message->getTo(), $messageOptions);
         } catch (Throwable $throwable) {
             throw new SmsException(
                 $throwable->getMessage(),

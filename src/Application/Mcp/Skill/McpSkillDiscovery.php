@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Skill;
 
-use Fight\Common\Application\Mcp\McpMetadataAwareCapability;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Capability\McpMetadataAwareCapability;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -21,6 +21,9 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
 {
     public const string EXTENSION = 'io.modelcontextprotocol/skills';
 
+    private McpSkillResources $skillResourceProvider;
+    private McpResourceDiscovery $resourceDiscovery;
+
     /**
      * Constructs McpSkillDiscovery
      *
@@ -30,14 +33,16 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
      * asserts caller-independent visibility; neither cursor scope nor key is a principal or access credential.
      */
     public function __construct(
-        private McpSkillResources $provider,
-        private McpResourceDiscovery $resources,
+        McpSkillResources $provider,
+        McpResourceDiscovery $resources,
         private string $cursorKey,
         private string $cursorScope,
         private McpSkillDiscoveryLimits $limits = new McpSkillDiscoveryLimits(),
         private int $ttlMs = 0,
         private string $cacheScope = 'private'
     ) {
+        $this->skillResourceProvider = $provider;
+        $this->resourceDiscovery = $resources;
         if (!$resources->serves($provider)) {
             throw new DomainException(
                 'Skills requires its exact provider in the shared readable Resources capability.'
@@ -52,7 +57,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             throw new DomainException('Skill cache hints require a safe integer TTL and private/public scope.');
         }
 
-        if (count($provider->entries()) > $limits->maxEntries) {
+        if (count($provider->entries()) > $limits->maxEntries()) {
             throw new DomainException('Skill discovery exceeds its complete catalog budget.');
         }
 
@@ -66,7 +71,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
      */
     public function resourceDiscovery(): McpResourceDiscovery
     {
-        return $this->resources;
+        return $this->resourceDiscovery;
     }
 
     /**
@@ -103,7 +108,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             if (
                 array_diff(array_keys($parameters), ['uri']) !== []
                 || !is_string($parameters['uri'] ?? null)
-                || strlen($parameters['uri']) > $this->limits->maxUriBytes
+                || strlen($parameters['uri']) > $this->limits->maxUriBytes()
                 || Uri::parse($parameters['uri'])?->getScheme() === null
             ) {
                 throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
@@ -153,7 +158,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             return $this->listing($request, $metadata);
         }
 
-        $entry = $this->provider->findEntry($request->parameters()['uri']);
+        $entry = $this->skillResourceProvider->findEntry($request->parameters()['uri']);
         if ($entry !== null && $this->available($entry)) {
             return $this->result(['skill' => $entry]);
         }
@@ -168,7 +173,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
      */
     private function validateCatalog(array $metadata): void
     {
-        $this->resources->validateCatalog($metadata);
+        $this->resourceDiscovery->validateCatalog($metadata);
         $this->validateEntries($metadata);
     }
 
@@ -179,10 +184,10 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
      */
     private function validateEntries(array $metadata): void
     {
-        foreach ($this->provider->entries() as $uri => $entry) {
+        foreach ($this->skillResourceProvider->entries() as $uri => $entry) {
             if (
-                strlen($uri) > $this->limits->maxUriBytes
-                || strlen($entry->toString()) > $this->limits->maxEntryBytes
+                strlen($uri) > $this->limits->maxUriBytes()
+                || strlen($entry->toString()) > $this->limits->maxEntryBytes()
             ) {
                 throw new DomainException('Skill entry exceeds its URI or complete metadata budget.');
             }
@@ -198,14 +203,16 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     private function available(StrictJson $entry): bool
     {
         try {
-            if (!$this->provider->isAvailable($this->provider->find($entry->get('uri')))) {
+            if (!$this->skillResourceProvider->isAvailable($this->skillResourceProvider->find($entry->get('uri')))) {
                 return false;
             }
 
             // An entry cannot redact a member that the general Resource policy conceals.
             return array_all(
                 $entry->get('resources'),
-                fn(StrictJson $member): bool => $this->resources->permits($this->provider->find($member->get('uri')))
+                fn(StrictJson $member): bool => $this->resourceDiscovery->permits(
+                    $this->skillResourceProvider->find($member->get('uri'))
+                )
             );
         } catch (McpProtocolException $mcpProtocolException) {
             throw new DomainException('Skill availability failed.', previous: $mcpProtocolException);
@@ -230,7 +237,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             JSON_THROW_ON_ERROR
         ));
         $full = false;
-        foreach ($this->provider->entries() as $entry) {
+        foreach ($this->skillResourceProvider->entries() as $entry) {
             if (!$this->available($entry)) {
                 continue;
             }
@@ -241,7 +248,10 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
                 // Match McpResult's encoder, not StrictJson's fraction-preserving catalog fingerprint.
                 // Catalog validation guarantees one entry plus this metadata/cursor wrapper always fits.
                 $bytes = strlen(json_encode($entry, JSON_THROW_ON_ERROR)) + (count($page) === 0 ? 0 : 1);
-                if (count($page) >= $this->limits->pageSize || $pageBytes + $bytes > $this->limits->maxResultBytes) {
+                if (
+                    count($page) >= $this->limits->pageSize()
+                    || $pageBytes + $bytes > $this->limits->maxResultBytes()
+                ) {
                     $full = true;
                 } else {
                     $page[] = $entry;
@@ -283,7 +293,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     {
         return McpResult::boundedComplete(
             [...$data, 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
-            $this->limits->maxResultBytes
+            $this->limits->maxResultBytes()
         );
     }
 
@@ -294,7 +304,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     {
         return hash_hmac('sha256', implode(':', [
             'mcp-skills-v1', strlen($this->cursorScope), $this->cursorScope,
-            $this->limits->pageSize, $this->limits->maxResultBytes, $offset, $snapshot
+            $this->limits->pageSize(), $this->limits->maxResultBytes(), $offset, $snapshot
         ]), $this->cursorKey, true);
     }
 }

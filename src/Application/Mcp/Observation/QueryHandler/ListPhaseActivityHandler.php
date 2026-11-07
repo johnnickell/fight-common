@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Application\Mcp\Observation\QueryHandler;
+
+use Fight\Common\Application\Mcp\Observation\Data\ActivityPage;
+use Fight\Common\Application\Mcp\Observation\Service\ActivityReader;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Application\Messaging\Query\QueryHandler;
+use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
+
+/**
+ * Class ListPhaseActivityHandler
+ */
+final readonly class ListPhaseActivityHandler implements QueryHandler
+{
+    /**
+     * Constructs ListPhaseActivityHandler
+     */
+    public function __construct(
+        private ExecutionReadAdmission $executionReadAdmission,
+        private ActivityReader $activityReader
+    ) {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function queryRegistration(): string
+    {
+        return ListPhaseActivity::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handle(QueryMessage $queryMessage): ?ActivityPage
+    {
+        /**
+         * @var ListPhaseActivity $query
+         */
+        $query = $queryMessage->payload();
+        $access = $this->executionReadAdmission->currentAccess($query->execution()->selection());
+
+        return $this->activityReader->list($query, $access);
+    }
+}

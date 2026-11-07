@@ -292,11 +292,11 @@ final class RedBlackSearchTree implements BinarySearchTree
             return new RedBlackNode($key, $value, 1, RedBlackNode::RED);
         }
 
-        $comp = $this->comparator->compare($key, $node->key());
+        $keyComparison = $this->comparator->compare($key, $node->key());
 
-        if ($comp < 0) {
+        if ($keyComparison < 0) {
             $node->setLeft($this->nodeSet($key, $value, $node->left()));
-        } elseif ($comp > 0) {
+        } elseif ($keyComparison > 0) {
             $node->setRight($this->nodeSet($key, $value, $node->right()));
         } else {
             $node->setValue($value);
@@ -313,10 +313,10 @@ final class RedBlackSearchTree implements BinarySearchTree
     private function nodeGet(mixed $key, ?RedBlackNode $node): ?RedBlackNode
     {
         while ($node instanceof RedBlackNode) {
-            $comp = $this->comparator->compare($key, $node->key());
-            if ($comp < 0) {
+            $keyComparison = $this->comparator->compare($key, $node->key());
+            if ($keyComparison < 0) {
                 $node = $node->left();
-            } elseif ($comp > 0) {
+            } elseif ($keyComparison > 0) {
                 $node = $node->right();
             } else {
                 return $node;
@@ -331,15 +331,15 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeRemove(mixed $key, RedBlackNode $node): ?RedBlackNode
     {
-        $comp = $this->comparator->compare($key, $node->key());
-        if ($comp < 0) {
+        $keyComparison = $this->comparator->compare($key, $node->key());
+        if ($keyComparison < 0) {
             $node = $this->nodeRemoveLeft($key, $node);
         } else {
             if ($this->isRed($node->left())) {
                 $node = $this->rotateRight($node);
             }
 
-            if ($comp === 0 && !$node->right() instanceof RedBlackNode) {
+            if ($keyComparison === 0 && !$node->right() instanceof RedBlackNode) {
                 return null;
             }
 
@@ -383,9 +383,9 @@ final class RedBlackSearchTree implements BinarySearchTree
         }
 
         if ($this->comparator->compare($key, $node->key()) === 0) {
-            $link = $this->nodeMin($node->right());
-            $node->setKey($link->key());
-            $node->setValue($link->value());
+            $successorNode = $this->nodeMin($node->right());
+            $node->setKey($successorNode->key());
+            $node->setValue($successorNode->value());
             $node->setRight($this->nodeRemoveMin($node->right()));
         } else {
             $node->setRight($this->nodeRemove($key, $node->right()));
@@ -407,18 +407,18 @@ final class RedBlackSearchTree implements BinarySearchTree
             return;
         }
 
-        $compLo = $this->comparator->compare($lo, $node->key());
-        $compHi = $this->comparator->compare($hi, $node->key());
+        $lowerBoundComparison = $this->comparator->compare($lo, $node->key());
+        $upperBoundComparison = $this->comparator->compare($hi, $node->key());
 
-        if ($compLo < 0) {
+        if ($lowerBoundComparison < 0) {
             $this->fillKeys($list, $lo, $hi, $node->left());
         }
 
-        if ($compLo <= 0 && $compHi >= 0) {
+        if ($lowerBoundComparison <= 0 && $upperBoundComparison >= 0) {
             $list->add($node->key());
         }
 
-        if ($compHi > 0) {
+        if ($upperBoundComparison > 0) {
             $this->fillKeys($list, $lo, $hi, $node->right());
         }
     }
@@ -504,13 +504,13 @@ final class RedBlackSearchTree implements BinarySearchTree
             return null;
         }
 
-        $comp = $this->comparator->compare($key, $node->key());
+        $keyComparison = $this->comparator->compare($key, $node->key());
 
-        if ($comp === 0) {
+        if ($keyComparison === 0) {
             return $node;
         }
 
-        if ($comp < 0) {
+        if ($keyComparison < 0) {
             return $this->nodeFloor($key, $node->left());
         }
 
@@ -533,13 +533,13 @@ final class RedBlackSearchTree implements BinarySearchTree
             return null;
         }
 
-        $comp = $this->comparator->compare($key, $node->key());
+        $keyComparison = $this->comparator->compare($key, $node->key());
 
-        if ($comp === 0) {
+        if ($keyComparison === 0) {
             return $node;
         }
 
-        if ($comp > 0) {
+        if ($keyComparison > 0) {
             return $this->nodeCeiling($key, $node->right());
         }
 
@@ -560,13 +560,13 @@ final class RedBlackSearchTree implements BinarySearchTree
             return 0;
         }
 
-        $comp = $this->comparator->compare($key, $node->key());
+        $keyComparison = $this->comparator->compare($key, $node->key());
 
-        if ($comp < 0) {
+        if ($keyComparison < 0) {
             return $this->nodeRank($key, $node->left());
         }
 
-        if ($comp > 0) {
+        if ($keyComparison > 0) {
             return 1 + $this->nodeSize($node->left()) + $this->nodeRank($key, $node->right());
         }
 

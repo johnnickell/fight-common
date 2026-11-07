@@ -7,6 +7,7 @@ use Rector\CodingStyle\Rector\FuncCall\ClosureFromCallableToFirstClassCallableRe
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
+use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
 
 return RectorConfig::configure()
@@ -18,6 +19,10 @@ return RectorConfig::configure()
         __DIR__.'/release/consumer'
     ])
     ->withPhpSets(php84: true)
+    ->withConfiguredRule(ClassPropertyAssignToConstructorPromotionRector::class, [
+        // Promotion must not rename released named arguments to match descriptive private fields.
+        ClassPropertyAssignToConstructorPromotionRector::RENAME_PROPERTY => false
+    ])
     ->withSkip([
         NewlineBetweenClassLikeStmtsRector::class,
         RemoveParentCallWithoutParentRector::class,

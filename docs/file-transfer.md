@@ -135,12 +135,12 @@ A named registry for multiple `FileTransport` instances. Useful when an applicat
 connects to more than one remote host or protocol simultaneously.
 
 ```php-inline
-$service = new FileTransferService();
-$service->addTransport('sftp-primary', $sftpTransport);
-$service->addTransport('ftp-backup',   $ftpTransport);
+$fileTransferService = new FileTransferService();
+$fileTransferService->addTransport('sftp-primary', $sftpTransport);
+$fileTransferService->addTransport('ftp-backup',   $ftpTransport);
 
-$transport = $service->getTransport('sftp-primary');
-$transport->sendFile('/uploads/report.csv', $csvData);
+$fileTransport = $fileTransferService->getTransport('sftp-primary');
+$fileTransport->sendFile('/uploads/report.csv', $csvData);
 ```
 
 Throws `FileTransferException` if a duplicate key is registered. Throws `KeyException` if
@@ -169,7 +169,7 @@ use Fight\Common\Adapter\FileTransfer\Sftp\SftpFileTransport;
 $sftp = new SFTP('sftp.example.com');
 $sftp->login('user', 'password');
 
-$transport = new SftpFileTransport($sftp);
+$fileTransport = new SftpFileTransport($sftp);
 ```
 
 `readDirectory()` uses `SFTP::rawlist()` and maps phpseclib's numeric type codes to
@@ -185,7 +185,7 @@ on first use and disconnects after each operation.
 ```php-inline
 use Fight\Common\Adapter\FileTransfer\Ftp\FtpFileTransport;
 
-$transport = new FtpFileTransport(
+$fileTransport = new FtpFileTransport(
     host:     'ftp.example.com',
     port:     21,
     username: 'ftpuser',
@@ -207,7 +207,7 @@ $transport = new FtpFileTransport(
 Decorator that logs the path of each operation via PSR-3 before delegating:
 
 ```php-inline
-$transport = new LoggingFileTransport(
+$fileTransport = new LoggingFileTransport(
     new SftpFileTransport($sftp),
     $logger,
     LogLevel::INFO   // default DEBUG
@@ -281,11 +281,11 @@ use Fight\Common\Application\FileTransfer\Transport\FileTransport;
 
 class ReportExporter
 {
-    public function __construct(private FileTransport $transport) {}
+    public function __construct(private FileTransport $fileTransport) {}
 
     public function export(Report $report): void
     {
-        $this->transport->sendFile(
+        $this->fileTransport->sendFile(
             '/exports/reports/'.$report->filename(),
             $report->toCsv()
         );
@@ -296,16 +296,16 @@ class ReportExporter
 ### Downloading a File
 
 ```php-inline
-$contents = $transport->retrieveFileContents('/reports/2026-06.csv');
+$contents = $fileTransport->retrieveFileContents('/reports/2026-06.csv');
 
 // As a stream resource
-$stream = $transport->retrieveFileResource('/reports/2026-06.csv');
+$stream = $fileTransport->retrieveFileResource('/reports/2026-06.csv');
 ```
 
 ### Listing a Directory
 
 ```php-inline
-foreach ($transport->readDirectory('/uploads') as $resource) {
+foreach ($fileTransport->readDirectory('/uploads') as $resource) {
     if ($resource->type() === ResourceType::FILE) {
         echo sprintf(
             '%s  %s  %d bytes',
@@ -320,12 +320,12 @@ foreach ($transport->readDirectory('/uploads') as $resource) {
 ### Using Multiple Transports
 
 ```php-inline
-$service = new FileTransferService();
-$service->addTransport('sftp',   $sftpTransport);
-$service->addTransport('backup', $ftpTransport);
+$fileTransferService = new FileTransferService();
+$fileTransferService->addTransport('sftp',   $sftpTransport);
+$fileTransferService->addTransport('backup', $ftpTransport);
 
 // Route by business logic
-$service->getTransport($isPrimary ? 'sftp' : 'backup')
+$fileTransferService->getTransport($isPrimary ? 'sftp' : 'backup')
     ->sendFile('/data/'.$filename, $contents);
 ```
 
@@ -334,7 +334,7 @@ $service->getTransport($isPrimary ? 'sftp' : 'backup')
 ```php-inline
 use Fight\Common\Adapter\FileTransfer\Null\NullFileTransport;
 
-$transport = new NullFileTransport();
-$transport->sendFile('/any/path', 'data');      // no-op
-$contents = $transport->retrieveFileContents('/any/path');  // ''
+$fileTransport = new NullFileTransport();
+$fileTransport->sendFile('/any/path', 'data');      // no-op
+$contents = $fileTransport->retrieveFileContents('/any/path');  // ''
 ```

@@ -19,11 +19,11 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     /**
      * @var array<string, array<string, object>>
      */
-    private array $services = [];
+    private array $loadedHandlerServices = [];
     /**
      * @var array<string, array<int, array{string, string, int}>>
      */
-    private array $serviceIds = [];
+    private array $handlerServiceRegistrations = [];
 
     /**
      * Constructs ServiceAwareEventDispatcher
@@ -41,25 +41,25 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     public function registerService(string $className, string $serviceId): void
     {
         assert(Validate::implementsInterface($className, EventSubscriber::class));
-        foreach ($className::eventRegistration() as $eventType => $params) {
+        foreach ($className::eventRegistration() as $eventType => $eventRegistration) {
             $eventType = ClassName::underscore($eventType);
-            if (is_string($params)) {
-                $this->addHandlerService($eventType, $serviceId, $params);
-            } elseif (is_string($params[0])) {
-                $priority = isset($params[1]) ? (int) $params[1] : 0;
+            if (is_string($eventRegistration)) {
+                $this->addHandlerService($eventType, $serviceId, $eventRegistration);
+            } elseif (is_string($eventRegistration[0])) {
+                $priority = isset($eventRegistration[1]) ? (int) $eventRegistration[1] : 0;
                 $this->addHandlerService(
                     $eventType,
                     $serviceId,
-                    $params[0],
+                    $eventRegistration[0],
                     $priority
                 );
             } else {
-                foreach ($params as $handler) {
-                    $priority = isset($handler[1]) ? (int) $handler[1] : 0;
+                foreach ($eventRegistration as $handlerRegistration) {
+                    $priority = isset($handlerRegistration[1]) ? (int) $handlerRegistration[1] : 0;
                     $this->addHandlerService(
                         $eventType,
                         $serviceId,
-                        $handler[0],
+                        $handlerRegistration[0],
                         $priority
                     );
                 }
@@ -72,9 +72,9 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
      */
     public function addHandlerService(string $eventType, string $serviceId, string $method, int $priority = 0): void
     {
-        $this->serviceIds[$eventType] ??= [];
+        $this->handlerServiceRegistrations[$eventType] ??= [];
 
-        $this->serviceIds[$eventType][] = [$serviceId, $method, $priority];
+        $this->handlerServiceRegistrations[$eventType][] = [$serviceId, $method, $priority];
     }
 
     /**
@@ -97,7 +97,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     public function getHandlers(?string $eventType = null): array
     {
         if ($eventType === null) {
-            foreach (array_keys($this->serviceIds) as $type) {
+            foreach (array_keys($this->handlerServiceRegistrations) as $type) {
                 $this->lazyLoad($type);
             }
         } else {
@@ -114,10 +114,10 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     public function hasHandlers(?string $eventType = null): bool
     {
         if ($eventType === null) {
-            return (bool) count($this->serviceIds) || (bool) count($this->handlers);
+            return (bool) count($this->handlerServiceRegistrations) || (bool) count($this->handlers);
         }
 
-        if (isset($this->serviceIds[$eventType])) {
+        if (isset($this->handlerServiceRegistrations[$eventType])) {
             return true;
         }
 
@@ -132,22 +132,22 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     {
         $this->lazyLoad($eventType);
 
-        if (isset($this->serviceIds[$eventType])) {
-            foreach ($this->serviceIds[$eventType] as $i => $args) {
-                [$serviceId, $method] = $args;
-                $key = sprintf('%s.%s', $serviceId, $method);
+        if (isset($this->handlerServiceRegistrations[$eventType])) {
+            foreach ($this->handlerServiceRegistrations[$eventType] as $registrationIndex => $handlerRegistration) {
+                [$serviceId, $method] = $handlerRegistration;
+                $handlerServiceKey = sprintf('%s.%s', $serviceId, $method);
                 if (
-                    isset($this->services[$eventType][$key])
-                    && $handler === [$this->services[$eventType][$key], $method]
+                    isset($this->loadedHandlerServices[$eventType][$handlerServiceKey])
+                    && $handler === [$this->loadedHandlerServices[$eventType][$handlerServiceKey], $method]
                 ) {
-                    unset($this->services[$eventType][$key]);
-                    if (empty($this->services[$eventType])) {
-                        unset($this->services[$eventType]);
+                    unset($this->loadedHandlerServices[$eventType][$handlerServiceKey]);
+                    if (empty($this->loadedHandlerServices[$eventType])) {
+                        unset($this->loadedHandlerServices[$eventType]);
                     }
 
-                    unset($this->serviceIds[$eventType][$i]);
-                    if (empty($this->serviceIds[$eventType])) {
-                        unset($this->serviceIds[$eventType]);
+                    unset($this->handlerServiceRegistrations[$eventType][$registrationIndex]);
+                    if (empty($this->handlerServiceRegistrations[$eventType])) {
+                        unset($this->handlerServiceRegistrations[$eventType]);
                     }
                 }
             }
@@ -161,19 +161,22 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
      */
     private function lazyLoad(string $eventType): void
     {
-        if (isset($this->serviceIds[$eventType])) {
-            foreach ($this->serviceIds[$eventType] as $args) {
-                [$serviceId, $method, $priority] = $args;
-                $service = $this->container->get($serviceId);
-                $key = sprintf('%s.%s', $serviceId, $method);
-                if (!isset($this->services[$eventType][$key])) {
-                    $this->addHandler($eventType, [$service, $method], $priority);
-                } elseif ($service !== $this->services[$eventType][$key]) {
-                    parent::removeHandler($eventType, [$this->services[$eventType][$key], $method]);
-                    $this->addHandler($eventType, [$service, $method], $priority);
+        if (isset($this->handlerServiceRegistrations[$eventType])) {
+            foreach ($this->handlerServiceRegistrations[$eventType] as $handlerRegistration) {
+                [$serviceId, $method, $priority] = $handlerRegistration;
+                $handlerService = $this->container->get($serviceId);
+                $handlerServiceKey = sprintf('%s.%s', $serviceId, $method);
+                if (!isset($this->loadedHandlerServices[$eventType][$handlerServiceKey])) {
+                    $this->addHandler($eventType, [$handlerService, $method], $priority);
+                } elseif ($handlerService !== $this->loadedHandlerServices[$eventType][$handlerServiceKey]) {
+                    parent::removeHandler(
+                        $eventType,
+                        [$this->loadedHandlerServices[$eventType][$handlerServiceKey], $method]
+                    );
+                    $this->addHandler($eventType, [$handlerService, $method], $priority);
                 }
 
-                $this->services[$eventType][$key] = $service;
+                $this->loadedHandlerServices[$eventType][$handlerServiceKey] = $handlerService;
             }
         }
     }

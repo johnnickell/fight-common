@@ -54,6 +54,29 @@ Fight Common retains its published `1.x` framework-neutral envelope and Symfony 
 [Validation guide](https://johnnickell.github.io/fight-common/components/validation/) is the authoritative route
 for response composition and integration guidance.
 
+## MCP foundation imports
+
+Prefer the canonical `Application\Mcp\Capability`, `Protocol`, `Http` and `Tool` names.
+The [complete migration map](docs/maintenance/mcp-foundation-namespaces.md) explains released-name compatibility;
+`McpResponder` and `McpDiagnostics` stay at root without deprecation.
+
+Execution handlers and read contracts now mirror Domain aggregates directly under `Application\Mcp`.
+Concrete inspection Tools live in `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}` and still dispatch
+through QueryBus; DBAL adapters use `Adapter\Mcp\Persistence\{Aggregate}\Dbal`. See the
+[aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target) for direct never-released moves
+and the unchanged released bridges.
+
+[Execution observations](docs/execution-observations.md#typed-activity-execution-facts) can optionally retain safe
+`ActivityExecution` target, partial timing, independently measured Duration and observed call/process result inside
+`PhaseActivity`. The existing Command → DBAL → shared Query → guarded `execution.activity` path preserves them;
+omitted execution is null. Returned/thrown/exited/cancelled never establishes business or Workflow success.
+Consumers still own capture, redaction and permissions; body removal does not redact safe metadata or copies.
+
+For [durable Tasks](docs/durable-tasks.md#explicit-composition), inject Domain `TaskRepository`, the existing
+`TransactionalUnitOfWork` and the protected `CommittedTaskReader` capability separately. The DBAL repository and
+Task transaction boundary share one dedicated connection; persistence does not own commit. Each Task handler
+owns its named use case with only its required capabilities; read handlers have no mutation/transaction dependencies.
+
 ## Project routes
 
 - Read the [documentation](https://johnnickell.github.io/fight-common/) or begin with the
@@ -65,3 +88,5 @@ for response composition and integration guidance.
 - Fight Common is available under the [MIT License](LICENSE).
 
 Copyright © 2026 John Nickell.
+
+See [local Docker, worktree and build-cache operations](docs/engineering/LOCAL_TOOLING.md) for explicit main/worktree selection, guarded teardown and fresh versus reused gate evidence.

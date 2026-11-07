@@ -17,23 +17,23 @@ final class LaravelCommandBusTest extends UnitTestCase
 {
     public function test_that_execute_submits_a_queue_job_for_the_created_command_message(): void
     {
-        $dispatcher = $this->mock(Dispatcher::class);
-        $dispatcher->shouldReceive('dispatch')
+        $jobDispatcher = $this->mock(Dispatcher::class);
+        $jobDispatcher->shouldReceive('dispatch')
             ->once()
             ->withArgs(static fn (mixed $job): bool => $job instanceof QueuedCommandMessage);
 
-        (new LaravelCommandBus($dispatcher))->execute(new LaravelCommandBusCommand('command-86'));
+        (new LaravelCommandBus($jobDispatcher))->execute(new LaravelCommandBusCommand('command-86'));
     }
 
     public function test_that_dispatch_submits_a_queue_job_for_the_supplied_command_message(): void
     {
-        $dispatcher = $this->mock(Dispatcher::class);
-        $dispatcher->shouldReceive('dispatch')
+        $jobDispatcher = $this->mock(Dispatcher::class);
+        $jobDispatcher->shouldReceive('dispatch')
             ->once()
             ->withArgs(static fn (mixed $job): bool => $job instanceof QueuedCommandMessage);
         $message = CommandMessage::create(new LaravelCommandBusCommand('message-86'));
 
-        (new LaravelCommandBus($dispatcher))->dispatch($message);
+        (new LaravelCommandBus($jobDispatcher))->dispatch($message);
     }
 }
 

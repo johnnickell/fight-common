@@ -56,8 +56,8 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
             ->setArguments([$eventDispatcher])
             ->addTag('messenger.message_handler', ['bus' => 'legacy.event']);
 
-        foreach (['canonical.command', 'canonical.event', 'legacy.command', 'legacy.event'] as $bus) {
-            $container->register($bus)->addTag('messenger.bus');
+        foreach (['canonical.command', 'canonical.event', 'legacy.command', 'legacy.event'] as $busServiceId) {
+            $container->register($busServiceId)->addTag('messenger.bus');
         }
 
         (new MessengerPass())->process($container);
@@ -148,7 +148,7 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
     public function test_that_canonical_event_dispatcher_registers_and_unregisters_no_local_subscribers(): void
     {
         $sender = $this->mock(SenderInterface::class);
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
         $subscriber = new class implements EventSubscriber {
             public static function eventRegistration(): array
             {
@@ -156,30 +156,30 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
             }
         };
 
-        $dispatcher->register($subscriber);
-        $dispatcher->unregister($subscriber);
+        $eventDispatcher->register($subscriber);
+        $eventDispatcher->unregister($subscriber);
 
-        self::assertFalse($dispatcher->hasHandlers());
-        self::assertSame([], $dispatcher->getHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers());
+        self::assertSame([], $eventDispatcher->getHandlers());
     }
 
     public function test_that_canonical_event_dispatcher_keeps_handler_operations_as_no_ops(): void
     {
         $sender = $this->mock(SenderInterface::class);
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
         $handler = static function (): void {
         };
 
-        $dispatcher->addHandler(CanonicalMessengerEvent::class, $handler, 100);
+        $eventDispatcher->addHandler(CanonicalMessengerEvent::class, $handler, 100);
 
-        self::assertFalse($dispatcher->hasHandlers());
-        self::assertFalse($dispatcher->hasHandlers(CanonicalMessengerEvent::class));
-        self::assertSame([], $dispatcher->getHandlers());
-        self::assertSame([], $dispatcher->getHandlers(CanonicalMessengerEvent::class));
+        self::assertFalse($eventDispatcher->hasHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers(CanonicalMessengerEvent::class));
+        self::assertSame([], $eventDispatcher->getHandlers());
+        self::assertSame([], $eventDispatcher->getHandlers(CanonicalMessengerEvent::class));
 
-        $dispatcher->removeHandler(CanonicalMessengerEvent::class, $handler);
+        $eventDispatcher->removeHandler(CanonicalMessengerEvent::class, $handler);
 
-        self::assertFalse($dispatcher->hasHandlers(CanonicalMessengerEvent::class));
+        self::assertFalse($eventDispatcher->hasHandlers(CanonicalMessengerEvent::class));
     }
 
     public function test_that_canonical_serializer_unserialize_callback_throws_message_decoding_failed_exception(): void
@@ -236,9 +236,9 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
     }
 
     /** @return array<string, mixed> */
-    private function registeredMessageTypes(ContainerBuilder $container, string $bus): array
+    private function registeredMessageTypes(ContainerBuilder $container, string $busServiceId): array
     {
-        return $container->getDefinition($bus.'.messenger.handlers_locator')->getArgument(0);
+        return $container->getDefinition($busServiceId.'.messenger.handlers_locator')->getArgument(0);
     }
 }
 

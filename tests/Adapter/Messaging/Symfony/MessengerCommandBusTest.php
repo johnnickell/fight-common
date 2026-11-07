@@ -24,9 +24,9 @@ final class MessengerCommandBusTest extends UnitTestCase
 
             return $envelope;
         });
-        $bus = new MessengerCommandBus($sender);
-        $bus->execute(new MessengerCommandBusTestCommand('execute-73'));
-        $bus->dispatch($message);
+        $commandBus = new MessengerCommandBus($sender);
+        $commandBus->execute(new MessengerCommandBusTestCommand('execute-73'));
+        $commandBus->dispatch($message);
     }
 }
 

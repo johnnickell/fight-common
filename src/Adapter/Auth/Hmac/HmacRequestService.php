@@ -18,6 +18,7 @@ final class HmacRequestService implements RequestService
     use HmacMethods;
 
     private string $secret;
+    private readonly string $publicCredential;
 
     /**
      * Constructs HmacRequestService
@@ -27,10 +28,11 @@ final class HmacRequestService implements RequestService
      * @param Closure(int): string|null $nonceGenerator
      */
     public function __construct(
-        private readonly string $public,
+        string $public,
         string $private,
         private readonly ?Closure $nonceGenerator = null
     ) {
+        $this->publicCredential = $public;
         $this->secret = hex2bin($private);
     }
 
@@ -65,7 +67,7 @@ final class HmacRequestService implements RequestService
         );
 
         $headers['Authorization'] = 'HMAC-SHA256';
-        $headers['Credential'] = $this->public;
+        $headers['Credential'] = $this->publicCredential;
         $headers['Signature'] = $this->createSignature(
             $canonicalRequest,
             $timestamp

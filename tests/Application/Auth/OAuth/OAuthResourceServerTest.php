@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Auth\OAuth;
 
+use Error;
 use Fight\Common\Application\Auth\OAuth\OAuthClaimsHandoff;
 use Fight\Common\Application\Auth\OAuth\OAuthDiagnostics;
 use Fight\Common\Application\Auth\OAuth\OAuthFailure;
@@ -23,6 +24,24 @@ use RuntimeException;
 #[CoversClass(OAuthTokenRejected::class)]
 final class OAuthResourceServerTest extends UnitTestCase
 {
+    public function test_that_requirements_getter_preserves_the_legacy_identity_without_running_collaborators(): void
+    {
+        $requirements = OAuthFixture::requirements();
+        $validator = $this->createMock(OAuthTokenValidator::class);
+        $validator->expects(self::never())->method('validate');
+        $handoff = $this->createMock(OAuthClaimsHandoff::class);
+        $handoff->expects(self::never())->method('accept');
+        $diagnostics = $this->createMock(OAuthDiagnostics::class);
+        $diagnostics->expects(self::never())->method('record');
+        $server = new OAuthResourceServer(requirements: $requirements, validator: $validator, handoff: $handoff, diagnostics: $diagnostics);
+        // Intentional legacy read; ordinary callers use requirements().
+        self::assertSame($requirements, $server->requirements);
+        self::assertSame($requirements, $server->requirements());
+        self::assertSame($requirements, $server->requirements());
+        $this->expectException(Error::class);
+        $server->requirements = $requirements;
+    }
+
     #[DataProvider('rejectedHeaders')]
     public function test_that_transport_failures_never_validate_or_hand_off_claims(array $headers, bool $unsupported, OAuthFailure $expected): void
     {
@@ -54,13 +73,13 @@ final class OAuthResourceServerTest extends UnitTestCase
         $validator->expects(self::once())->method('validate')->willReturnCallback(function (string $token, OAuthTokenRequirements $passed, int $now) use ($requirements, $credential, $claims, &$sequence): OAuthValidatedClaims {
             self::assertSame($credential, $token);
             self::assertSame($requirements, $passed);
-            self::assertSame(OAuthFixture::RESOURCE, $passed->metadata->resource);
-            self::assertSame([OAuthFixture::ISSUER], $passed->metadata->authorizationServers);
-            self::assertSame('at+jwt', $passed->tokenType);
-            self::assertSame(['RS256'], $passed->allowedAlgorithms);
-            self::assertSame([OAuthFixture::ISSUER => ['current', 'overlap']], $passed->activeKeyIds);
-            self::assertSame(['sub' => 'string'], $passed->requiredClaimTypes);
-            self::assertSame(0, $passed->clockSkewSeconds);
+            self::assertSame(OAuthFixture::RESOURCE, $passed->metadata()->resource());
+            self::assertSame([OAuthFixture::ISSUER], $passed->metadata()->authorizationServers());
+            self::assertSame('at+jwt', $passed->tokenType());
+            self::assertSame(['RS256'], $passed->allowedAlgorithms());
+            self::assertSame([OAuthFixture::ISSUER => ['current', 'overlap']], $passed->activeKeyIds());
+            self::assertSame(['sub' => 'string'], $passed->requiredClaimTypes());
+            self::assertSame(0, $passed->clockSkewSeconds());
             self::assertLessThanOrEqual(time(), $now);
             self::assertGreaterThanOrEqual(time() - 2, $now);
             $sequence[] = 'validate';

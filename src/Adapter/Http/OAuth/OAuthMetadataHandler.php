@@ -14,11 +14,14 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final readonly class OAuthMetadataHandler implements RequestHandlerInterface
 {
+    private OAuthResponseFactory $oauthResponseFactory;
+
     /**
      * Constructs OAuthMetadataHandler
      */
-    public function __construct(private OAuthResourceMetadata $metadata, private OAuthResponseFactory $responses)
+    public function __construct(private OAuthResourceMetadata $metadata, OAuthResponseFactory $responses)
     {
+        $this->oauthResponseFactory = $responses;
     }
 
     /**
@@ -27,9 +30,9 @@ final readonly class OAuthMetadataHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         if ($request->getMethod() !== 'GET') {
-            return $this->responses->methodNotAllowed();
+            return $this->oauthResponseFactory->methodNotAllowed();
         }
 
-        return $this->responses->metadata($this->metadata);
+        return $this->oauthResponseFactory->metadata($this->metadata);
     }
 }

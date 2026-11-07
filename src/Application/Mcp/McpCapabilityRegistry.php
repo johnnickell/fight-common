@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
-use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
@@ -35,14 +36,6 @@ final readonly class McpCapabilityRegistry
         'resources'   => 'resources/list',
         'tools'       => 'tools/list'
     ];
-    /**
-     * @var array<string, list<string>>
-     */
-    private const array SUBSCRIPTION_CAPABILITY_PROPERTIES = [
-        'prompts'   => ['listChanged'],
-        'resources' => ['subscribe', 'listChanged'],
-        'tools'     => ['listChanged']
-    ];
 
     /**
      * @var array<string, McpCapability>
@@ -65,8 +58,11 @@ final readonly class McpCapabilityRegistry
      *
      * @phpstan-param array<array-key, mixed> $capabilities
      */
-    public function __construct(private ?McpServerInfo $serverInfo, array $capabilities)
-    {
+    public function __construct(
+        private ?McpServerInfo $serverInfo,
+        array $capabilities,
+        private ?McpSubscriptions $subscriptionComposition = null
+    ) {
         if ($this->serverInfo === null) {
             throw new DomainException('An MCP server identity is required.');
         }
@@ -91,12 +87,23 @@ final readonly class McpCapabilityRegistry
         }
 
         $this->validateStandardCapabilityMandatoryMethods($capabilitiesByMethod, $advertisedCapabilities);
-        $this->validateSubscriptionCapabilityFlags($advertisedCapabilities);
-        $this->validateSkills($capabilitiesByMethod, $advertisedCapabilities);
+        $advertisedCapabilities = new McpCompositionValidator()->validate(
+            $capabilitiesByMethod,
+            $advertisedCapabilities,
+            $this->subscriptionComposition
+        );
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
         $this->mirrorDeclarationsByMethod = $mirrorDeclarationsByMethod;
+    }
+
+    /**
+     * Returns explicit HTTP subscription composition without inventing a new advertised family
+     */
+    public function subscriptions(): ?McpSubscriptions
+    {
+        return $this->subscriptionComposition;
     }
 
     /**
@@ -171,8 +178,13 @@ final readonly class McpCapabilityRegistry
                 throw new DomainException('An MCP capability method must be a non-empty string.');
             }
 
-            if ($method === McpResponder::DISCOVER_METHOD) {
-                throw new DomainException('The server/discover method is reserved for the MCP responder.');
+            if (
+                $method === McpResponder::DISCOVER_METHOD
+                || ($method === 'subscriptions/listen' && $this->subscriptionComposition !== null)
+            ) {
+                throw new DomainException(
+                    'The MCP discovery and subscription methods are reserved for their package owners.'
+                );
             }
 
             if (array_key_exists($method, $capabilitiesByMethod)) {
@@ -296,45 +308,6 @@ final readonly class McpCapabilityRegistry
     }
 
     /**
-     * Validates complete Skills advertisement and the built-in provider's shared read composition
-     *
-     * @phpstan-param array<string, McpCapability> $methods
-     * @phpstan-param array<string, array<mixed>> $capabilities
-     */
-    private function validateSkills(array $methods, array $capabilities): void
-    {
-        $settings = $capabilities['extensions'][McpSkillDiscovery::EXTENSION] ?? null;
-        if ($settings === null) {
-            if (isset($methods['skills/list']) || isset($methods['skills/get'])) {
-                throw new DomainException('Skills methods require the stable Skills extension declaration.');
-            }
-
-            return;
-        }
-
-        if (
-            !isset($methods['skills/list'], $methods['skills/get'], $methods['resources/read'])
-            || !isset($capabilities['resources'])
-            || !$this->hasOnlyBooleanProperties($settings->properties(), ['directoryRead'])
-            || $settings->get('directoryRead') === true
-        ) {
-            throw new DomainException(
-                'Static Skills requires list, get and readable Resources without optional feature claims.'
-            );
-        }
-
-        foreach (['skills/list', 'skills/get'] as $method) {
-            $capability = $methods[$method];
-            if (
-                $capability instanceof McpSkillDiscovery
-                && $capability->resourceDiscovery() !== $methods['resources/read']
-            ) {
-                throw new DomainException('Skills and file reads must share the configured Resources capability.');
-            }
-        }
-    }
-
-    /**
      * Validates standard capability bodies declared by the dated MCP schema
      *
      * @param string $name
@@ -421,28 +394,6 @@ final readonly class McpCapabilityRegistry
                         $method
                     )
                 );
-            }
-        }
-    }
-
-    /**
-     * Rejects notification support declarations outside the foundation's subscription boundary
-     *
-     * @param array<string, array<mixed>>  $advertisedCapabilities
-     */
-    private function validateSubscriptionCapabilityFlags(array $advertisedCapabilities): void
-    {
-        foreach (self::SUBSCRIPTION_CAPABILITY_PROPERTIES as $capabilityName => $properties) {
-            foreach ($properties as $property) {
-                if (($advertisedCapabilities[$capabilityName][$property] ?? false) === true) {
-                    throw new DomainException(
-                        sprintf(
-                            'The MCP capability "%s.%s" requires a subscription contract outside this foundation.',
-                            $capabilityName,
-                            $property
-                        )
-                    );
-                }
             }
         }
     }

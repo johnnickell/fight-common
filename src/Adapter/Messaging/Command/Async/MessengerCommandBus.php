@@ -17,11 +17,14 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
  */
 final readonly class MessengerCommandBus implements AsynchronousCommandBus
 {
+    private SenderInterface $messageSender;
+
     /**
      * Constructs MessengerCommandBus
      */
-    public function __construct(private SenderInterface $sender)
+    public function __construct(SenderInterface $sender)
     {
+        $this->messageSender = $sender;
     }
 
     /**
@@ -41,6 +44,6 @@ final readonly class MessengerCommandBus implements AsynchronousCommandBus
      */
     public function dispatch(CommandMessage $commandMessage): void
     {
-        $this->sender->send(new Envelope($commandMessage));
+        $this->messageSender->send(new Envelope($commandMessage));
     }
 }

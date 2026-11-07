@@ -80,14 +80,14 @@ use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 
-$router = new InMemoryCommandRouter();
-$router->registerHandler(PlaceOrder::class, new PlaceOrderHandler($orders, $events));
+$commandRouter = new InMemoryCommandRouter();
+$commandRouter->registerHandler(PlaceOrder::class, new PlaceOrderHandler($orderRepository, $eventDispatcher));
 
-$commands = new RoutingCommandBus($router);
-$commands->execute(new PlaceOrder($orderId));
+$commandBus = new RoutingCommandBus($commandRouter);
+$commandBus->execute(new PlaceOrder($orderId));
 
 // A pre-built envelope preserves its MessageId, timestamp, and metadata.
-$commands->dispatch(CommandMessage::create(new PlaceOrder($orderId)));
+$commandBus->dispatch(CommandMessage::create(new PlaceOrder($orderId)));
 ```
 
 Synchronous command and query handlers propagate their failures to the caller. A synchronous event
