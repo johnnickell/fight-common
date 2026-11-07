@@ -2,7 +2,7 @@
 id: TICKET-00056
 epic: EPIC-00009
 title: Record and inspect typed activity execution facts
-status: ready-for-agent
+status: done
 ---
 
 # Record and inspect typed activity execution facts
@@ -106,7 +106,7 @@ This requirement adds no safe-metadata purge/redaction engine, attributed remova
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00205](../tasks/00205-TASK.md) | Record and inspect typed activity execution facts | in-progress |
+| [TASK-00205](../tasks/00205-TASK.md) | Record and inspect typed activity execution facts | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -126,5 +126,9 @@ real producer integration, stable browsing/accounting/lifecycle work and Access 
 with their existing repositories/owners, not additional Common tasks. No new global priority or tag permission is
 assigned. All decomposition for this amendment is written; the original closed Wayfinder decisions stay closed.
 
-Planning is approved, not implemented or independently accepted. No build, publication, release or consumer record
-change is claimed. Execution selection belongs to the Board; implementation requires a separate invocation.
+The preceding planning checkpoint records approval before implementation; its no-build/publication claims are
+historical. TASK-00205 now records independent Review ACCEPT and required QA PASS for candidate
+`eaefce6681a6f74da0d4afb4aa7d0e6050f46a6a`, followed by behavior-preserving develop integration and a fresh
+complete local gate (10,173 tests / 103,384 assertions; exact 19,259/19,259 statements). Its sole child is accepted
+and complete, so this TICKET closes under automatic parent completion. The owning TASK and durable Land receipt
+retain acceptance, integration, publication and cleanup separately. No release or consumer adoption is claimed.
