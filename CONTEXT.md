@@ -128,6 +128,19 @@ Commands use `execute()` for payloads and `dispatch()` for messages. Queries use
 
 ## Persistence and validation
 
+**Physical table selection:** Common's current source inventory comprises nineteen DBAL tables and two ORM-mapped
+tables, including schema/state, sequence, comparison and lock-bearing storage. The
+[complete table inventory and composition guide](docs/table-names.md) accounts for each default/configuration route,
+schema/runtime/read/removal path and supplier. DBAL selections use the shared ordinary-name boundary; nonce/audit
+retain native ORM metadata and the configured Doctrine quote strategy, without retroactive DBAL restrictions.
+`DoctrineNonceRepository` uses that strategy/platform for raw-SQL consume and expired purge; audit persist/DQL uses
+native ORM resolution with unchanged custom types, pagination and inclusive timestamp bounds. Real native ORM tests
+exercise defaults, full/individual overrides, quoted tables, populated-default isolation, connection reopen and
+missing selected storage/no fallback; nonce quoting/schema execution also runs on MySQL/PostgreSQL. Mapping alone
+never installs, renames, copies or migrates replay memory/history. Framework/provider backend tables, consumer read
+models and test fixtures remain separately owned. This finite package evidence is not deployed-consumer or release
+qualification; independent acceptance stays in the owning TASK/reports.
+
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Repository** | A domain-oriented collection boundary for retrieving and persisting domain records without exposing infrastructure details. |
@@ -494,7 +507,9 @@ never fall back to populated defaults. Partial choices intentionally retain omit
 namespace. The [eight-table lifecycle composition and SQL inventory](docs/lifecycle-storage.md) reconciles the actual
 Task/Notice suppliers with subscriptions. Default/configured real three-database HTTP/native journeys transport all
 selected names into independent producers/readers, preserve poisoned default counterparts and independently guarded
-Task state outside retained Notices/tracking. Final ORM/whole-package inventory qualification remains TASK-00202.
+Task state outside retained Notices/tracking. The [whole-package inventory](docs/table-names.md) separately accounts for native ORM nonce/audit storage and the
+integrated Event Sourcing/execution suppliers; TASK-00202 records independent Review acceptance, required QA PASS
+and the later behavior-preserving integration/verification bridge.
 Owner heartbeats cannot revive closed/expired rows; abrupt death becomes
 stale/uncertain, not confirmed connectivity or a permission lease. Short dedicated transactions, a namespace capacity
 lock, at most 256 fresh registrations/4,096 retained rows and explicit 1–256-row cleanup bound tracking. No historical
@@ -695,6 +710,7 @@ compatibility and actual three-database/controlled-HubInterface evidence, not de
 | **Behavioral contract** | An explicit consumer-facing behavior promised by published documentation, public PHPDoc, or an accepted ADR. A stable contract ID links the normative statement to designated compatibility evidence. Ordinary tests and incidental observed behavior do not create behavioral contracts by themselves. |
 | **Compatibility contract** | The combined versioned promises covering the public API manifest, behavioral contracts, exceptions, serialization, persisted data, framework adapters, accepted runtime environments, Composer package metadata, and the coding standard. Compatibility is classified by consumer-visible effect rather than PHP signatures alone. |
 | **Deprecation** | A minor-release notice that a still-functional public contract is planned for removal or incompatible change in a future major release. A deprecated contract remains supported for at least one released minor before removal. TASK-00173 adds 50 property-name typed getters across 14 released HTTP/OAuth/MCP classes while retaining the same public readonly storage, construction, identity, arrays and serialization. Direct reads are deprecated in documentation only, without runtime notices; the first deprecating release is unassigned. Standards is wholly excluded. See the [complete migration map](docs/maintenance/public-property-getters.md); removal/private conversion needs separate future-major authorization. |
+| **Public table-name constants** | The four schema `TABLES` arrays in Execution, Task, Notice and Subscription DBAL persistence are default-only inventories, not configured selections. TASK-00206 marks all four deprecated in PHPDoc for removal in v2.0.0, following John's explicit instruction including provisional constants. Values, visibility and runtime behavior remain unchanged, with no runtime warnings or replacement constants. Use the existing `DbalObservationTables`, `DbalTaskTables`, `DbalNoticeTables` and `DbalSubscriptionTables` accessors shared by schema/runtime composition. The first deprecating minor is unassigned; actual removal still requires the supported released-minor window. See the [complete migration map](docs/maintenance/table-name-constants.md). |
 | **Supported release line** | A `major.minor` maintenance line whose phase, exact branch, release baselines, allowed fix classes, and exclusive UTC support boundary are declared in the canonical support-policy data. Only its latest patch release is supported. |
 | **Release baseline** | The canonical release tag and immutable peeled commit OID against which a candidate's compatibility is certified. Baselines are selected by release class and must have valid ancestry; tooling never guesses from tag ordering. |
 | **Affected line** | A supported release line on which focused public behavioral evidence reproduces a defect. An introducing commit may be unknown, but affected status may not be inferred from ancestry alone. |

@@ -124,6 +124,7 @@ nav:
       - Retained Notice Recovery: notice-recovery.md
       - Optional Notice Publication: notice-publication.md
       - Lifecycle Storage Composition: lifecycle-storage.md
+      - Database Table Names: table-names.md
       - Live MCP Subscriptions: mcp-subscriptions.md
       - Subscriber Inspection: subscriber-inspection.md
       - MCP Protocol Semantics: components/mcp/index.md
@@ -166,6 +167,7 @@ nav:
     - MCP Foundation Namespaces: maintenance/mcp-foundation-namespaces.md
     - Execution and Notice Domain Values: maintenance/evidence-domain-values.md
     - Public Property Getters: maintenance/public-property-getters.md
+    - Table-Name Constants: maintenance/table-name-constants.md
     - Descriptive Variable Names: maintenance/descriptive-variable-names.md
     - Contributing: maintenance/contributing/index.md
     - Coding Standard: maintenance/coding-standard/index.md

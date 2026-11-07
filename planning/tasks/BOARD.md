@@ -29,39 +29,6 @@ records as the sections below. Inspect each selected TASK's current handoff and 
 its workflow stage; metadata alone does not establish Review, QA or delivery. Do not add competing current-status
 prose here. Historical completion and delivery evidence remain in the owning TASK records.
 
-## Current planning handoff
-
-John approved the bounded pre-v1.5 [typed activity execution amendment](../tickets/00056-TICKET.md), decomposed as
-one complete recording-to-inspection [TASK-00205](00205-TASK.md). It preserves Common observation ownership and
-existing optional transaction/delivery limits; consumer adoption and external Tool permission binding stay separate.
-The owning records retain scope and evidence requirements; no new global priority or automatic execution follows.
-
-John approved five bounded refactoring chores on 2026-11-02. Their TASK records own the accepted scopes;
-the [namespace TASK](00181-TASK.md#outcome-and-accepted-decision) records the released-name-only deprecation
-decision. Generated sections own execution routing.
-
-John approved a second bounded architectural correction sequence after that work. The
-[architecture-rule TASK](00183-TASK.md#outcome-and-accepted-decision) records the requirements and exceptions;
-[TASK-00184](00184-TASK.md) through [TASK-00192](00192-TASK.md) cover DBAL transactions, repositories,
-handler ownership, disclosure projection, domain values/identities, adapter namespaces and the codebase-wide
-descriptive-variable-name check. Their records own scope and technical dependencies; priority follows the
-existing five chores without turning independent work into artificial blockers. TASK-00183's rule surface is
-accepted; TASK-00184's DBAL transaction separation, TASK-00185's Task repository separation, TASK-00186's Notice
-repository/recovery separation, TASK-00187's handler ownership, TASK-00188's disclosure projection and
-TASK-00189's Task values, TASK-00190's execution/Notice values and TASK-00191's adapter namespaces are accepted.
-TASK-00192's naming candidate has independent Review acceptance and required QA PASS; its record owns the
-later Land integration and publication checkpoint.
-
-The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
-its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
-belongs to the generated Board, not automatic implementation. The [Roadmap planning frontier](../ROADMAP.md#planning-frontier)
-separately identifies decomposition work.
-
-Land owns [publication closeout](../CONVENTIONS.md#publication-closeout) during delivery: accepted TASK/current-doc
-closure, exact live own-PR validation and eligible owned local resource retirement. Human merge is separate;
-no tracked pending-merge queue or recurring post-merge planning chore remains. Historical checkpoints stay in
-their owning records; routing and planning checks stay offline.
-
 <!-- planning:board -->
 ## Active Work
 
@@ -73,7 +40,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | — | — |
+| None | — | — | — | — | — | — |
 
 ## Waiting
 
@@ -202,8 +169,10 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00199](00199-TASK.md) | Configure durable Task storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #287](https://github.com/johnnickell/fight-common/pull/287) |
 | — | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #289](https://github.com/johnnickell/fight-common/pull/289) |
 | — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #291](https://github.com/johnnickell/fight-common/pull/291) |
+| — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #293](https://github.com/johnnickell/fight-common/pull/293) |
 | — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
 | — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
+| — | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | — (standalone chore) | done | — | [PR #292](https://github.com/johnnickell/fight-common/pull/292) |
 <!-- /planning:board -->
 
 ## Wayfinder

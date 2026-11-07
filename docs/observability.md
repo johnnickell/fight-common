@@ -261,7 +261,15 @@ Domain\Observability\AuditRepository
 `getBetween()` retains native `DateTimeImmutable` parameters and **inclusive** endpoints. The Doctrine adapter
 translates this to `e.timestamp >= :from AND e.timestamp <= :to` with the supplied values. The optional
 [InstantRange](../values/index.md#half-open-instantrange) is half-open and does not change this repository contract or
-implicitly convert to audit bounds. Controlled adapter tests prove query translation, not database execution.
+implicitly convert to audit bounds. Direct unit tests retain query-translation proof;
+`DoctrineMappedStorageIntegrationTest` additionally exercises actual XML mapping, persist/flush, a reopened
+connection/EntityManager, actor/action/inclusive-time queries, pagination and existing Doctrine types on SQLite.
+
+`DoctrineAuditRepository` defaults to `audit_entries` through the existing ORM XML mapping. Consumers retain native
+mapping/metadata overrides; no DBAL naming object or ordinary-name restriction applies. `add()` schedules persistence,
+not a flush/commit or an automatically atomic audit/business transaction. Changed mappings do not migrate history,
+create storage or fall back to defaults. See [native ORM table selection](../../table-names.md#native-orm-authority-for-nonce-and-audit-tables)
+for type registration, schema/runtime agreement, missing-storage behavior and consumer responsibilities.
 
 ### Built-in adapters
 

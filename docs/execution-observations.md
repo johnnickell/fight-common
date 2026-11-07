@@ -495,6 +495,11 @@ changes only protected storage; the other four names remain exactly as above. Sh
 repositories inherit it from their transaction, including relationship/retry reads and protected-content removal. Separate connections/workers must
 receive the same explicit selection. There is no global/environment lookup or inward naming contract.
 
+`DbalObservationSchema::TABLES` contains only the five default names and is **deprecated for removal in v2.0.0**.
+Use the matching `DbalObservationTables` accessors (`schemaTable()`, `sessionTable()`, `phaseTable()`,
+`observationTable()`, `contentTable()`) and `name()` for the actual selected names. See the
+[complete constant migration map and release-window limits](maintenance/table-name-constants.md).
+
 Names use the shared `Adapter\Persistence\Doctrine\DbalTableName` rule: 1–63 ASCII characters matching
 `[A-Za-z_][A-Za-z0-9_]{0,62}`. Unsafe/quoted/qualified names reject with `InvalidArgumentException`, without trimming,
 fallback or SQL interpretation. All five names must be distinct even ignoring case. Platform quoting preserves

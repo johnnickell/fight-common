@@ -189,8 +189,9 @@ $committedTaskReader = $taskRepository;
 `new DbalTaskTables(stateTable: 'app_task_state')` retains `fight_tasks`;
 `new DbalTaskTables(taskTable: 'app_tasks')` retains `fight_task_state`. Omitting the selection preserves both
 exact defaults and existing constructor/named arguments. `DbalTaskSchema::TABLES` remains the **default inventory**,
-not a configured-table accessor; use `$tables->stateTable()->name()` / `$tables->taskTable()->name()` for selected
-logical names. `DbalTaskTransaction::tables()` exposes the exact adapter-only composition selection, without adding
+not a configured-table accessor, and is **deprecated for removal in v2.0.0**; use
+`$tables->stateTable()->name()` / `$tables->taskTable()->name()` for selected logical names. See the
+[complete constant migration map and release-window limits](maintenance/table-name-constants.md). `DbalTaskTransaction::tables()` exposes the exact adapter-only composition selection, without adding
 configuration to Domain/Application contracts. Give every participating connection/producer/worker the same selection.
 All Commands, protected Queries, polling and bounded retries continue through their existing handlers and policies.
 
