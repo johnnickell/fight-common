@@ -45,6 +45,16 @@ not deleted or repointed.
       "branch": "1.3",
       "initial_release": {"tag": "v1.3.0", "commit": "7de6cad6e8a9752973ad9f8e27e285b0c1510582"},
       "latest_release": {"tag": "v1.3.0", "commit": "7de6cad6e8a9752973ad9f8e27e285b0c1510582"},
+      "phase": "limited",
+      "allowed_fixes": ["security", "data-loss", "critical-compatibility"],
+      "ends_at": "2027-04-12T15:10:25Z",
+      "successor": "1.4"
+    },
+    {
+      "line": "1.4",
+      "branch": "1.4",
+      "initial_release": {"tag": "v1.4.0", "commit": "87b9580c072f3149d574e09865daa79620c92118"},
+      "latest_release": {"tag": "v1.4.0", "commit": "87b9580c072f3149d574e09865daa79620c92118"},
       "phase": "current",
       "allowed_fixes": ["bug", "security"],
       "ends_at": null,
@@ -54,12 +64,13 @@ not deleted or repointed.
 }
 ```
 
-| Line | Status after 1.3 publication | Exclusive UTC end | Latest release |
+| Line | Status after 1.4 publication | Exclusive UTC end | Latest release |
 | --- | --- | --- | --- |
 | 1.0 | Limited security, data-loss and critical-compatibility fixes | 2026-12-05 00:00:00 | `v1.0.0` |
 | 1.1 | Limited security, data-loss and critical-compatibility fixes | 2027-03-13 01:24:24 | `1.1.0` |
 | 1.2 | Limited security, data-loss and critical-compatibility fixes | 2027-04-05 05:41:42 | `v1.2.0` |
-| 1.3 | Current: bug and security fixes | Not set until its successor publishes | `v1.3.0` |
+| 1.3 | Limited security, data-loss and critical-compatibility fixes | 2027-04-12 15:10:25 | `v1.3.0` |
+| 1.4 | Current: bug and security fixes | Not set until its successor publishes | `v1.4.0` |
 
 The six-month clock for **each** superseded minor survives later minor releases: 1.0 does not become
 end-of-life merely because 1.2 exists, nor 1.1 merely because 1.3 ships. The 1.1 deadline follows
@@ -86,3 +97,11 @@ exclusively at `2027-04-05T05:41:42Z`. The 1.0 and 1.1 windows remain in force u
 published boundaries and their branches are preserved, not removed early. A branch by itself is
 not evidence that a line is supported. Support for multiple older minors during their own windows
 does not waive the 1.x public API compatibility promise for current releases.
+
+[`v1.4.0`](https://github.com/johnnickell/fight-common/releases/tag/v1.4.0) was published on GitHub at
+`2026-10-12T15:10:25Z`. Its signed annotated tag peels to `87b9580c072f3149d574e09865daa79620c92118`,
+the exact certified `main` release merge. The protected `1.4` maintenance branch starts at that
+same commit. The six-calendar-month limit on 1.3 ends exclusively at `2027-04-12T15:10:25Z`;
+1.0, 1.1 and 1.2 retain their existing deadlines and branches. Publication and support-line
+classification do not qualify downstream applications or erase the explicitly approved 1.4
+StreamId compatibility exception; follow the [migration notice](docs/event-sourcing.md#streamid-minor-upgrade-notice).
