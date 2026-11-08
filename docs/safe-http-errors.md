@@ -165,6 +165,18 @@ your installed application. If the sink fails, JSON falls back to a generic 500 
 report attempt; it cannot claim successful logging. Neither a request header nor Symfony `debug`
 enables diagnostic disclosure in the safe path. Trusted development reporting belongs outside it.
 
+Selected JSON rendering is bounded to one primary attempt and one ordinary generic fallback attempt.
+If fallback encoding also fails, the controller constructs the same native `JSendResponse` from trusted
+pre-encoded bytes, without consulting the encoder, projector or sink again. The terminal response is
+HTTP 500, `Content-Type: application/json`, with exact body
+`{"status":"error","message":"Internal server error."}` and no selected failure headers or projected data.
+This also contains fallback encoding failure after a failed sink or projector, for direct `handle()` calls
+and real kernel exception handling. Renderer faults are never reported recursively. Final native response
+processing and later independent requests remain unchanged; there is no global suppression latch.
+This does not promise recovery from process death/OOM, arbitrary broken native response code or consumer
+response listeners/middleware. PSR-15 retains its different sanitized-throw contract for broken factories;
+these native Symfony/Laravel guarantees do not imply every safe adapter can always return a response.
+
 The listener preserves canonical negotiation: XHR (`X-Requested-With: XMLHttpRequest`) wins;
 otherwise `application/json` must be accepted ahead of `text/html` by Symfony quality ordering.
 No Accept, HTML preference or other content type delegates. It returns native `JSendResponse`

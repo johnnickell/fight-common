@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Contain repeated JSON-encoding faults in the opt-in Symfony `SafeErrorController`, including fallback
+  encoding after failed diagnostics or projection. Return the same native JSend response with fixed generic
+  JSON, HTTP 500 and no selected failure headers, without retrying reporting or exposing renderer diagnostics.
+  Normal mappings, JSON/XHR negotiation, final response processing, later requests and HTML delegation remain
+  unchanged. Existing explicit wiring requires no migration; legacy handlers and PSR-15's sanitized-throw
+  terminal contract are unchanged.
+
+## [1.4.1] - 2026-11-04
+
+### Fixed
+
+- Contain terminal JSON-rendering faults in the opt-in Laravel `SafeLaravelExceptionHandler`. If both normal
+  presentation and fallback encoding fail, return HTTP 500 with `Content-Type: application/json` and the fixed
+  body `{"status":"error","message":"Internal server error."}` without exposing private diagnostics or selected
+  failure headers. The original failure receives one diagnostic attempt; renderer faults do not recursively
+  enter Laravel reporting. Normal mappings, native response finalization, later requests and HTML delegation
+  remain unchanged. Existing opt-in wiring requires no migration; legacy error handlers are unchanged.
+- Restore non-root readability of the existing PHP memory/coverage settings and explicitly propagate PHPStan's
+  existing 512 MiB limit. Maintenance-native database verification can reuse one retained environment across
+  roles and retire it without force only after exact identity and all-consumer checks, including indirect
+  network-namespace dependencies. These are maintainer-tooling fixes, not consumer runtime API changes.
+
 ## [1.4.0] - 2026-10-12
 
 ### Added
@@ -286,7 +310,8 @@ for exact limits and composition requirements.
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/johnnickell/fight-common/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/johnnickell/fight-common/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/johnnickell/fight-common/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/johnnickell/fight-common/compare/v1.1.0...v1.2.0
