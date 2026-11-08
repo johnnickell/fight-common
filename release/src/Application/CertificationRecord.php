@@ -43,6 +43,7 @@ final readonly class CertificationRecord
         $this->requireSha256($archiveSha256, 'archive digest');
 
         $expectedCommands = [
+            'prepare-certifier-image',
             'default-dependency-resolution',
             'default-product-gate',
             'latest-dependency-resolution',
