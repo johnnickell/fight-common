@@ -19,7 +19,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 1 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | — (standalone bug) | ready-for-agent | — | — |
 
 ## Waiting
 

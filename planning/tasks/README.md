@@ -50,4 +50,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | done | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | done | — |
 | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | done | — |
+| [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | ready-for-agent | — |
 <!-- /planning:records -->
