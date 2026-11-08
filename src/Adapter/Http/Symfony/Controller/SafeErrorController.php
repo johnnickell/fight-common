@@ -45,8 +45,19 @@ final readonly class SafeErrorController
             // Reporting, translation, projection and serialization must all fail closed.
         }
 
-        [$status, $envelope, $headers] = $this->policy->fallback();
+        try {
+            [$status, $envelope, $headers] = $this->policy->fallback();
 
-        return JSendResponse::fromEnvelope($envelope, $status, $headers);
+            return JSendResponse::fromEnvelope($envelope, $status, $headers);
+        } catch (Throwable) {
+            // A failed encoder cannot be trusted to render even the generic envelope.
+        }
+
+        return new JSendResponse(
+            '{"status":"error","message":"Internal server error."}',
+            500,
+            ['Content-Type' => 'application/json'],
+            true
+        );
     }
 }

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Contain repeated JSON-encoding faults in the opt-in Symfony `SafeErrorController`, including fallback
+  encoding after failed diagnostics or projection. Return the same native JSend response with fixed generic
+  JSON, HTTP 500 and no selected failure headers, without retrying reporting or exposing renderer diagnostics.
+  Normal mappings, JSON/XHR negotiation, final response processing, later requests and HTML delegation remain
+  unchanged. Existing explicit wiring requires no migration; legacy handlers and PSR-15's sanitized-throw
+  terminal contract are unchanged.
+
 ## [1.4.1] - 2026-11-04
 
 ### Fixed
