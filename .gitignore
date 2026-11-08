@@ -9,6 +9,7 @@ phpunit.xml
 /.claude
 /.idea
 /.runs/
+/var
 graphify-out/
 __pycache__/
 *.py[cod]
