@@ -78,7 +78,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 1 | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | — (standalone chore) | done | — | [PR #258](https://github.com/johnnickell/fight-common/pull/258) |
 | 1 | [TASK-00207](00207-TASK.md) | Resolve v1.5.0 pre-tag audit findings and complete release notes | — (standalone chore) | done | — | [PR #295](https://github.com/johnnickell/fight-common/pull/295) |
 | 1 | [TASK-00208](00208-TASK.md) | Reconcile certifier image-preparation outcome validation | — (standalone bug) | done | — | [PR #297](https://github.com/johnnickell/fight-common/pull/297) |
-| 1 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | — (standalone bug) | done | — | — |
+| 1 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | — (standalone bug) | done | — | [PR #301](https://github.com/johnnickell/fight-common/pull/301) |
 | 1 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | — (standalone bug) | done | — | [PR #298](https://github.com/johnnickell/fight-common/pull/298) |
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | done | — | [PR #261](https://github.com/johnnickell/fight-common/pull/261) |
