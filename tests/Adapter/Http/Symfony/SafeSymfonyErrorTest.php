@@ -148,20 +148,20 @@ final class SafeSymfonyErrorTest extends UnitTestCase
                 $this->logged[] = (string) $message;
             }
         };
-        $dispatcher = $this->dispatcher($this->diagnostics($reports));
-        $dispatcher->addSubscriber(new ErrorListener(null, $logger));
+        $eventDispatcher = $this->dispatcher($this->diagnostics($reports));
+        $eventDispatcher->addSubscriber(new ErrorListener(null, $logger));
         $delegations = 0;
-        $dispatcher->addListener(KernelEvents::EXCEPTION, static function ($event) use (&$delegations): void {
+        $eventDispatcher->addListener(KernelEvents::EXCEPTION, static function ($event) use (&$delegations): void {
             $delegations++;
             $event->setResponse(new Response('delegated HTML', 299));
             $event->allowCustomResponseCode();
         }, -200);
         $processed = [];
-        $dispatcher->addListener(KernelEvents::RESPONSE, static function (ResponseEvent $event) use (&$processed): void {
+        $eventDispatcher->addListener(KernelEvents::RESPONSE, static function (ResponseEvent $event) use (&$processed): void {
             $event->getResponse()->headers->set('X-Processed', 'yes');
             $processed[] = $event->getResponse();
         });
-        $kernel = new HttpKernel($dispatcher, new ControllerResolver(), handleAllThrowables: true);
+        $kernel = new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true);
         $failures = [];
         foreach ([1, 2, null] as $index => $budget) {
             self::$encodingCalls = 0;
@@ -248,15 +248,15 @@ final class SafeSymfonyErrorTest extends UnitTestCase
                 $diagnostics->fail = $stage === 'sink';
                 $projector->fail = $stage === 'projector';
                 $controller = new SafeErrorController(new SafeHttpErrorPolicy(), $diagnostics, $projector);
-                $dispatcher = new EventDispatcher();
-                $dispatcher->addListener(KernelEvents::EXCEPTION, [
+                $eventDispatcher = new EventDispatcher();
+                $eventDispatcher->addListener(KernelEvents::EXCEPTION, [
                     new SafeSymfonyExceptionSubscriber($controller), 'onKernelException',
                 ], 64);
                 $rawCallbacks = [];
-                $dispatcher->addListener(KernelEvents::EXCEPTION, static function () use (&$rawCallbacks): void {
+                $eventDispatcher->addListener(KernelEvents::EXCEPTION, static function () use (&$rawCallbacks): void {
                     $rawCallbacks[] = 'unsafe fallback';
                 }, 0);
-                $kernel = new HttpKernel($dispatcher, new ControllerResolver(), handleAllThrowables: true);
+                $kernel = new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true);
                 $failure = new HttpException(405, 'private=synthetic-secret', headers: ['Allow' => 'GET']);
                 self::$encodingCalls = 0;
                 self::$encodingFailures = null;
