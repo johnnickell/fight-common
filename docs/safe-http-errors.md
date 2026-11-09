@@ -66,8 +66,8 @@ new sanitized `RuntimeException` without a cause; a broken response factory cann
 
 Read `SafeHttpFailure`, `SafeHttpMetadata` and `SafeHttpPresentation` through typed property-name getters:
 `status()`, `metadata()`, `challenge()`, `allow()`, `retryAfterSeconds()`, `message()` and `data()` as applicable.
-The original public readonly fields remain supported; documentation-only deprecation is planned to first ship
-in v1.5.0, not yet released. See the
+The original public readonly fields remain supported; documentation-only deprecation first shipped
+in released v1.5.0. See the
 [complete getter migration and release window](maintenance/public-property-getters.md). This does not expand
 public data or change status/header policy.
 

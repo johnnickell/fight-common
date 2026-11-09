@@ -1,6 +1,6 @@
 # Migrate released public-property reads to getters
 
-The unreleased getter migration adds **50 typed, side-effect-free methods in 14 runtime classes**. Every method
+The v1.5.0 getter migration adds **50 typed, side-effect-free methods in 14 runtime classes**. Every method
 has the same name as its corresponding property: change `$value->maxBytes` to `$value->maxBytes()`, for example.
 There are no `get...` aliases or setters. Constructors, named arguments, factories, defaults and validation are
 unchanged. The entire `Fight\Common\Standards` namespace is excluded.
@@ -8,8 +8,7 @@ unchanged. The entire `Fight\Common\Standards` namespace is excluded.
 ## Deprecation and removal window
 
 Direct reads of the properties below are deprecated **in documentation only**. They still work, remain public
-and readonly, and emit no new runtime warning or notice. The first deprecation is **planned to ship in v1.5.0;
-not yet released**. Keep the old interface supported for **at least one actually released minor before removal
+and readonly, and emit no new runtime warning or notice. The first deprecation shipped in **released v1.5.0**. Keep the old interface supported for **at least one actually released minor before removal
 in a future major**. See the [consolidated inventory](deprecations.md) for earlier deprecations and migration risks.
 A tag's existence alone does not establish that window. Removal or private conversion requires separately
 authorized work; this migration does neither.

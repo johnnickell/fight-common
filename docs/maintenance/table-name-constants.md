@@ -5,7 +5,7 @@ The four public schema `TABLES` constants below are **deprecated in PHPDoc** and
 no runtime deprecation warning and performs no database operation. The constants describe fixed defaults,
 **not the names selected for a configured schema or runtime adapter**.
 
-The first deprecation is **planned to ship in v1.5.0; not yet released**. The existing contract must remain
+The first deprecation shipped in **released v1.5.0**. The existing contract must remain
 supported for at least one actually released minor before actual major-version removal. See the
 [consolidated inventory](deprecations.md) for all current groups and their separate removal decisions. The
 v2.0.0 target does not bypass that window or mean removal has already happened. This follow-up marks the
