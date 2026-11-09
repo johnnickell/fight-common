@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.0] - 2026-11-09
 
-Initial preparation was on 2026-11-07; these candidate notes were refreshed on 2026-11-09.
-The date does not establish certification, ship approval or publication.
+Initial preparation was on 2026-11-07; these notes were refreshed on 2026-11-09 before publication.
+[v1.5.0](https://github.com/johnnickell/fight-common/releases/tag/v1.5.0) was subsequently published at
+2026-11-09T20:13:04Z as an immutable release with no uploaded assets. The preparation date alone was not
+certification, ship approval or publication evidence.
 
 ### Changed
 
@@ -18,7 +20,7 @@ The date does not establish certification, ship approval or publication.
   `Adapter\Mcp`. Application homes follow their aggregate; concrete execution inspection/Notice recovery Tools,
   schemas and public-safe mapping live in `Adapter\Mcp\Tool`, dispatching through the shared QueryBus. DBAL
   persistence/read adapters use `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with genuinely shared execution support
-  separate. These APIs have never shipped in a tag: final composition replaces development-only Store/Lifecycle,
+  separate. Before v1.5.0 these APIs had not shipped in a tag: final composition replaces development-only Store/Lifecycle,
   RecordingTransaction and receipt wrappers directly, without snapshot aliases or data migrations. Task handlers
   own operation-specific use cases; repositories, transaction boundaries, committed/recovery readers and Application
   disclosure projection have distinct owners. See the [namespace map](docs/mcp-namespaces.md).
@@ -38,22 +40,22 @@ The date does not establish certification, ship approval or publication.
 - The 17 relocated MCP foundation root spellings, in documentation only. Prefer `Application\Mcp\Capability`,
   `Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root
   without deprecation. Canonical aliases preserve released runtime identity, finality, named construction,
-  consumer type compatibility, catches, reflection and saved values. First deprecation is **planned to ship in
-  v1.5.0, not yet released**; removal needs separate future-major authorization after an actually released minor. See the
+  consumer type compatibility, catches, reflection and saved values. First deprecation shipped in **released
+  v1.5.0**; removal needs separate future-major authorization after an actually released minor. See the
   [complete foundation migration map](docs/maintenance/mcp-foundation-namespaces.md).
 - The nine released MCP HTTP adapter names under `Adapter\Http\Mcp`, `Adapter\Http\Symfony` and
   `Adapter\Http\CodeIgniter`. Use their canonical `Adapter\Mcp\Http`, `Adapter\Mcp\Symfony` and
   `Adapter\Mcp\CodeIgniter` names instead. Old public names remain functional throughout 1.x without runtime
-  notices. First deprecation is **planned to ship in v1.5.0, not yet released**; removal requires a separately
+  notices. First deprecation shipped in **released v1.5.0**; removal requires a separately
   authorized future major after at least one actually released minor of deprecation.
   See the [complete adapter migration map](docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility).
 - Direct reads of 50 public readonly properties across 14 released HTTP/OAuth/MCP classes, in documentation only.
   Use the matching typed property-name getters instead. Storage, construction, named arguments, validation,
   serialization and wire/security behavior remain unchanged; no runtime notices are emitted. First deprecation
-  is **planned to ship in v1.5.0, not yet released**. Retain at least one actually released minor before separately
+  shipped in **released v1.5.0**. Retain at least one actually released minor before separately
   authorized future-major removal; Standards is entirely excluded. See the [complete migration map](docs/maintenance/public-property-getters.md).
 - Four default-only schema `TABLES` constants for Execution, Task, Notice and Subscription, with first deprecation
-  **planned to ship in v1.5.0, not yet released**, targeting separately authorized v2.0.0 removal after that window.
+  in **released v1.5.0**, targeting separately authorized v2.0.0 removal after that window.
   Read actual configured names from the existing selection objects; values/order/visibility remain unchanged.
   See the [constant migration map](docs/maintenance/table-name-constants.md).
 
@@ -157,7 +159,8 @@ No API removal, mandatory v1.6.0, platform/coding-standard tightening or final-1
 [Reconciliation scope and deliberate exclusions](docs/maintenance/v1.5.0-reconciliation.md) account for the complete
 original v1.4.1-to-candidate change set. The current preceding-minor baseline is published v1.4.2;
 earlier v1.4 features, the v1.4.1 Laravel repair and the v1.4.2 Symfony repair are not new v1.5.0 fixes.
-The dated notes identify the v1.5.0 candidate scope, not certification, ship approval or proof of publication.
+The dated notes identify the v1.5.0 scope; the observed publication is linked above. They do not independently
+qualify downstream applications or replace the exact-commit certification and human signing.
 
 ## [1.4.2] - 2026-11-08
 

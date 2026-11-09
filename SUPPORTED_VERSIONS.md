@@ -55,6 +55,16 @@ not deleted or repointed.
       "branch": "1.4",
       "initial_release": {"tag": "v1.4.0", "commit": "87b9580c072f3149d574e09865daa79620c92118"},
       "latest_release": {"tag": "v1.4.2", "commit": "bec3bead3de3819521bdba4e4a36b3c5c63b2686"},
+      "phase": "limited",
+      "allowed_fixes": ["security", "data-loss", "critical-compatibility"],
+      "ends_at": "2027-05-09T20:13:04Z",
+      "successor": "1.5"
+    },
+    {
+      "line": "1.5",
+      "branch": "1.5",
+      "initial_release": {"tag": "v1.5.0", "commit": "06fb5cd3720af9cf8295198f74040d95b64c5155"},
+      "latest_release": {"tag": "v1.5.0", "commit": "06fb5cd3720af9cf8295198f74040d95b64c5155"},
       "phase": "current",
       "allowed_fixes": ["bug", "security"],
       "ends_at": null,
@@ -64,13 +74,14 @@ not deleted or repointed.
 }
 ```
 
-| Line | Status after 1.4 publication | Exclusive UTC end | Latest release |
+| Line | Status after 1.5 publication | Exclusive UTC end | Latest release |
 | --- | --- | --- | --- |
 | 1.0 | Limited security, data-loss and critical-compatibility fixes | 2026-12-05 00:00:00 | `v1.0.0` |
 | 1.1 | Limited security, data-loss and critical-compatibility fixes | 2027-03-13 01:24:24 | `1.1.0` |
 | 1.2 | Limited security, data-loss and critical-compatibility fixes | 2027-04-05 05:41:42 | `v1.2.0` |
 | 1.3 | Limited security, data-loss and critical-compatibility fixes | 2027-04-12 15:10:25 | `v1.3.0` |
-| 1.4 | Current: bug and security fixes | Not set until its successor publishes | `v1.4.2` |
+| 1.4 | Limited security, data-loss and critical-compatibility fixes | 2027-05-09 20:13:04 | `v1.4.2` |
+| 1.5 | Current: bug and security fixes | Not set until its successor publishes | `v1.5.0` |
 
 The six-month clock for **each** superseded minor survives later minor releases: 1.0 does not become
 end-of-life merely because 1.2 exists, nor 1.1 merely because 1.3 ships. The 1.1 deadline follows
@@ -118,6 +129,17 @@ Representative installed-package verification does not qualify downstream applic
 `2026-11-08T22:01:50Z` as an immutable release with no uploaded assets. Its signed annotated tag object
 `8d0c15321b9773c68a78155a51d02ba177235b07` peels to exact certified maintenance commit
 `bec3bead3de3819521bdba4e4a36b3c5c63b2686`. Packagist source/dist references and a fresh registry-installed
-production consumer match that commit. It supersedes 1.4.1 as the latest maintained patch; 1.4 remains current
-and all earlier exclusive UTC boundaries remain unchanged. Prepared 1.5.0 notes are not publication and start
-no successor-minor clock. This verifies representative package installation, not downstream application adoption.
+production consumer match that commit. At that publication checkpoint it superseded 1.4.1 as the latest
+maintained patch; 1.4 was current and all earlier exclusive UTC boundaries remained unchanged. Prepared 1.5.0
+notes did not start a successor-minor clock. This verifies representative package installation, not downstream
+application adoption.
+
+[`v1.5.0`](https://github.com/johnnickell/fight-common/releases/tag/v1.5.0) was published on GitHub at
+`2026-11-09T20:13:04Z` as an immutable stable/latest release with no uploaded assets. Its signed annotated tag
+object `ef493612628e9f527bbab8ae5f114c39164df2d3` peels to exact certified `main` release commit
+`06fb5cd3720af9cf8295198f74040d95b64c5155`. Packagist source/dist references and a fresh default-registry
+production installation/representative consumer match that commit. The 1.5 maintenance branch must start at
+that signed release commit and retain the normal maintenance protections. Line 1.5 is current; 1.4 now receives
+limited fixes until the exclusive six-calendar-month UTC boundary `2027-05-09T20:13:04Z`. Lines 1.0–1.3 keep
+their existing deadlines and branches. This publication neither removes deprecated APIs nor qualifies downstream
+application adoption.
