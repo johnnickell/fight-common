@@ -8,7 +8,7 @@ and host activation are not provided.
 
 Use typed getters for member state (`path()`, `bytes()`, `mimeType()`, `text()`, `digest()`) and limits
 (e.g. `maxFiles()`, `maxFrontmatterBytes()`, `maxEntryBytes()`). Public readonly properties remain supported,
-with documentation-only deprecation planned to first ship in v1.5.0 (not yet released); see the
+with documentation-only deprecation first shipped in released v1.5.0; see the
 [complete migration and release window](../../maintenance/public-property-getters.md).
 `text()` returns the Boolean classification, while `bytes()` preserves the original content without new I/O or hashing.
 
