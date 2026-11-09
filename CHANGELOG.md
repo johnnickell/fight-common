@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.0] - 2026-11-07
+## [1.5.0] - 2026-11-09
+
+Initial preparation was on 2026-11-07; these candidate notes were refreshed on 2026-11-09.
+The date does not establish certification, ship approval or publication.
 
 ### Changed
 
@@ -144,6 +147,9 @@ No API removal, mandatory v1.6.0, platform/coding-standard tightening or final-1
 - Maintainer tooling: disposable database allocation/mount capture now retains uncertainty before fallible inspection. Cleanup
   establishes complete original mount coverage before creator removal; interrupted capture recovers only against
   the original corroborated creator or holds safely, never reporting completion with unknown storage.
+- Maintainer certification tooling: retain image preparation in the exact ordered certification-outcome checks.
+  Normalize the successfully allocated temporary workspace to its physical path without masking allocation or
+  path-resolution failures; existing lane-selection and cleanup guards remain intact.
 - Removed the tracked delivery marker/table/live-check/reconciliation mechanism and recurring intake/post-merge
   bookkeeping. Land owns accepted TASK/current-doc closeout, exact live own-PR validation and eligible local
   resource retirement; historical evidence and human merge remain separate. Planning/routing stays offline.
