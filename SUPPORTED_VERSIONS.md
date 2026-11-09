@@ -54,7 +54,7 @@ not deleted or repointed.
       "line": "1.4",
       "branch": "1.4",
       "initial_release": {"tag": "v1.4.0", "commit": "87b9580c072f3149d574e09865daa79620c92118"},
-      "latest_release": {"tag": "v1.4.1", "commit": "a482c220d312d2ef7762c3f0d85d9fb76a7021fa"},
+      "latest_release": {"tag": "v1.4.2", "commit": "bec3bead3de3819521bdba4e4a36b3c5c63b2686"},
       "phase": "current",
       "allowed_fixes": ["bug", "security"],
       "ends_at": null,
@@ -70,7 +70,7 @@ not deleted or repointed.
 | 1.1 | Limited security, data-loss and critical-compatibility fixes | 2027-03-13 01:24:24 | `1.1.0` |
 | 1.2 | Limited security, data-loss and critical-compatibility fixes | 2027-04-05 05:41:42 | `v1.2.0` |
 | 1.3 | Limited security, data-loss and critical-compatibility fixes | 2027-04-12 15:10:25 | `v1.3.0` |
-| 1.4 | Current: bug and security fixes | Not set until its successor publishes | `v1.4.1` |
+| 1.4 | Current: bug and security fixes | Not set until its successor publishes | `v1.4.2` |
 
 The six-month clock for **each** superseded minor survives later minor releases: 1.0 does not become
 end-of-life merely because 1.2 exists, nor 1.1 merely because 1.3 ships. The 1.1 deadline follows
@@ -110,6 +110,14 @@ StreamId compatibility exception; follow the [migration notice](docs/event-sourc
 `2026-11-04T19:33:17Z` as an immutable release with no uploaded assets. Its signed annotated tag object
 `7e1c2fc1989fdf3fef99ddbe4ef74488856318d1` peels to the exact certified `main` release commit
 `a482c220d312d2ef7762c3f0d85d9fb76a7021fa`; Packagist source and dist references match that commit.
-This patch supersedes 1.4.0 as the maintained patch of the same current line. It does not start a successor-minor
-support clock or change any existing support deadline, platform requirement or 1.4.0 upgrade guidance.
+At publication it superseded 1.4.0 as the maintained patch of the same current line without starting a
+successor-minor support clock or changing existing deadlines, requirements or 1.4.0 upgrade guidance.
 Representative installed-package verification does not qualify downstream application adoption.
+
+[`v1.4.2`](https://github.com/johnnickell/fight-common/releases/tag/v1.4.2) was published on GitHub at
+`2026-11-08T22:01:50Z` as an immutable release with no uploaded assets. Its signed annotated tag object
+`8d0c15321b9773c68a78155a51d02ba177235b07` peels to exact certified maintenance commit
+`bec3bead3de3819521bdba4e4a36b3c5c63b2686`. Packagist source/dist references and a fresh registry-installed
+production consumer match that commit. It supersedes 1.4.1 as the latest maintained patch; 1.4 remains current
+and all earlier exclusive UTC boundaries remain unchanged. Prepared 1.5.0 notes are not publication and start
+no successor-minor clock. This verifies representative package installation, not downstream application adoption.

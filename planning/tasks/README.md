@@ -111,4 +111,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | done | — |
 | [TASK-00207](00207-TASK.md) | Resolve v1.5.0 pre-tag audit findings and complete release notes | done | — |
 | [TASK-00208](00208-TASK.md) | Reconcile certifier image-preparation outcome validation | done | — |
+| [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | done | — |
 <!-- /planning:records -->

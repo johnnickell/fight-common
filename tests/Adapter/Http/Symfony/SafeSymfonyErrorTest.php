@@ -32,6 +32,8 @@ use Fight\Common\Application\Validation\ValidationService;
 use Fight\Common\Domain\Exception\ValidationException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Psr\Log\AbstractLogger;
 use Stringable;
 use RuntimeException;
@@ -40,6 +42,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\EventListener\ErrorListener;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -65,6 +68,223 @@ use Throwable;
 #[CoversClass(SymfonyHttpFailure::class)]
 final class SafeSymfonyErrorTest extends UnitTestCase
 {
+    public static int $encodingCalls = 0;
+
+    public static ?int $encodingFailures = 0;
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_kernel_contains_persistent_encoding_faults_without_recursive_reporting(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-symfony-encoding.php';
+        self::$encodingFailures = null;
+        $reports = [];
+        $failure = new MethodNotAllowedHttpException(['GET'], 'password=synthetic-secret');
+
+        $response = $this->dispatch($failure, 'application/json', $this->diagnostics($reports));
+
+        self::assertInstanceOf(JSendResponse::class, $response);
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('application/json', $response->headers->get('Content-Type'));
+        self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
+        self::assertFalse($response->headers->has('Allow'));
+        self::assertSame([$failure], $reports);
+        self::assertSame(2, self::$encodingCalls);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_direct_controller_bounds_one_two_and_persistent_encoding_faults(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-symfony-encoding.php';
+        $reports = [];
+        $projector = new class implements SafeHttpProjector {
+            public int $calls = 0;
+
+            public function project(Throwable $failure, int $status): ?SafeHttpPresentation
+            {
+                $this->calls++;
+
+                return new SafeHttpPresentation(message: 'Deliberately public.', data: ['selected' => 'projection']);
+            }
+        };
+        $controller = new SafeErrorController(new SafeHttpErrorPolicy(), $this->diagnostics($reports), $projector);
+        $failures = [];
+        foreach ([1, 2, null] as $budget) {
+            self::$encodingCalls = 0;
+            self::$encodingFailures = $budget;
+            $failure = new HttpException(503, 'password=synthetic-secret', headers: ['Retry-After' => '15']);
+            $failures[] = $failure;
+
+            $this->assertTerminalResponse($controller->handle($failure));
+
+            self::assertSame(2, self::$encodingCalls);
+            self::assertSame($failures, $reports);
+            self::assertSame(count($failures), $projector->calls);
+        }
+        self::$encodingFailures = 0;
+        $later = new PermissionDenied('later=synthetic-secret');
+        $response = $controller->handle($later);
+        self::assertSame(403, $response->getStatusCode());
+        self::assertSame('{"status":"fail","data":{"selected":"projection"}}', $response->getContent());
+        self::assertSame([...$failures, $later], $reports);
+        self::assertSame(4, $projector->calls);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_encoding_faults_preserve_kernel_final_processing_and_later_requests(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-symfony-encoding.php';
+        $reports = [];
+        $rawLogged = [];
+        $logger = new class ($rawLogged) extends AbstractLogger {
+            public function __construct(private array &$logged)
+            {
+            }
+
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                $this->logged[] = (string) $message;
+            }
+        };
+        $eventDispatcher = $this->dispatcher($this->diagnostics($reports));
+        $eventDispatcher->addSubscriber(new ErrorListener(null, $logger));
+        $delegations = 0;
+        $eventDispatcher->addListener(KernelEvents::EXCEPTION, static function ($event) use (&$delegations): void {
+            $delegations++;
+            $event->setResponse(new Response('delegated HTML', 299));
+            $event->allowCustomResponseCode();
+        }, -200);
+        $processed = [];
+        $eventDispatcher->addListener(KernelEvents::RESPONSE, static function (ResponseEvent $event) use (&$processed): void {
+            $event->getResponse()->headers->set('X-Processed', 'yes');
+            $processed[] = $event->getResponse();
+        });
+        $kernel = new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true);
+        $failures = [];
+        foreach ([1, 2, null] as $index => $budget) {
+            self::$encodingCalls = 0;
+            self::$encodingFailures = $budget;
+            $failure = new HttpException(401, 'password=synthetic-secret', headers: [
+                'WWW-Authenticate' => 'Basic realm="selected"',
+                'X-Leak' => 'synthetic-secret',
+            ]);
+            $failures[] = $failure;
+            $request = $this->request($failure);
+
+            $response = $kernel->handle($request);
+            $response->prepare($request);
+
+            $this->assertTerminalResponse($response);
+            self::assertSame('yes', $response->headers->get('X-Processed'));
+            self::assertSame($response, $processed[$index]);
+            self::assertSame(2, self::$encodingCalls);
+            self::assertSame($failures, $reports);
+            self::assertSame([], $rawLogged);
+            self::assertSame(0, $delegations);
+        }
+        self::$encodingFailures = 0;
+        $later = new MethodNotAllowedHttpException(['GET', 'POST'], 'later=synthetic-secret');
+        $response = $kernel->handle($this->request($later));
+        self::assertInstanceOf(JSendResponse::class, $response);
+        self::assertSame(405, $response->getStatusCode());
+        self::assertSame('GET, POST', $response->headers->get('Allow'));
+        self::assertSame('{"status":"fail","data":{"message":"Method not allowed."}}', $response->getContent());
+        self::assertSame($response, $processed[3]);
+        self::assertSame([...$failures, $later], $reports);
+        self::assertSame([], $rawLogged);
+
+        $html = $kernel->handle($this->request(new RuntimeException('delegated=synthetic-secret'), 'text/html'));
+        self::assertSame(299, $html->getStatusCode());
+        self::assertSame('delegated HTML', $html->getContent());
+        self::assertSame(1, $delegations);
+        self::assertCount(1, $rawLogged);
+        self::assertCount(4, $reports);
+        $request = Request::create('/successful');
+        $request->attributes->set('_controller', static fn (): Response => new Response('unchanged', 202));
+        $success = $kernel->handle($request);
+        self::assertSame(202, $success->getStatusCode());
+        self::assertSame('unchanged', $success->getContent());
+        self::assertSame($success, $processed[5]);
+        self::assertCount(4, $reports);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_failed_sink_or_projector_plus_encoder_is_terminal_without_collaborator_retries(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-symfony-encoding.php';
+        foreach (['sink', 'projector'] as $stage) {
+            foreach ([false, true] as $direct) {
+                $diagnostics = new class implements SafeHttpDiagnostics {
+                    public bool $fail = false;
+                    public array $reports = [];
+                    public int $deliveries = 0;
+
+                    public function report(Throwable $failure): void
+                    {
+                        $this->reports[] = $failure;
+                        if ($this->fail) {
+                            throw new RuntimeException('sink=password=synthetic-secret');
+                        }
+                        $this->deliveries++;
+                    }
+                };
+                $projector = new class implements SafeHttpProjector {
+                    public bool $fail = false;
+                    public int $calls = 0;
+
+                    public function project(Throwable $failure, int $status): ?SafeHttpPresentation
+                    {
+                        $this->calls++;
+                        if ($this->fail) {
+                            throw new RuntimeException('projector=password=synthetic-secret');
+                        }
+
+                        return new SafeHttpPresentation(data: ['selected' => 'projection']);
+                    }
+                };
+                $diagnostics->fail = $stage === 'sink';
+                $projector->fail = $stage === 'projector';
+                $controller = new SafeErrorController(new SafeHttpErrorPolicy(), $diagnostics, $projector);
+                $eventDispatcher = new EventDispatcher();
+                $eventDispatcher->addListener(KernelEvents::EXCEPTION, [
+                    new SafeSymfonyExceptionSubscriber($controller), 'onKernelException',
+                ], 64);
+                $rawCallbacks = [];
+                $eventDispatcher->addListener(KernelEvents::EXCEPTION, static function () use (&$rawCallbacks): void {
+                    $rawCallbacks[] = 'unsafe fallback';
+                }, 0);
+                $kernel = new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true);
+                $failure = new HttpException(405, 'private=synthetic-secret', headers: ['Allow' => 'GET']);
+                self::$encodingCalls = 0;
+                self::$encodingFailures = null;
+
+                $response = $direct ? $controller->handle($failure) : $kernel->handle($this->request($failure));
+
+                $this->assertTerminalResponse($response);
+                self::assertSame(1, self::$encodingCalls);
+                self::assertSame([$failure], $diagnostics->reports);
+                self::assertSame($stage === 'sink' ? 0 : 1, $diagnostics->deliveries);
+                self::assertSame($stage === 'sink' ? 0 : 1, $projector->calls);
+                self::assertSame([], $rawCallbacks);
+
+                self::$encodingFailures = 0;
+                $diagnostics->fail = false;
+                $projector->fail = false;
+                $later = new PermissionDenied('later=synthetic-secret');
+                $response = $direct ? $controller->handle($later) : $kernel->handle($this->request($later));
+                self::assertSame(403, $response->getStatusCode());
+                self::assertSame('{"status":"fail","data":{"selected":"projection"}}', $response->getContent());
+                self::assertSame([$failure, $later], $diagnostics->reports);
+                self::assertSame($stage === 'sink' ? 1 : 2, $diagnostics->deliveries);
+                self::assertSame($stage === 'sink' ? 1 : 2, $projector->calls);
+                self::assertSame([], $rawCallbacks);
+            }
+        }
+    }
+
     public function test_that_kernel_conceals_a_synthetic_secret_in_the_opted_in_json_path(): void
     {
         $failure = new RuntimeException('password=synthetic-secret', 401, new RuntimeException('cause=synthetic-secret'));
@@ -360,6 +580,27 @@ final class SafeSymfonyErrorTest extends UnitTestCase
         $response = $this->dispatch(new ServiceUnavailable('secret'), 'application/json', $this->diagnostics($reports), true, false, $custom);
         self::assertSame(['status' => 'error', 'message' => 'Temporarily offline.', 'data' => ['retry' => false]], json_decode((string) $response->getContent(), true));
         self::assertCount(4, $reports);
+    }
+
+    private function assertTerminalResponse(Response $response): void
+    {
+        self::assertInstanceOf(JSendResponse::class, $response);
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('application/json', $response->headers->get('Content-Type'));
+        self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
+        foreach (['Allow', 'WWW-Authenticate', 'Retry-After', 'X-Leak'] as $header) {
+            self::assertFalse($response->headers->has($header));
+        }
+    }
+
+    private function request(Throwable $failure, string $accept = 'application/json'): Request
+    {
+        $request = Request::create('/secret', server: ['HTTP_ACCEPT' => $accept, 'HTTP_X_DEBUG' => 'true']);
+        $request->attributes->set('_controller', static function () use ($failure): never {
+            throw $failure;
+        });
+
+        return $request;
     }
 
     /**
