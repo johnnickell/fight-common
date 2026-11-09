@@ -165,7 +165,7 @@ nav:
     - Slim: frameworks/slim/index.md
   - Maintenance:
     - Deprecation Inventory: maintenance/deprecations.md
-    - Unreleased Change Reconciliation: maintenance/v1.5.0-reconciliation.md
+    - v1.5.0 Change Reconciliation: maintenance/v1.5.0-reconciliation.md
     - MCP Foundation Namespaces: maintenance/mcp-foundation-namespaces.md
     - Execution and Notice Domain Values: maintenance/evidence-domain-values.md
     - Public Property Getters: maintenance/public-property-getters.md

@@ -193,6 +193,7 @@ if [[ -e "${HANDOFF_DIR}" ]]; then
 fi
 
 WORKSPACE="$(mktemp -d /tmp/fight-common-release-certify.XXXXXX)"
+WORKSPACE="$(cd "${WORKSPACE}" && pwd -P)"
 trap cleanup EXIT
 COMMAND_OUTCOMES_PATH="${WORKSPACE}/command-outcomes.tsv"
 touch "${COMMAND_OUTCOMES_PATH}"
