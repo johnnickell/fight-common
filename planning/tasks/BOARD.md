@@ -180,7 +180,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
 | — | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | [TICKET-00056 — Record and inspect typed activity execution facts](../tickets/00056-TICKET.md) | done | — | [PR #294](https://github.com/johnnickell/fight-common/pull/294) |
 | — | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | — (standalone chore) | done | — | [PR #292](https://github.com/johnnickell/fight-common/pull/292) |
-| — | [TASK-00211](00211-TASK.md) | Apply activity visibility consistently to execution summaries | — (standalone bug) | done | — | — |
+| — | [TASK-00211](00211-TASK.md) | Apply activity visibility consistently to execution summaries | — (standalone bug) | done | — | [PR #306](https://github.com/johnnickell/fight-common/pull/306) |
 <!-- /planning:board -->
 
 ## Wayfinder
