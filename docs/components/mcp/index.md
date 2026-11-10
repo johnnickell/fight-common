@@ -60,7 +60,7 @@ atlas_local_contents:
 Read released MCP limit values through typed property-name getters such as `maxBytes()`, `maxDepth()`,
 `pageSize()` and `maxResultBytes()`. Skill members likewise expose `path()`, `bytes()`, `mimeType()`, `text()`
 and `digest()`. Their old public readonly properties remain supported; documentation-only deprecation is
-planned to first ship in v1.5.0 (not yet released);
+first shipped in released v1.5.0;
 see the [complete getter migration and release window](../../maintenance/public-property-getters.md).
 No budget, validation or wire representation changes with getter adoption.
 
@@ -84,8 +84,8 @@ principal, or make an authorization decision.
 percent-encoding and Base64 rules. Both live under `Fight\Common\Application\Mcp\Protocol` and move directly
 as untagged internals, without root aliases or deprecations. Public foundation imports now use `Capability`,
 `Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root.
-The 17 relocated root spellings remain functional; documentation-only deprecation is planned to first ship in
-v1.5.0 (not yet released). Canonical aliases preserve
+The 17 relocated root spellings remain functional; documentation-only deprecation first shipped in
+released v1.5.0. Canonical aliases preserve
 released runtime identities, both consumer type directions and saved values; see the
 [complete foundation migration map](../../maintenance/mcp-foundation-namespaces.md).
 Neither collaborator is a consumer validator API or an additional composition step. This extraction preserves
@@ -1137,7 +1137,7 @@ Paths below omit the common `Fight\Common\` prefix.
 | `Adapter\Http\CodeIgniter\McpResponse` | `Adapter\Mcp\CodeIgniter\McpResponse` |
 
 All nine deprecated names remain functional throughout 1.x, with PHPDoc/documentation-only deprecation and no
-runtime notices. Their first deprecation is planned to ship in v1.5.0, not yet released; removal requires separate
+runtime notices. Their first deprecation shipped in released v1.5.0; removal requires separate
 future-major authorization and at least one actually released minor of deprecation. Existing consumers need not change immediately. Native Symfony
 responses remain usable by Laravel; no extra Laravel adapter or container auto-registration is introduced.
 

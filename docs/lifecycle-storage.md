@@ -9,7 +9,7 @@ request field, global registry, environment lookup or mandatory prefix.
 
 All class names in this table are under `Fight\Common\Adapter\Mcp\Persistence\{Task,Notice,Subscription}\Dbal`.
 Each schema's `TABLES` constant remains its exact **default inventory**, not the current selection. These constants
-have deprecation **planned to first ship in v1.5.0 (not yet released)**, targeting separately authorized v2.0.0
+have deprecation first shipped in **released v1.5.0**, targeting separately authorized v2.0.0
 removal after the released-minor window; use the selection accessors below instead. See the
 [complete constant migration map and release-window limits](maintenance/table-name-constants.md).
 

@@ -29,10 +29,10 @@ both `v1.3.0` and `v1.4.0`; none appears in an earlier tag. The compatibility ma
 | `McpResponder` | `McpResponder` (unchanged) | C/R: registry, decoder, diagnostics; respond, dispatch, protocol constants |
 | `McpDiagnostics` | `McpDiagnostics` (unchanged) | R/I: record(Throwable) |
 
-Deprecation of the **17 relocated root spellings is planned to first ship in v1.5.0; it is not yet released**.
+Deprecation of the **17 relocated root spellings first shipped in released v1.5.0**.
 It is documentation-only, without runtime notices. The canonical spellings and the two unchanged root names are
 not deprecated. Removal needs separate future-major authorization after at least one actually released minor of
-deprecation; this plan claims neither publication nor the unrelated legacy AI 2.0 sunset. See the
+deprecation; this migration map does not authorize removal or the unrelated legacy AI 2.0 sunset. See the
 [consolidated deprecation inventory](deprecations.md) for earlier released groups and migration risks.
 
 ## Bridge and runtime identity

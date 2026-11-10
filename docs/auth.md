@@ -75,8 +75,8 @@ There is no OAuth authorization server, key fetcher, JWT validator, route, ident
 
 Read OAuth value/configuration state through typed property-name getters such as
 `$requirements->metadata()->resource()`, `$claims->claims()` and `$claims->grantedScopes()->values()`.
-The old public readonly properties remain supported; documentation-only deprecation is planned to first ship
-in v1.5.0, not yet released. The complete map and
+The old public readonly properties remain supported; documentation-only deprecation first shipped
+in released v1.5.0. The complete map and
 release window are documented in `docs/maintenance/public-property-getters.md`.
 Getter access does not validate a token or make claims safe to publish.
 

@@ -153,7 +153,7 @@ The [complete foundation migration map](maintenance/mcp-foundation-namespaces.md
 root declarations and their public operations. Seventeen gain preferred names under `Application\Mcp\Capability`,
 `Protocol`, `Protocol\Exception`, `Http` and the valid PHP `Tool` namespace, retaining their short names.
 `McpResponder` and `McpDiagnostics` stay at root without new deprecation. All 17 relocated root spellings remain
-functional with documentation-only deprecation planned to first ship in v1.5.0 (not yet released). Future-major
+functional with documentation-only deprecation first shipped in released v1.5.0. Future-major
 removal requires separate authorization after the actually released-minor window.
 
 Canonical class/interface aliases deliberately retain the released runtime declarations rather than introduce
@@ -176,8 +176,8 @@ name or signature moves, and no compatibility alias or deprecation is introduced
 ## Released names and legacy AI operations
 
 The [nine released HTTP adapter names](components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)
-remain functional compatibility entry points throughout 1.x; their first deprecation is planned for v1.5.0,
-not yet released. Internal HTTP helpers have no public old-name compatibility promise.
+remain functional compatibility entry points throughout 1.x; their first deprecation shipped in released
+v1.5.0. Internal HTTP helpers have no public old-name compatibility promise.
 
 Three older AI APIs also receive canonical MCP homes while their released names remain functional:
 
