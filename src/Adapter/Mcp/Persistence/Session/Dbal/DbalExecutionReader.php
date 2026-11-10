@@ -203,6 +203,9 @@ final readonly class DbalExecutionReader implements ExecutionReader
         $sessionTable = $this->tables->sessionTable()->quoted($platform);
         $scope = 'o.project_id = s.project_id AND o.session_id = s.session_id';
         [$visible, $parameters] = $this->executionReadSupport->phaseConstraints($access, 'o');
+        [$activityWhere, $activityParameters] = $this->executionReadSupport->activityConstraints($access, 'o');
+        $visible .= ' AND '.$activityWhere;
+        array_push($parameters, ...$activityParameters);
         $sql = 'SELECT s.project_id, s.session_id, s.consumer_reference, ';
         $sql .= "(SELECT COALESCE(MAX(o.recorded_at), '') FROM ".$observationTable.' o WHERE ';
         $sql .= $scope.' AND '.$visible.') AS latest_recorded_at';

@@ -59,6 +59,22 @@ final class DbalExecutionReaderTest extends ExecutionReadTestCase
         }
     }
 
+    public function test_that_server_platforms_constrain_activity_before_loading_evidence(): void
+    {
+        foreach ([new MySQLPlatform(), new PostgreSQLPlatform()] as $platform) {
+            $db = $this->mock(Connection::class);
+            $db->shouldReceive('getDatabasePlatform')->andReturn($platform);
+            $db->shouldReceive('fetchAllAssociative')->once()->withArgs(static function (string $sql, array $parameters) use ($platform): bool {
+                self::assertStringContainsString($platform instanceof PostgreSQLPlatform ? 'json_typeof' : 'JSON_TYPE', $sql);
+                self::assertStringContainsString('o.producer_id = ? AND o.observation_id = ?', $sql);
+                self::assertSame(['project', 'producer', '10000000-0000-4000-8000-000000000001', 'project', '', '', ''], $parameters);
+                return true;
+            })->andReturn([]);
+            $access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => ['producer/10000000-0000-4000-8000-000000000001']]);
+            self::assertSame(0, (new DbalExecutionReader($db))->summarize(ExecutionSelection::create(['project']), $access)->toArray()['activities']);
+        }
+    }
+
     public function test_that_excessive_usage_groups_fail_without_returning_partial_statistics(): void
     {
         $db = $this->database('sqlite');

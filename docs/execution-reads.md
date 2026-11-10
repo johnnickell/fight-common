@@ -88,7 +88,7 @@ selection and normalized pagination, **not caller authority**. Each call indepen
 - `outcomes`: counts of `unknown`, `succeeded`, `failed`, `cancelled`. Each execution contributes once, using the
   latest retained **session** observation; phase/activity/detail outcomes never establish execution completion.
   No session evidence means unknown. Later unknown evidence remains unknown rather than retaining an older success.
-- `activities` and `activities_without_usage`: retained activity observations and those with no measurement entries.
+- `activities` and `activities_without_usage`: currently permitted retained activity observations and those with no measurement entries.
   No activity/metric evidence is not measured zero and does not establish complete capture.
 - `usage`: up to **128** bytewise ordered `(metric, unit, provenance)` groups. Each `UsageTotal` contains exact
   decimal-string `measured` (null if nothing was measured) and separate `complete`, `partial`, `unknown`,
@@ -171,9 +171,9 @@ Each phase row contains:
   `recorded_at`, nullable `started_at`/`ended_at`, and explicit observed `outcome`. Missing evidence is unknown,
   never success. No review acceptance or Workflow transition is inferred, even for a phase named `review` in a
   succeeded execution. Selected session observations use this same safe shape.
-- `latest_recorded_at`: latest retained recording time for that phase across state/activity/detail evidence, or null.
+- `latest_recorded_at`: latest retained recording time for that phase across state, currently permitted activity and independently session/phase-scoped detail evidence, or null.
   This freshness may be later than the state observation, and does not establish completion or complete capture.
-- `models`: bytewise sorted distinct model references from retained phase activity, at most **128** per phase.
+- `models`: bytewise sorted distinct model references from currently permitted retained phase activity, at most **128** per phase.
   Models remain separate from the performing Agent and recording producer; an empty list means no retained model
   reference, not proof that no model performed work. More than 128 fails the whole response rather than truncating.
   No activity summary, detail reference, extension or body is returned; this is not activity browsing.
@@ -226,17 +226,23 @@ State and detail observations are not activity rows and do not contribute to act
 map of already granted project keys to `null` or a list of **0–100** exact `producer_id/observation_uuid` keys.
 Producer references cannot contain `/`; UUIDs must be full canonical lowercase strings. Lists snapshot and
 deduplicate keys. These grants cannot authorize a different project, session or phase. `activityGrants` restricts
-**activity browsing**, with omitted projects or null unrestricted and an empty list concealing all activity rows.
+**activity visibility** for browsing, summary/selected-execution counts and exact usage, execution/phase freshness
+and ordering, and phase model projections. Omitted projects or null remain unrestricted; an empty list conceals
+all activity evidence for these projections. SQL excludes concealed activities before loading or aggregating them.
 `detailGrants` explicitly permits **reference metadata disclosure**, with omitted projects or an empty list
 denying all references and null permitting all references linked to otherwise visible activity. A detail key
 from another producer/activity/scope grants nothing. SQL applies these constraints before decoding activity or
 detail rows; hidden references are not read, counted or reported as hidden. This extends the same admission
 result, not another permission-policy callback. Consumers must deliberately supply any human/Agent distinctions.
 
-These are distinct use-case permissions: aggregate overview statistics retain their existing session/phase
-scope and do not acquire activity-browsing/reference restrictions. Consumers must not grant aggregate inspection
-if those aggregate counts/usage are themselves confidential. Activity row permission never grants reference
-metadata, and reference disclosure never grants protected body retrieval. Current body-read policy uses the
+Activity restrictions intersect project/session/phase scope consistently across these safe inspection use cases.
+Session/phase subjects, state outcomes/timing and independently scoped detail evidence retain their existing
+meaning: activity grants do not conceal those facts or constrain detail-derived freshness. Reference grants do
+not alter aggregate statistics/freshness and activity permission never grants reference metadata or protected
+body retrieval. Hidden activity cannot add counts, usage, models or activity-derived freshness/order; separately
+permitted evidence may independently retain the same freshness timestamp. Page filters/pagination never narrow
+full-selection statistics. Explicit empty activity grants yield zero activities and an empty usage list, not
+measured zero; omitted/null restrictions preserve previous unrestricted behavior. Current body-read policy uses the
 separate [protected inspection](execution-protected-reads.md) admission; references and `retained` status are not credentials or leases.
 
 `ActivityPage::activities()` returns typed `ActivityView`s; `toArray()` contains `activities`, authorized `total`,
@@ -401,8 +407,20 @@ provisional `ExecutionAccess` gains optional activity-browsing and reference-dis
 existing session/phase calls. Domain repositories, tagged APIs, recording/schema/indexes, Query envelopes,
 Pagination and earlier safe overview/phase behavior remain unchanged. There is no alias/migration for unreleased
 snapshots; TASK-00152 itself adds no protected body API. The later separate
-[protected inspection slice](execution-protected-reads.md) adds that capability without changing these safe reads. Compatibility remains against actual tags (latest observed `v1.4.0`),
-not development snapshots; these Execution declarations are absent from that tag and remain provisional.
+[protected inspection slice](execution-protected-reads.md) adds that capability without changing these safe reads. These Execution declarations shipped in `v1.5.0`; the provisional descriptions above record their original
+pre-release introduction, not their current compatibility status. Compatibility is against released tags, not
+development snapshots.
+
+### Maintenance permission correction (TASK-00211)
+
+The unreleased 1.5 maintenance repair deliberately corrects the released v1.5.0 permission contract: activity
+grants previously restricted browsing only, allowing concealed activities to influence aggregate counts/usage,
+freshness/order and phase models. Callers with restricted activity grants now receive only permitted activity
+contributions in those fields, including `GetExecution` statistics and the five safe MCP Tools. This is a security
+correction, not arithmetic deduplication. Custom `ExecutionReader`/`PhaseReader` implementations must enforce the
+same current visibility contract. Unrestricted callers, public signatures/wire shapes, exact arithmetic, finite
+full-selection scans, schema, session/phase state and independent reference/body grants remain unchanged.
+No release certification/publication or consumer application qualification is implied.
 
 `compatibility/manifest.json` records these TASKs' declarations and inventory deltas. Existing release-wide
 bookkeeping gaps and operation-shape fingerprint regeneration remain release-owner follow-ups, not a claim of
