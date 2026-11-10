@@ -111,7 +111,7 @@ final readonly class ExecutionAccess
     }
 
     /**
-     * Returns activity-browsing restrictions, with omitted projects unrestricted
+     * Returns activity-visibility restrictions for browsing and derived inspection, with omitted projects unrestricted
      *
      * @return array<string, list<string>|null>
      */

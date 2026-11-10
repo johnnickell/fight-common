@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Mcp\Persistence\Observation\Dbal;
 
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalExecutionReadSupport;
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseReader;
+use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalExecutionReader;
 use Fight\Common\Application\Mcp\Detail\Data\DetailReference;
 use Fight\Common\Application\Mcp\Observation\Data\ActivityPage;
 use Fight\Common\Application\Mcp\Observation\Data\ActivityView;
@@ -23,7 +26,10 @@ use Fight\Test\Common\TestCase\Mcp\Execution\ActivityReadTestCase;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(DbalExecutionReadSupport::class)]
 #[CoversClass(DbalActivityReader::class)]
+#[CoversClass(DbalPhaseReader::class)]
+#[CoversClass(DbalExecutionReader::class)]
 #[CoversClass(ActivityPage::class)]
 #[CoversClass(ActivityView::class)]
 #[CoversClass(DetailReference::class)]
