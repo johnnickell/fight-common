@@ -50,16 +50,20 @@ containers, hold the affected teardown instead of being treated as disposable.
 
 A normal `bin/build` first runs offline planning validation freshly. The checkout-local `var/build.json` points
 to the original successful full-gate receipt and log under ignored `.runs/build/`. Reuse requires identical
-source, installed dependencies/lockfile, governing instructions, environment, actual image/container/runtime
-identities and generated artifacts, plus unchanged original evidence. Ordinary planning record Markdown is
+source, installed dependencies/lockfile, governing instructions and generated artifacts, plus unchanged
+original evidence. Database contents/schema/identity, containers, runtime tools and inherited environment
+values are not fingerprinted or queried for cache reuse. Ordinary planning record Markdown is
 excluded from application inputs; planning conventions, agent instructions, ADRs, templates and executable
 planning inputs remain covered. Symlink targets and bytes/modes are covered. Missing, changed or unreadable
 evidence cannot qualify a hit. Concurrent builds refuse the same checkout's lock.
 
+A cache hit skips build preparation, including dependency installation/update and image builds.
+On a miss, configured preparation runs first and its resulting dependency contents become the gate inputs.
 A miss executes the entire existing gate and reports its reason and original exit. `--force` invalidates the
-pointer before fresh execution; failures never publish a success. Runtime recreation invalidates reuse even
-when image layers are cached. Report fresh planning separately from the named original application receipt;
-a cache hit does not provide independent Review/QA acceptance or permit publication/merge by itself.
+pointer before fresh execution; failures never publish a success. Changing Pi roles or recreating runtime
+services does not invalidate an otherwise qualifying receipt. Old cache formats require one fresh build.
+Report fresh planning separately from the named original application receipt; a cache hit does not provide
+independent Review/QA acceptance or permit publication/merge by itself.
 
 Ignored `var/worktrees/<project>/` in canonical main contains generated Compose configuration and a locator,
 not a second resource inventory or a worker/PID admission ledger. Application boot never depends on `.runs/`.
@@ -112,7 +116,7 @@ runtime and this repository's test services in their respective Compose projects
 
 ## Maintainer ownership
 
-`etc/local-tooling.json` binds the local service set, gate, artifact paths and runtime probes. Update it whenever
+`etc/local-tooling.json` binds local runtime setup, the gate and artifact paths. Update it whenever
 those contracts change. `scripts/local_tooling` owns this checkout's adapters. Guarded native removal modules
 (`resources.py`, `source.py`, `publication.py`, `worktrunk.py`) were adopted verbatim from Fight Agent OS
 `scripts/resource_lifecycle` at `cbdf91562b2a5a8afb1c67cb83f24891f52015c5` (2026-11-02). Runtime selection and
@@ -120,9 +124,9 @@ build evidence are local adaptations, not copied provider application services. 
 comparison and qualification; no private-path dependency, symlink or automatic synchronization is installed.
 Validate these tools directly with native Compose/Worktrunk and normal gates, outside product test suites.
 
-Common starts its owned MySQL/PostgreSQL test services in the same project, with disposable tmpfs data and no host database ports. Cache qualification includes both actual database dumps. `bin/phpunit --fast` still excludes `server-database`; the complete path uses this worktree’s databases. Ordinary build preparation preserves `composer update`; the release resolver’s `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved` retains the existing lock. `FIGHT_COMMON_DOCS_PYTHON_IMAGE` remains an explicit docs-image override whose actual image identity is covered. Development PHP images are selected per project; release certification retains its separate image/profile contract. Historical per-run database receipts remain readable by their original guarded Python cleanup owner; no receipt is invented or replayed for another checkout.
+Common starts its owned MySQL/PostgreSQL test services in the same project, with disposable tmpfs data and no host database ports. `bin/phpunit --fast` still excludes `server-database`; the complete path uses this worktree’s databases. Ordinary build preparation preserves `composer update`; the release resolver’s `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved` retains the existing lock. `FIGHT_COMMON_DOCS_PYTHON_IMAGE` remains an explicit docs-image override. Development PHP images are selected per project; release certification retains its separate image/profile contract. Historical per-run database receipts remain readable by their original guarded Python cleanup owner; no receipt is invented or replayed for another checkout.
 
-Local development builds set native `BUILDX_NO_DEFAULT_ATTESTATIONS=1` for the build command so cached executable layers retain a stable immutable image identity instead of a timestamped attestation index. Release/publication commands retain their own policy. Layers and actual image IDs remain verified; this does not permit publishing local images.
+Local development builds set native `BUILDX_NO_DEFAULT_ATTESTATIONS=1` for the build command so cached executable layers retain a stable immutable image identity instead of a timestamped attestation index. Release/publication commands retain their own policy. This does not permit publishing local images.
 
 The installed CodeIgniter dependency’s native `vendor/codeigniter4/framework/writable/logs` tree is generated test output. Its final bytes are verified as artifacts before reuse; tracked files in output trees remain source inputs.
 
