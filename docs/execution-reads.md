@@ -413,7 +413,7 @@ development snapshots.
 
 ### Maintenance permission correction (TASK-00211)
 
-The unreleased 1.5 maintenance repair deliberately corrects the released v1.5.0 permission contract: activity
+The prepared v1.5.1 maintenance repair deliberately corrects the released v1.5.0 permission contract: activity
 grants previously restricted browsing only, allowing concealed activities to influence aggregate counts/usage,
 freshness/order and phase models. Callers with restricted activity grants now receive only permitted activity
 contributions in those fields, including `GetExecution` statistics and the five safe MCP Tools. This is a security

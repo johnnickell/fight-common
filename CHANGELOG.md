@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-11-10
+
+These maintenance release notes describe the prepared candidate, not certification or publication.
+
 ### Security
 
 - Correct the v1.5.0 execution-inspection permission contract on the 1.5 maintenance line (TASK-00211).
@@ -15,8 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   browsing. Explicit empty grants disclose no activity contribution; omitted/null restrictions retain unrestricted
   behavior. Session/phase state and independently scoped detail evidence retain their meaning; reference metadata
   and protected-body grants remain independent. Public signatures, wire shapes, schema, finite full-selection
-  reads and exact arithmetic are unchanged. This security correction is proposed for a separately authorized
-  v1.5.1 release, not certification or publication. See [the corrected contract](docs/execution-reads.md#maintenance-permission-correction-task-00211).
+  reads and exact arithmetic are unchanged. Restricted callers may observe lower totals/usage, different
+  freshness/order and fewer models; custom readers must enforce the corrected visibility contract. No schema
+  migration is required. See [the corrected contract](docs/execution-reads.md#maintenance-permission-correction-task-00211).
 
 ## [1.5.0] - 2026-11-09
 
@@ -482,7 +487,8 @@ for exact limits and composition requirements.
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/johnnickell/fight-common/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/johnnickell/fight-common/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/johnnickell/fight-common/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/johnnickell/fight-common/compare/v1.4.0...v1.4.1

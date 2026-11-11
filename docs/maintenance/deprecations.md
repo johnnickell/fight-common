@@ -1,28 +1,31 @@
 # Deprecation and migration inventory
 
 This is the current consolidated inventory of **already-deprecated contracts**, not a removal plan or release
-approval. Paths below omit `Fight\Common\`. Earlier first-deprecating minors are preserved; pending groups are
-**planned to first ship in v1.5.0, not yet released**. Source annotations saying “Planned v1.5.0” mean that same
-prospective shipment, never that a tag has shipped.
+approval. Paths below omit `Fight\Common\`. Earlier first-deprecating minors are preserved; the four newer
+groups first shipped in [released v1.5.0](https://github.com/johnnickell/fight-common/releases/tag/v1.5.0)
+on 2026-11-09T20:13:04Z. Source annotations saying “Planned v1.5.0” retain their preparation-time wording;
+they are not independent publication proof.
 
 [ADR 0011](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0011-non-structural-compatibility-policy.md) requires at least **one actually
 released minor** with the deprecation before separately authorized major removal. Development snapshots do not
-count. A released v1.5.0 can satisfy that window before v2.0.0; no mandatory v1.6.0 is invented. Existing v2.0.0
+count. Released v1.5.0 supplies that minor before separately authorized v2.0.0 removal; no mandatory v1.6.0 is invented. Existing v2.0.0
 targets remain targets, not permission to remove anything in this cleanup. No runtime warning is added.
 
-## Planned v1.5.0 groups
+<a id="planned-v150-groups"></a>
+
+## First released in v1.5.0
 
 | Contract | Complete inventory and replacement | First deprecating minor |
 | --- | --- | --- |
-| 17 relocated MCP foundation **root spellings** | [Complete old/new operation map](mcp-foundation-namespaces.md): prefer `Application\Mcp\Capability`, `Protocol`, `Protocol\Exception`, `Http` and `Tool` homes | Planned v1.5.0; not yet released |
-| 9 released MCP HTTP adapter spellings | [Complete adapter map](../components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility): `Adapter\Http\{Mcp,Symfony,CodeIgniter}` names → corresponding `Adapter\Mcp` homes | Planned v1.5.0; not yet released |
-| 50 public readonly property reads in 14 HTTP/OAuth/MCP classes | [Complete property-to-method map](public-property-getters.md): `$value->name` → `$value->name()` with unchanged type/nullability | Planned v1.5.0; not yet released |
-| 4 default-only schema `TABLES` arrays (13 table names) | [Complete constant-to-selection map](table-name-constants.md): Execution/Task/Notice/Subscription schema constants → the actual explicitly composed selection accessors | Planned v1.5.0; not yet released |
+| 17 relocated MCP foundation **root spellings** | [Complete old/new operation map](mcp-foundation-namespaces.md): prefer `Application\Mcp\Capability`, `Protocol`, `Protocol\Exception`, `Http` and `Tool` homes | Released v1.5.0 |
+| 9 released MCP HTTP adapter spellings | [Complete adapter map](../components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility): `Adapter\Http\{Mcp,Symfony,CodeIgniter}` names → corresponding `Adapter\Mcp` homes | Released v1.5.0 |
+| 50 public readonly property reads in 14 HTTP/OAuth/MCP classes | [Complete property-to-method map](public-property-getters.md): `$value->name` → `$value->name()` with unchanged type/nullability | Released v1.5.0 |
+| 4 default-only schema `TABLES` arrays (13 table names) | [Complete constant-to-selection map](table-name-constants.md): Execution/Task/Notice/Subscription schema constants → the actual explicitly composed selection accessors | Released v1.5.0 |
 
 Foundation deprecation belongs only to the old spelling, **not** the shared runtime declaration or canonical
 alias. `McpResponder` and `McpDiagnostics` stay at root without deprecation. A class-wide deprecated annotation
 would incorrectly deprecate both names, so the foundation map/manifest carry spelling-only metadata. The other
-three groups have existing member/class annotations with their planned minor. Standards is wholly excluded
+three groups have existing member/class annotations identifying the planned minor that has now shipped. Standards is wholly excluded
 from the property migration; native ORM mapping and Doctrine type-name constants are not table constants.
 
 ## Already released in v1.2.0
@@ -102,5 +105,5 @@ validation status differences and native HTML delegation; do not silently replac
   coordinated data movement, backups and recovery, not this deprecation inventory.
 - The [actual support policy](https://github.com/johnnickell/fight-common/blob/develop/SUPPORTED_VERSIONS.md) still governs every supported line, including the
   limited six-month final-1.x obligation after a new major. Do not infer dates from a planned version, expire a
-  line early, or treat a maintenance branch as proof of support. This cleanup neither releases v1.5.0 nor removes
-  APIs in v2.0.0.
+  line early, or treat a maintenance branch as proof of support. This inventory records the observed v1.5.0
+  publication; it does not authorize removal of APIs in v2.0.0.
