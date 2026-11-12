@@ -18,10 +18,10 @@ lockfile in an exported candidate, then resolves separate latest-compatible and 
 their own exported candidates, and runs the mode-free complete product gate once for each lane. The root library
 checkout does not need or retain a `composer.lock`. After each exported candidate's explicit dependency
 resolution, certification invokes the full build with `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved`. That profile
-uses `composer update --lock` to retain the resolved versions while validating lock metadata; it requires an
-existing candidate lockfile. Without this boundary, the ordinary build's `composer update` would upgrade the
-lowest-compatible lane back to latest-compatible versions. No product checks are skipped. Ordinary library
-builds use the default profile and resolve dependency versions afresh.
+uses the already installed candidate dependencies without another Composer operation; it requires the candidate
+lockfile and autoloader. The lowest lane resolves its initial lock without installing, then installs only its
+selected lowest-compatible versions. No product checks are skipped. Ordinary library builds resolve dependency
+versions only on a cache miss.
 
 After the lane gates, certification exports the same exact candidate commit into a separate pristine archive
 staging directory. Only that staging directory's Composer manifest receives the requested version annotation;
@@ -50,6 +50,10 @@ The command performs no merge, tag, push, GitHub, Packagist, or deployment actio
 Do not add release-process PHPUnit tests. Everyday PHPUnit and exact coverage protect only consumer-runtime code
 under `src/`. Release PHP still passes syntax, PHPCS, PHPStan, Rector, and Deptrac checks through `./bin/build`, and
 the expensive workflow is verified by running the real certification command for a clean committed candidate.
+
+Do not add duplicate certification lanes, repeat complete gates for identical resolved inputs, or add
+release checks without an explicitly approved compatibility requirement. Investigate flaky checks instead
+of adding retries or more gates.
 
 Do not add release declarations beneath production `src/`, map `Fight\Release\` in production autoloading, or add
 another release executable.

@@ -81,7 +81,7 @@ records the verified PR URL as publication history, and retires eligible owned l
 No delivery marker/table, persistent merge queue or recurring post-merge planning chore remains. This Common
 policy overrides provider marker examples; direct exact owned-PR/default/base/head checks remain mandatory.
 
-This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
+This library ignores composer.lock. Ordinary builds use `composer update` on a cache miss. Release tooling resolves and installs its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 
 Tooling uses the selected checkout's native Compose project. Follow [local tooling](../../docs/engineering/LOCAL_TOOLING.md)
 for startup, explicit main/worktree selection, cached gate evidence and guarded retirement. From the selected checkout:
