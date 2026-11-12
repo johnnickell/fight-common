@@ -59,3 +59,14 @@ Human merge and open-PR remote heads remain separate. There is no tracked delive
 pending-merge queue or recurring post-merge planning chore; preserve historical acceptance/publication and reports.
 Planning checks stay offline; routing, Review and QA remain read-only. Real uncertainty holds the affected action.
 This local policy overrides provider marker examples. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.
+
+## Clear communication
+
+Lead human-facing replies, plans, reports, handoffs, PR descriptions and documentation with the result or
+needed action. Use familiar words, short sentences and enough context to explain why. Explain necessary
+technical terms; remove repetition and detail that does not help the reader. Preserve facts, uncertainty,
+decisions, requirement strength, domain names, code and quoted evidence. Make factual corrections explicit.
+Check clarity before sending; no separate rewriting pipeline or rigid word limit is required. Agent-facing
+instructions still need precise conditions and boundaries.
+
+Follow the local [testing guidance](docs/engineering/standards/Testing.md#test-quality-and-suite-balance) for coverage, useful tests and suite balance.

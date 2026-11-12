@@ -24,7 +24,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | Document | SHA-256 |
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
-| `AGENTS.md installed` | `187248c51307fce8ba3fb3d3df24c15eaceee1c3a208f5d8aac372548984d444` |
+| `AGENTS.md installed` | `264a3d6556ec64abb766f4fcb7c61e485eb890498031c32a24600f4f908b7b6f` |
 | `standards/Architecture.md` | `82816e86ee2ec91f0b244e968eaa4c67889a63145124a5243e78a26b3780a6fb` |
 | `standards/Delivery.md` | `edea87ae0c622b604bf81bbb457d65fa563105445a98886cdb8f12d17b2010e8` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
@@ -34,10 +34,10 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
 | `standards/Planning.md` | `3977009d18e64afe804a80fa3f6dcef5ff062ea9694f890717a3b8b84bc22c66` |
 | `standards/Review.md` | `cd86ecfa4f1a9b7a73394ff14c97dbf12def59ebb3bdea084f18253be5f21277` |
-| `standards/Testing.md` | `f893cb8525d526987f0fe9f98909afff05575c29829eb4fb5814a00d39ac9519` |
+| `standards/Testing.md` | `0bfd7227dc763ec3ae08d24151f32b6db723696eacf4c19c6893c0cc68fc35dd` |
 | `standards/QA.md` | `715aa0bb9caf81c03f5949cca0c4d2cecad1cc1b82b30c1b55cd38fe111c3258` |
 | `QA_REPORT_TEMPLATE.md` | `1e71e01157b297abdfef19fc146fb18cfc36337abb1fcd984f2dd7b7bf8aa7e6` |
-| `planning/agents/shared-workflows.md` | `f1522da4c0ba1cd77839135a1fd26253bfa123d0145a9c9e96230d1b5c9ef166` |
+| `planning/agents/shared-workflows.md` | `7c48d1c4930a63dc73aa5eadd4cfee277acd62b6e0f40dd9ec2da55eb0f57e1a` |
 
 ## Project scope and unresolved work
 
@@ -203,3 +203,11 @@ and independent reports, human-only merge and open-PR remote heads. No renamed q
 planning chore replaces the removed mechanism. Planning/routing stays offline; uncertainty holds the affected
 effect. No local TASK, publication or independent acceptance is created by this central repair. Current installed
 digests above identify the amended documents, not fresh upstream provider qualification.
+
+## Test clarity and coverage amendment — 2026-11-12
+
+John required 100% Unit-only line coverage and practical guidance for clear assertions, useful DTO tests,
+tautologies, focused mutation analysis and suite balance. The local Testing standard owns the policy and
+discloses current enforcement limits. Root instructions add plain-language output guidance. Existing statement
+gates, product contracts and build/cache reuse rules remain in force. Installed hashes reflect these local
+edits; source/baseline hashes and historical acceptance remain provenance, not a claim of earlier adoption.
