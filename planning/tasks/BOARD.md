@@ -21,7 +21,9 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00212](00212-TASK.md) | Reduce Functional coverage to 106 critical executions for 1.5.1 | in-progress | — |
+| None | — | — | — | — |
+
+No TASK is currently executable; unresolved work may remain.
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -34,7 +36,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 1 | [TASK-00212](00212-TASK.md) | Reduce Functional coverage to 106 critical executions for 1.5.1 | — (standalone chore) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
@@ -78,6 +80,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 1 | [TASK-00208](00208-TASK.md) | Reconcile certifier image-preparation outcome validation | — (standalone bug) | done | — | [PR #297](https://github.com/johnnickell/fight-common/pull/297) |
 | 1 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | — (standalone bug) | done | — | [PR #301](https://github.com/johnnickell/fight-common/pull/301) |
 | 1 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | — (standalone bug) | done | — | [PR #298](https://github.com/johnnickell/fight-common/pull/298) |
+| 1 | [TASK-00212](00212-TASK.md) | Reduce Functional coverage to 106 critical executions for 1.5.1 | — (standalone chore) | done | — | — |
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | done | — | [PR #261](https://github.com/johnnickell/fight-common/pull/261) |
 | 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #165](https://github.com/johnnickell/fight-common/pull/165) |
