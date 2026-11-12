@@ -14,6 +14,7 @@ use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
 use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
+use Fight\Test\Common\Fixture\Mcp\ContentionObservations;
 use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRecoveryFixture;
@@ -613,7 +614,7 @@ abstract class McpSubscriptionJourneyTestCase extends TestCase
         $result = $processExit === 0 && file_exists($this->directory.'/contention-result.json') ? json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR) : [];
         $wire = $process->getOutput();
         $this->evidence['contention_process'] = ['pid' => $pid, 'exit' => $processExit, 'output' => $wire, 'error' => $process->getErrorOutput()];
-        if ($processExit !== 0) { $this->evidence['contention_failure'] = \Fight\Test\Common\Fixture\Mcp\ContentionObservations::read($this->directory.'/contention-failure.json'); }
+        if ($processExit !== 0) { $this->evidence['contention_failure'] = ContentionObservations::read($this->directory.'/contention-failure.json'); }
         $this->evidence['contention'] = compact('mode', 'transport', 'bootstrapDelayMicroseconds', 'wire', 'result');
         self::assertSame(0, $processExit, json_encode([
             'stdout' => $wire, 'stderr' => $process->getErrorOutput(),

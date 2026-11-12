@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use Doctrine\DBAL\DriverManager;
+use Fight\Test\Common\Fixture\Mcp\ContentionObservations;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
+
 $bootStartedAt = microtime(true);
 $directory = $argv[1];
 require __DIR__.'/ContentionObservations.php';
@@ -9,7 +13,7 @@ $workerPhases = [];
 $observationErrors = [];
 $observeWorkerPhase = static function (string $phase) use ($directory, &$workerPhases, &$observationErrors): void {
     $workerPhases[$phase] = ['at' => microtime(true), 'monotonic_ns' => hrtime(true), 'pid' => getmypid()];
-    $error = \Fight\Test\Common\Fixture\Mcp\ContentionObservations::write($directory.'/worker-phases.json', $workerPhases + ['observation_errors' => $observationErrors]);
+    $error = ContentionObservations::write($directory.'/worker-phases.json', $workerPhases + ['observation_errors' => $observationErrors]);
     if ($error !== null) { $observationErrors[$phase] = $error; }
 };
 $observeWorkerPhase('bootstrap_started');
@@ -17,9 +21,6 @@ register_shutdown_function(static function () use ($observeWorkerPhase): void { 
 // Deterministically model slow bootstrap before loading any application dependency.
 usleep((int) ($argv[3] ?? 0));
 require dirname(__DIR__, 3).'/vendor/autoload.php';
-
-use Doctrine\DBAL\DriverManager;
-use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 
 // A clean, prewarmed process owns only the capacity lock, never an inherited stream/Fiber.
 $observeWorkerPhase('autoload_returned');
