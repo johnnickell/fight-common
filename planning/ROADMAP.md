@@ -32,7 +32,9 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00213](tasks/00213-TASK.md) | Harden subscription failure diagnostics and adopt MySQL 2 GiB on 1.5 | in-progress | — |
+| None | — | — | — | — |
+
+No TASK is currently executable; unresolved work may remain.
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
