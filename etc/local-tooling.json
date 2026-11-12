@@ -1,15 +1,7 @@
 {
   "project": "fight-common",
-  "running": [
-    "php",
-    "mysql",
-    "postgresql"
-  ],
   "directories": [
     "var/cache/composer"
-  ],
-  "extra_images": [
-    "docs"
   ],
   "build_prepare": [
     "./bin/.build-prepare"
@@ -27,46 +19,8 @@
     "-B",
     "scripts/retire-legacy-databases.py"
   ],
-  "runtime_probes": [
-    [
-      "exec",
-      "-T",
-      "php",
-      "sh",
-      "-ec",
-      "php -r 'echo json_encode([PHP_VERSION, get_loaded_extensions(), ini_get_all(null, false)]);'; composer --version; git --version"
-    ]
-  ],
   "images": [
     "php",
     "docs"
-  ],
-  "extra_image_environment": {
-    "docs": "FIGHT_COMMON_DOCS_PYTHON_IMAGE"
-  },
-  "data_probes": [
-    [
-      "exec",
-      "-T",
-      "mysql",
-      "mysqldump",
-      "--user=root",
-      "--password=root",
-      "--skip-comments",
-      "--skip-lock-tables",
-      "--routines",
-      "--events",
-      "fight_common"
-    ],
-    [
-      "exec",
-      "-T",
-      "postgresql",
-      "bash",
-      "-o",
-      "pipefail",
-      "-c",
-      "pg_dump --username=fight_common --dbname=fight_common | sed '/^\\\\restrict /d; /^\\\\unrestrict /d'"
-    ]
   ]
 }
