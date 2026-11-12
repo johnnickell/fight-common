@@ -164,7 +164,7 @@ classified in `compatibility/manifest.json`; no released signature, publisher/ad
 contract, schema, dependency floor or existing suppression changes. No development-snapshot migration is added.
 
 Direct Unit tests cover selection, current decisions, safe failures and exact/over limits including escaped Unicode.
-`NoticePublicationJourneyTest` uses real SQLite/MySQL/PostgreSQL recording, inspection/recovery/removal and both
+`DbalNoticePublicationIntegrationTest` uses real SQLite/MySQL/PostgreSQL recording, inspection/recovery/removal and both
 actual Common Mercure adapters with a controlled `HubInterface`. It proves committed visibility before policy/hub
 I/O, repeated/failed publication with retained recovery, and Mercure-free guarded polling. This is package translation
 and persistence evidence, not deployed hub/browser delivery, consumer audience-policy correctness or Agent OS/Pi

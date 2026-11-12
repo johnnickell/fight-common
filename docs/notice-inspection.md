@@ -168,7 +168,7 @@ does not qualify a deployed consumer, SUPER_ADMIN interface, browser, MCP client
 ## Verification
 
 Direct tests cover selection/query/data/admission/handler/reader behavior and exact owned production statements.
-`NoticeInspectionJourneyTest` uses the real recording Command (including identical retries), routed Queries and
+`DbalNoticeInspectionIntegrationTest` uses the real recording Command (including identical retries), routed Queries and
 actual SQLite/MySQL/PostgreSQL. It proves 105 matching notices across four pages, independent producers/scopes,
 full-selection totals with multi-recipient/causation references, time ties/precision, every required filter, broadcast
 and unknown cases, direct detail before listing, revoked/forged/denied access, concealed sentinel metadata, no

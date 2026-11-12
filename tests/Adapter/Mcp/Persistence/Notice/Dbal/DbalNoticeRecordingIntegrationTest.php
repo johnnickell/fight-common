@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Functional;
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Notice\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -29,7 +29,7 @@ use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
-final class NoticeRecordingJourneyTest extends UnitTestCase
+final class DbalNoticeRecordingIntegrationTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
@@ -188,8 +188,8 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
     {
         $connection = $this->database($backend, $tables); $directory = $this->directory();
         $config = $directory.'/config.json'; file_put_contents($config, json_encode(['params' => $connection->getParams(), 'mode' => $mode, 'tables' => $this->workerTables($tables)], JSON_THROW_ON_ERROR));
-        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Notice/record-worker.php', $config, 'first'], timeout: 25);
-        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Notice/record-worker.php', $config, 'second'], timeout: 25);
+        $first = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Notice/record-worker.php', $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Notice/record-worker.php', $config, 'second'], timeout: 25);
         try {
             $first->start(); $this->waitFor($directory.'/first-precommit', $first);
             self::assertSame('1', file_get_contents($directory.'/first-precommit'));
@@ -225,8 +225,6 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend, new DbalNoticeTables()];
-            yield $backend.'-partial' => [$backend, new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
             yield $backend.'-configured' => [$backend, new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
         }
     }

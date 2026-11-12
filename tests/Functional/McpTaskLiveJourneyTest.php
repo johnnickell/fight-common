@@ -158,11 +158,9 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     public static function sourceRaces(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach (['signal', 'close', 'cleanup'] as $fault) {
-                foreach (['opening', 'baseline', 'update'] as $phase) {
-                    foreach ([false, true] as $configured) { yield $backend.'-'.$fault.'-'.$phase.'-'.($configured ? 'configured' : 'default') => [$backend, $fault, $phase, $configured]; }
-                }
+        foreach (['signal', 'close', 'cleanup'] as $fault) {
+            foreach (['opening', 'baseline', 'update'] as $phase) {
+                yield 'sqlite-'.$fault.'-'.$phase.'-configured' => ['sqlite', $fault, $phase, true];
             }
         }
     }
@@ -183,9 +181,7 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     public static function databases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach ([false, true] as $configured) { yield $backend.'-'.($configured ? 'configured' : 'default') => [$backend, $configured]; }
-        }
+        yield 'sqlite-configured' => ['sqlite', true];
     }
 
     private function database(string $backend, bool $configured): void

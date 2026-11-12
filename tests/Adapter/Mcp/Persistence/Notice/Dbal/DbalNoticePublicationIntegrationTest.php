@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Functional;
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Notice\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -43,7 +43,7 @@ use Symfony\Component\Mercure\Update;
 use Throwable;
 
 #[CoversNothing]
-final class NoticePublicationJourneyTest extends UnitTestCase
+final class DbalNoticePublicationIntegrationTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
@@ -259,8 +259,6 @@ final class NoticePublicationJourneyTest extends UnitTestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend, new DbalNoticeTables()];
-            yield $backend.'-partial' => [$backend, new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
             yield $backend.'-configured' => [$backend, new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
         }
     }

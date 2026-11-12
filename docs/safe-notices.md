@@ -371,7 +371,7 @@ MCP stream or Mercure/hub proof; polling has its own [recovery evidence](notice-
 ## Verification
 
 Direct model/storage/handler tests exercise finite/exact/over bounds, immutable reference snapshots, unknowns,
-comparison, caller transaction rejection, uncertainty and post-commit failure. `NoticeRecordingJourneyTest` routes
+comparison, caller transaction rejection, uncertainty and post-commit failure. `DbalNoticeRecordingIntegrationTest` routes
 Commands through the real handler and actual disposable SQLite/MySQL/PostgreSQL, reconnects repositories, injects
 failures across all related writes/commit, and uses independent processes paused after allocation but before commit.
 Those workers prove concurrent equal/conflicting retries, fresh admission after waiting, rollback/retry positions
@@ -381,7 +381,7 @@ transaction and recovery-reader composition; `DbalNoticeRepositoryTest` also pro
 or Notice boundaries, caught nesting, auto-commit-off admission and preserved callback results.
 `NoticeRemovalSelectionTest` and `DbalNoticeRemovalTest`
 directly qualify removal bounds, immutability, preflight admission, rollback, storage loss, stale targets and handlers.
-`NoticeRemovalJourneyTest` uses actual disposable SQLite/MySQL/PostgreSQL, seeds through the real recording Command,
+`DbalNoticeRemovalIntegrationTest` uses actual disposable SQLite/MySQL/PostgreSQL, seeds through the real recording Command,
 checks survivors and empty reconstruction, performs 128 record/remove cycles per backend, injects deletion/loss/
 commit faults including lost acknowledgment, preserves caller transactions and tests both lock orders with independent
 processes. Its coherent-window race supplies downstream recovery fixtures without public polling. TASK-00159 owns

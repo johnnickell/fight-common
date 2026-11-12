@@ -112,6 +112,11 @@ tests and functional tests against this checkout's disposable MySQL/PostgreSQL s
 `composer.lock`; preparation resolves its supported constraints instead of reusing a stale local lock. Focused
 checks provide iteration feedback; report fresh planning separately from any reused application receipt.
 
+The [test pyramid and assertion map](../functional-test-pyramid.md) separates the 106 critical expanded
+Functional executions from exhaustive real persistence Integration matrices and deterministic direct Unit proof.
+Use `./bin/phpunit --no-coverage --testsuite Functional --list-tests` to inspect membership without executing it.
+Do not multiply every native HTTP journey by backend/table choices already proved at the adapter seam.
+
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
 delivery evidence for the checked-out SHA, not a second dependency or quality lane. The workflow is **work → local
 verification → independent Review → independent QA → authorized Land → human merge**. Local evidence permits

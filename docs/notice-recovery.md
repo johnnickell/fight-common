@@ -184,8 +184,8 @@ against the current tagged inventory, not a compatibility guarantee for old deve
 implementations. No existing released declaration, MCP seam, schema/index, dependency floor or framework behavior changes;
 no development migration, alias or codec is introduced. Sodium was already optional; this composition also requires it.
 
-Direct tests qualify query/data/identity/handler/continuation/Tool bounds and exact owned statements. Routed functional
-journeys seed through recording, remove through the independent removal Command, and use real SQLite/MySQL/PostgreSQL.
+Direct tests qualify query/data/identity/handler/continuation/Tool bounds and exact owned statements. The routed
+`DbalNoticeRecoveryIntegrationTest` scenarios seed through recording, remove through the independent removal Command, and use real SQLite/MySQL/PostgreSQL.
 They cover publication failure, multi-batch committed order, delayed commits, both recovery/removal lock orders, fresh
 access/caller/epoch/selection changes, complete/incomplete/uncertain outcomes, final deletion, retired/missing evidence,
 concealed sentinels, scan exhaustion and safe failures. Exact encoded-envelope tests hold only the encryption nonce output

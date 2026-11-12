@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Functional;
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Notice\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
 #[CoversNothing]
-final class NoticeTableSelectionJourneyTest extends UnitTestCase
+final class DbalNoticeTableSelectionIntegrationTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];

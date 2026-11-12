@@ -114,4 +114,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | done | — |
 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | done | — |
 | [TASK-00211](00211-TASK.md) | Apply activity visibility consistently to execution summaries | done | — |
+| [TASK-00212](00212-TASK.md) | Reduce Functional coverage to 106 critical executions for 1.5.1 | in-progress | — |
 <!-- /planning:records -->

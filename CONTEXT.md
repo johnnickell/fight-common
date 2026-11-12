@@ -4,6 +4,10 @@ This project is a shared PHP library for applications using Hexagonal Architectu
 
 This file records how terms are used inside this library. Public APIs, documentation, tickets, and ADRs should use these meanings consistently.
 
+The [test pyramid](docs/maintenance/functional-test-pyramid.md) records the 106 critical expanded Functional
+executions and assertion-preserving persistence/transport factorization. Backend/table products and real
+lock-order/transaction matrices belong to Integration; direct Unit coverage retains its unchanged denominator.
+
 ## Approved aggregate correction and current source
 
 [Architecture](docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) owns the approved

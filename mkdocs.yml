@@ -171,5 +171,6 @@ nav:
     - Public Property Getters: maintenance/public-property-getters.md
     - Table-Name Constants: maintenance/table-name-constants.md
     - Descriptive Variable Names: maintenance/descriptive-variable-names.md
+    - Functional Test Pyramid: maintenance/functional-test-pyramid.md
     - Contributing: maintenance/contributing/index.md
     - Coding Standard: maintenance/coding-standard/index.md
