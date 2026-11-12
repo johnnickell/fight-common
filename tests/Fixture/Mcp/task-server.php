@@ -29,6 +29,17 @@ if ($scenario === 'submission-failure') { $endpoint->tool->onStart = static fn (
 if ($scenario === 'publication-failure') { $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static fn () => throw new RuntimeException('private publication failure')); }
 $response = $endpoint->handler->handle(ServerRequest::fromGlobals());
 $composition = $_GET['composition'] ?? 'psr';
+if ($scenario === 'response-loss') {
+    // Keep the response pending until the client has observed the actual committed Task and disconnected.
+    // This is an orchestration barrier, not durable product evidence or an acknowledgement to the caller.
+    file_put_contents($directory.'/response-pending', 'yes');
+    $deadline = microtime(true) + 10;
+    while (!file_exists($directory.'/release-response')) {
+        clearstatcache();
+        if (microtime(true) > $deadline) { throw new RuntimeException('Response-loss fixture release unavailable'); }
+        usleep(10000);
+    }
+}
 if ($composition === 'symfony') { new McpResponseFactory()->fromResponse($response)->send(); }
 elseif ($composition === 'codeigniter') { require __DIR__.'/codeigniter.php'; new McpResponse($response)->send(); }
 else { new McpResponseEmitter()->emit($response); }

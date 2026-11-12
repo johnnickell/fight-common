@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Functional;
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Notice\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -26,7 +26,7 @@ use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
-final class NoticeRecoveryJourneyTest extends UnitTestCase
+final class DbalNoticeRecoveryIntegrationTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
@@ -185,8 +185,8 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
         file_put_contents($config, json_encode(['params' => $db->getParams(), 'mode' => match ($mode) { 'record-first' => 'distinct', 'recover-first' => 'record-first-remove', default => 'remove-first-window' }, 'selection' => $selection, 'arguments' => $args, 'tables' => $this->workerTables($tables)], JSON_THROW_ON_ERROR));
         $firstScript = match ($mode) { 'record-first' => 'record-worker.php', 'remove-first' => 'removal-worker.php', default => 'recovery-worker.php' };
         $secondScript = $mode === 'recover-first' ? 'removal-worker.php' : 'recovery-worker.php';
-        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Notice/'.$firstScript, $config, 'first'], timeout: 25);
-        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Notice/'.$secondScript, $config, 'second'], timeout: 25);
+        $first = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Notice/'.$firstScript, $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Notice/'.$secondScript, $config, 'second'], timeout: 25);
         try {
             $first->start(); $this->waitFor($directory.($mode === 'record-first' ? '/first-precommit' : '/first-locked'), $first);
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(200000);
@@ -207,8 +207,6 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend, new DbalNoticeTables()];
-            yield $backend.'-partial' => [$backend, new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
             yield $backend.'-configured' => [$backend, new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
         }
     }

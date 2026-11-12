@@ -11,6 +11,17 @@
         <testsuite name="Unit">
             <directory>tests</directory>
             <exclude>tests/Functional</exclude>
+            <exclude>tests/Adapter/Mcp/Http/McpResourceMetadataIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeRecordingIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeInspectionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticePublicationIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeRecoveryIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeRemovalIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeTableSelectionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskLifecycleIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskInputIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskCancellationIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Subscription/Dbal/DbalSubscriptionConcurrencyIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</exclude>
             <exclude>tests/Adapter/Repository/Doctrine/DoctrineMappedStorageIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</exclude>
@@ -68,6 +79,17 @@
             <exclude>tests/Standards/Phpcs/MemberLayoutTest.php</exclude>
         </testsuite>
         <testsuite name="Integration">
+            <file>tests/Adapter/Mcp/Http/McpResourceMetadataIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeRecordingIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeInspectionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticePublicationIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeRecoveryIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeRemovalIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Notice/Dbal/DbalNoticeTableSelectionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskLifecycleIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskInputIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskCancellationIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Subscription/Dbal/DbalSubscriptionConcurrencyIntegrationTest.php</file>
             <file>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</file>
             <file>tests/Adapter/Repository/Doctrine/DoctrineMappedStorageIntegrationTest.php</file>
             <file>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</file>

@@ -122,8 +122,11 @@ subscription expiry nor proves completion, notification receipt or processing.
 `DbalConfiguredSubscriptionIntegrationTest` exercises full/default/partial choices on real SQLite, MySQL-compatible
 and PostgreSQL storage, including poisoned default capacity/state, owner identity, renewal/no-op/closure/expiry,
 cleanup, bounded inspection, separate-connection committed reads and explicit selected-schema failures.
-`McpSubscriptionJourneyTest` retains default and configured variants of actual HTTP, independent producer/inspection
-processes, native adapters, permission changes, abrupt/disconnect behavior, retained recovery and serialized lock waits.
+`McpSubscriptionJourneyTest` retains representative configured actual HTTP, independent producer/inspection
+processes, all native adapters, permission changes, abrupt/disconnect behavior and retained recovery.
+`DbalSubscriptionConcurrencyIntegrationTest` preserves all-driver serialized capacity lock waits, body/emitter
+callbacks, delayed bootstrap, clock-crossing reads and dedicated ownership/transaction boundaries. See the
+[test pyramid and assertion map](maintenance/functional-test-pyramid.md) for the factored storage/transport products.
 `McpTaskLiveJourneyTest` similarly composes all eight configured suppliers, with an actual independent safe Notice
 producer in mixed streams, guarded Task updates/input/cancellation, reconnect/current-state recovery, source/storage
 faults and protected-state exclusion. Coexisting populated default counterparts remain unchanged. These are package

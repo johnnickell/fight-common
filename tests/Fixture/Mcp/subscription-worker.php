@@ -12,6 +12,18 @@ $params = json_decode(file_get_contents($argv[1].'/connection.json'), true, flag
 $connection = DriverManager::getConnection($params);
 $tables = new LifecycleTables(json_decode(file_get_contents($argv[1].'/tables.json'), true, flags: JSON_THROW_ON_ERROR));
 if ($params['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 3000'); }
+if (($argv[2] ?? '') === 'prepared') {
+    // Deliberately slow producer bootstrap must complete before a finite live subscription opens.
+    usleep(2200000);
+    $connection->executeQuery('SELECT 1')->fetchOne();
+    file_put_contents($argv[1].'/producer-ready', 'yes');
+    $deadline = microtime(true) + 5;
+    while (!file_exists($argv[1].'/release-producer')) {
+        clearstatcache();
+        if (microtime(true) > $deadline) { throw new RuntimeException('Prepared producer release unavailable'); }
+        usleep(10000);
+    }
+}
 $data = json_decode(file_get_contents($argv[1].'/operation.json'), true, flags: JSON_THROW_ON_ERROR);
 if ($data['operation'] === 'record') {
     $writer = new NoticeFixture($connection, $tables->notice);

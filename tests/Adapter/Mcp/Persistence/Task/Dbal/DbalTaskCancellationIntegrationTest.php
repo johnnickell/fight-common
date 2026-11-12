@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Functional;
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Task\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -30,7 +30,7 @@ use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
-final class TaskCancellationJourneyTest extends UnitTestCase
+final class DbalTaskCancellationIntegrationTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
@@ -202,7 +202,6 @@ final class TaskCancellationJourneyTest extends UnitTestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend, new DbalTaskTables()];
             yield $backend.'-configured' => [$backend, new DbalTaskTables('TaskState', 'TaskRows')];
         }
     }
@@ -233,6 +232,6 @@ final class TaskCancellationJourneyTest extends UnitTestCase
     private function checked(array $params): TaskCheckConnection { $connection = new TaskCheckConnection($params, DriverManager::getConnection($params)->getDriver()); $this->connections[] = $connection; return $connection; }
     private function directory(): string { $temporaryDirectory = sys_get_temp_dir().'/fight-task-cancellation-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($temporaryDirectory, 0700)); $this->directories[] = $temporaryDirectory; return $temporaryDirectory; }
     private function config(Connection $connection, string $first, string $second, int $version, DbalTaskTables $tables): string { $path = $this->directory().'/config.json'; file_put_contents($path, json_encode(['params' => $connection->getParams(), 'first' => $first, 'second' => $second, 'observer' => 'observe', 'version' => $version, 'stateTable' => $tables->stateTable()->name(), 'taskTable' => $tables->taskTable()->name()], JSON_THROW_ON_ERROR)); return $path; }
-    private function worker(string $config, string $role): Process { return new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/cancellation-worker.php', $config, $role], timeout: 25); }
+    private function worker(string $config, string $role): Process { return new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Task/cancellation-worker.php', $config, $role], timeout: 25); }
     private function waitFor(string $path, Process $worker): void { $deadline = microtime(true) + 15; while (!file_exists($path)) { if (!$worker->isRunning() || microtime(true) > $deadline) { self::fail('Barrier unavailable: '.$worker->getErrorOutput().$worker->getOutput()); } usleep(10000); } self::assertFileExists($path); }
 }

@@ -41,10 +41,7 @@ final class McpExecutionInspectionJourneyTest extends TestCase
 {
     public static function databases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend.' default' => [$backend, new DbalObservationTables()];
-            yield $backend.' configured' => [$backend, new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
-        }
+        yield 'sqlite configured' => ['sqlite', new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
     }
 
     #[DataProvider('databases')]

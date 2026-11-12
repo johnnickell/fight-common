@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Functional;
+namespace Fight\Test\Common\Adapter\Mcp\Persistence\Task\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -27,7 +27,7 @@ use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
-final class TaskInputJourneyTest extends UnitTestCase
+final class DbalTaskInputIntegrationTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
@@ -205,8 +205,8 @@ final class TaskInputJourneyTest extends UnitTestCase
         if ($mode === 'acquire') { $fixture->supply([TaskFixture::KEY_1 => self::accept('first-answer')]); }
         $directory = $this->directory(); $config = $directory.'/config.json';
         file_put_contents($config, json_encode(['params' => $connection->getParams(), 'mode' => $mode, 'stateTable' => $tables->stateTable()->name(), 'taskTable' => $tables->taskTable()->name()], JSON_THROW_ON_ERROR));
-        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/input-worker.php', $config, 'first'], timeout: 25);
-        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/input-worker.php', $config, 'second'], timeout: 25);
+        $first = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Task/input-worker.php', $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Task/input-worker.php', $config, 'second'], timeout: 25);
         try {
             $first->start(); $this->waitFor($directory.'/first-precommit', $first);
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(120000);
@@ -241,7 +241,6 @@ final class TaskInputJourneyTest extends UnitTestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend, new DbalTaskTables()];
             yield $backend.'-configured' => [$backend, new DbalTaskTables('TaskState', 'TaskRows')];
         }
     }

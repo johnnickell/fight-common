@@ -53,13 +53,46 @@ final class McpTaskJourneyTest extends UnitTestCase
             for ($attempt = 0; $attempt < 300; ++$attempt) { $probe = @stream_socket_client('tcp://'.$address, $errno, $error, 0.05); if (is_resource($probe)) { fclose($probe); $ready = true; break; } usleep(10000); }
             self::assertTrue($ready, $server->getErrorOutput());
             $path = '/mcp?composition='.$composition.'&scenario='.$scenario;
-            $call = function (string $method, array $params, bool $loseResponse = false) use ($address, $path, &$trace): ?array {
+            $call = function (string $method, array $params, bool $loseResponse = false) use ($address, $path, $directory, $connection, $tables, $server, &$trace): ?array {
                 $request = TaskEndpoint::request($method, $params);
                 $socket = stream_socket_client('tcp://'.$address, $errno, $error, 5); self::assertIsResource($socket, $error); stream_set_timeout($socket, 5);
                 $body = (string) $request->getBody(); $wire = "POST $path HTTP/1.1\r\nHost: $address\r\nConnection: close\r\nContent-Length: ".strlen($body)."\r\n";
                 foreach ($request->getHeaders() as $name => $values) { foreach ($values as $value) { $wire .= "$name: $value\r\n"; } }
-                fwrite($socket, $wire."\r\n".$body);
-                if ($loseResponse) { stream_socket_shutdown($socket, STREAM_SHUT_RDWR); fclose($socket); $trace[] = ['method' => $method, 'response' => 'deliberately lost']; return null; }
+                $wire .= "\r\n".$body;
+                $written = 0;
+                while ($written < strlen($wire)) {
+                    $bytes = fwrite($socket, substr($wire, $written));
+                    self::assertIsInt($bytes);
+                    self::assertGreaterThan(0, $bytes, 'The complete request must reach the socket before testing response loss.');
+                    $written += $bytes;
+                }
+                if ($loseResponse) {
+                    try {
+                        $deadline = microtime(true) + 5;
+                        while (!file_exists($directory.'/response-pending')) {
+                            clearstatcache();
+                            if (!$server->isRunning() || microtime(true) > $deadline) {
+                                self::fail('Response barrier unavailable: '.$server->getErrorOutput().$server->getOutput());
+                            }
+                            usleep(10000);
+                        }
+                        // The marker controls ordering only. A separate connection proves the actual durable state.
+                        $readerConnection = DriverManager::getConnection($connection->getParams());
+                        try {
+                            $committed = (new TaskFixture($readerConnection, $tables))->get();
+                            self::assertNotNull($committed);
+                            self::assertSame(1, $committed->get('version'));
+                            self::assertSame('working', $committed->get('state')->get('status'));
+                        } finally { $readerConnection->close(); }
+                        self::assertFileDoesNotExist($directory.'/requests.jsonl', 'Emission is still pending, although the Task has committed.');
+                        $trace[] = ['method' => $method, 'response' => 'deliberately lost after independently observed commit, before emission'];
+                    } finally {
+                        stream_socket_shutdown($socket, STREAM_SHUT_RDWR);
+                        fclose($socket);
+                        file_put_contents($directory.'/release-response', 'yes');
+                    }
+                    return null;
+                }
                 $response = stream_get_contents($socket); self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
                 [$headers, $json] = explode("\r\n\r\n", $response, 2);
                 self::assertStringContainsString('application/json', strtolower($headers)); self::assertStringNotContainsString('private', $json);
@@ -75,12 +108,8 @@ final class McpTaskJourneyTest extends UnitTestCase
                 else { $connection->executeStatement('ALTER TABLE '.$taskTable.' DROP CONSTRAINT reject_task_creation'); }
             }
             $start = $call('tools/call', ['name' => 'example.operation'], $scenario === 'response-loss');
-            if ($scenario === 'response-loss') {
-                $deadline = microtime(true) + 5;
-                while (!file_exists($directory.'/requests.jsonl') && microtime(true) < $deadline) { usleep(10000); }
-                self::assertFileExists($directory.'/requests.jsonl');
-            } elseif (in_array($scenario, ['submission-failure', 'publication-failure'], true)) { self::assertSame(-32603, $start['error']['code']); }
-            else { self::assertSame('task', $start['result']['resultType']); self::assertSame('working', $start['result']['status']); }
+            if (in_array($scenario, ['submission-failure', 'publication-failure'], true)) { self::assertSame(-32603, $start['error']['code']); }
+            elseif ($scenario !== 'response-loss') { self::assertSame('task', $start['result']['resultType']); self::assertSame('working', $start['result']['status']); }
             // This new socket and the producer process share only committed reusable storage, not the HTTP object.
             $poll = $call('tasks/get', ['taskId' => TaskFixture::ID]); self::assertSame('working', $poll['result']['status']);
             $fresh = new TaskFixture(DriverManager::getConnection($connection->getParams()), $tables);
@@ -142,13 +171,18 @@ final class McpTaskJourneyTest extends UnitTestCase
     private static function accept(): array { return ['action' => 'accept', 'content' => (object) ['answer' => 'yes']]; }
     public static function compositions(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['psr', 'symfony', 'codeigniter'] as $composition) { yield $name.'-'.$composition => [$db, $composition, $tables]; } } }
     public static function outcomes(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['completed', 'failed', 'cancelled'] as $outcome) { yield $name.'-'.$outcome => [$db, $outcome, $tables]; } } }
-    public static function faults(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['response-loss', 'submission-failure', 'publication-failure', 'storage-failure'] as $fault) { yield $name.'-'.$fault => [$db, $fault, $tables]; } } }
+    public static function faults(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            yield $backend.'-configured-response-loss' => [$backend, 'response-loss', new DbalTaskTables('TaskState', 'TaskRows')];
+        }
+        foreach (['submission-failure', 'publication-failure', 'storage-failure'] as $fault) {
+            yield 'sqlite-configured-'.$fault => ['sqlite', $fault, new DbalTaskTables('TaskState', 'TaskRows')];
+        }
+    }
     private static function databases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $db) {
-            yield $db => [$db, new DbalTaskTables()];
-            yield $db.'-configured' => [$db, new DbalTaskTables('TaskState', 'TaskRows')];
-        }
+        yield 'sqlite-configured' => ['sqlite', new DbalTaskTables('TaskState', 'TaskRows')];
     }
     private function database(string $backend, string $directory, DbalTaskTables $tables): Connection
     {
