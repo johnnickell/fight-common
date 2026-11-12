@@ -21,9 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| None | — | — | — | — |
-
-No TASK is currently executable; unresolved work may remain.
+| Active Work | [TASK-00213](00213-TASK.md) | Harden subscription failure diagnostics and adopt MySQL 2 GiB on 1.5 | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -36,7 +34,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00213](00213-TASK.md) | Harden subscription failure diagnostics and adopt MySQL 2 GiB on 1.5 | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 

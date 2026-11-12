@@ -610,12 +610,15 @@ abstract class McpSubscriptionJourneyTestCase extends TestCase
         $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport, (string) $bootstrapDelayMicroseconds], dirname(__DIR__, 3));
         $this->processes[] = $process;
         $process->start(); $pid = $process->getPid(); $processExit = $process->wait();
-        $result = file_exists($this->directory.'/contention-result.json') ? json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR) : [];
+        $result = $processExit === 0 && file_exists($this->directory.'/contention-result.json') ? json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR) : [];
         $wire = $process->getOutput();
         $this->evidence['contention_process'] = ['pid' => $pid, 'exit' => $processExit, 'output' => $wire, 'error' => $process->getErrorOutput()];
-        if (file_exists($this->directory.'/contention-failure.json')) { $this->evidence['contention_failure'] = json_decode(file_get_contents($this->directory.'/contention-failure.json'), true, flags: JSON_THROW_ON_ERROR); }
+        if ($processExit !== 0) { $this->evidence['contention_failure'] = \Fight\Test\Common\Fixture\Mcp\ContentionObservations::read($this->directory.'/contention-failure.json'); }
         $this->evidence['contention'] = compact('mode', 'transport', 'bootstrapDelayMicroseconds', 'wire', 'result');
-        self::assertSame(0, $processExit, $process->getErrorOutput().' '.json_encode($result));
+        self::assertSame(0, $processExit, json_encode([
+            'stdout' => $wire, 'stderr' => $process->getErrorOutput(),
+            'failure' => $this->evidence['contention_failure'] ?? null, 'result' => $result
+        ], JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR));
         self::assertLessThanOrEqual($result['registration_started_at'], $result['worker_prepared']['prepared_at'], 'Worker is ready before opening consumes freshness');
         self::assertGreaterThanOrEqual($bootstrapDelayMicroseconds / 1000000, $result['worker_prepared']['prepared_at'] - $result['worker_prepared']['boot_started']);
         self::assertGreaterThanOrEqual($result['started'], $result['worker_lock']['acquired_at'], 'Actual store entry requests the worker lock after transport resumes');
