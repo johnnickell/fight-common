@@ -138,7 +138,7 @@ resolve_lowest_dependencies() {
         --env COMPOSER_HOME=/tmp/fight-common-release-composer \
         "${PHP_IMAGE}" \
         bash -c '
-composer update --no-interaction --no-progress --prefer-dist
+composer update --no-install --no-interaction --no-progress --prefer-dist
 LOWEST_PACKAGES="$(php -r '\''
 $composer = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR);
 $requirements = $composer["require"];
