@@ -32,7 +32,7 @@ Apply these substitutions throughout provider instructions, including nested ref
 | Handoffs and scratch | Sections below; retain existing evidence locations |
 | Package release | [Release guide](../../release/README.md), [ADR 0028](../adr/0028-clear-package-release-decisions.md) and the profile |
 
-Common retains exact 100% owned-production statement coverage, ordinary library dependency resolution and
+Common retains exact 100% direct Unit statement coverage and the local [Unit-only line requirement](../../docs/engineering/standards/Testing.md), ordinary library dependency resolution and
 published API/framework promises. Do not import the application's coverage denominator, locked-dependency
 workflow, `App` namespace, Compose runtime, browser/frontend gates or deployment machinery. The local
 [documentation-only reuse rule](../../docs/engineering/standards/Testing.md#reusing-a-full-gate-result-after-documentation-only-follow-ups)
