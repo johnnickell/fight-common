@@ -113,4 +113,6 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00208](00208-TASK.md) | Reconcile certifier image-preparation outcome validation | done | — |
 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | done | — |
 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | done | — |
+| [TASK-00214](00214-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to main | done | — |
+| [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | in-progress | — |
 <!-- /planning:records -->
