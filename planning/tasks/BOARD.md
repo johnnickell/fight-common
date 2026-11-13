@@ -21,9 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| None | — | — | — | — |
-
-No TASK is currently executable; unresolved work may remain.
+| Active Work | [TASK-00214](00214-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to main | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -36,7 +34,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 1 | [TASK-00214](00214-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to main | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -48,7 +46,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 2 | [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | — (standalone chore) | ready-for-agent | [TASK-00214](00214-TASK.md) | — |
 
 ## Needs Info
 

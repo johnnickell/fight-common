@@ -71,9 +71,10 @@ final readonly class DbalPhaseReader implements PhaseReader
                 $parameters
             );
             [$parentWhere, $parentParameters] = $this->executionReadSupport->phaseConstraints($access, 'parent');
+            [$activityWhere, $activityParameters] = $this->executionReadSupport->activityConstraints($access, 'o');
             $sql = 'SELECT p.*, parent.phase_id AS visible_parent';
             $scope = ' FROM '.$observationTable.' o WHERE o.project_id = p.project_id';
-            $scope .= ' AND o.session_id = p.session_id AND o.phase_id = p.phase_id';
+            $scope .= ' AND o.session_id = p.session_id AND o.phase_id = p.phase_id AND '.$activityWhere;
             $scope .= ' ORDER BY o.recorded_at DESC, o.observation_id DESC, ';
             $scope .= $this->executionReadSupport->binary('o.producer_id').' DESC LIMIT 1)';
             foreach (['recorded_at', 'observation_id', 'producer_id'] as $field) {
@@ -94,7 +95,10 @@ final readonly class DbalPhaseReader implements PhaseReader
             $sql .= ', '.$this->executionReadSupport->binary('p.phase_id').' ASC';
             $rows = $this->connection->fetchAllAssociative(
                 $this->executionReadSupport->limit($sql, $query->pagination()->limit(), $query->pagination()->offset()),
-                [...$parentParameters, ...$parameters]
+                [
+                    ...$activityParameters, ...$activityParameters, ...$activityParameters,
+                    ...$parentParameters, ...$parameters
+                ]
             );
             $views = [];
             foreach ($rows as $row) {

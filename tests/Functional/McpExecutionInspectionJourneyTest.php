@@ -48,6 +48,56 @@ final class McpExecutionInspectionJourneyTest extends TestCase
     }
 
     #[DataProvider('databases')]
+    public function test_that_current_activity_visibility_controls_statistics_and_derived_ordering_through_tools(string $backend, DbalObservationTables $tables): void
+    {
+        $fixture = new McpExecutionFixture($backend, tables: $tables);
+        try {
+            $fixture->seed(ObservationFixture::session());
+            $fixture->seed(ObservationFixture::phase());
+            $visible = ObservationFixture::activity();
+            $fixture->seed($visible);
+            $hiddenData = $visible->toArray();
+            $hiddenData['producer_id'] = 'hidden-producer';
+            $hiddenData['activity']['model_id'] = 'hidden:model';
+            $fixture->seed(ObservationFixture::activity($hiddenData));
+            $fixture->seed(ObservationFixture::phase(['observation_id' => ObservationId::generate()->toString(), 'phase' => PhaseReference::fromStrings('session', 'other-phase', null, 'agent', 'other', 1)->toArray()]));
+            $fixture->seed(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => SessionReference::fromStrings('project', 'other-session', 'other:consumer')->toArray()]));
+            $table = $tables->observationTable()->quoted($fixture->connection->getDatabasePlatform());
+            $fixture->connection->executeStatement('UPDATE '.$table." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+            $fixture->connection->executeStatement('UPDATE '.$table." SET recorded_at = '2026-10-23T12:00:00.000001Z' WHERE phase_id = 'other-phase' OR session_id = 'other-session'");
+            $fixture->connection->executeStatement('UPDATE '.$table." SET recorded_at = '2026-10-24T12:00:00.000001Z' WHERE producer_id = 'hidden-producer'");
+            $fixture->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => [$visible->producerId().'/'.$visible->id()->toString()]]);
+            $before = $fixture->state();
+            $eventCount = $fixture->eventCount;
+            $selection = ExecutionSelection::create(['project']);
+            $summary = $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions($selection));
+            self::assertSame(1, $summary['activities']);
+            self::assertSame('12.5', array_column($summary['usage'], null, 'metric')['provider/output']['measured']);
+            $exact = ['project_id' => 'project', 'session_id' => 'session'];
+            $selected = $this->equivalent($fixture, 'execution.get', $exact, new GetExecution('project', 'session'));
+            self::assertSame(1, $selected['summary']['activities']);
+            $page = $this->equivalent($fixture, 'execution.list', ['projects' => ['project'], 'per_page' => 1], new ListExecutions($selection, 1, 1));
+            self::assertSame('other-session', $page['executions'][0]['session']['session_id']);
+            $phases = $this->equivalent($fixture, 'execution.phases', $exact, new ListExecutionPhases('project', 'session'));
+            self::assertSame(['other-phase', 'phase'], array_column(array_column($phases['phases'], 'phase'), 'phase_id'));
+            self::assertSame(['model:one'], $phases['phases'][1]['models']);
+            self::assertSame('2026-10-22T12:00:00.000001Z', $phases['phases'][1]['latest_recorded_at']);
+            $args = $exact + ['phase_id' => 'phase', 'page' => 2, 'per_page' => 1];
+            self::assertSame(1, $this->equivalent($fixture, 'execution.activity', $args, new ListPhaseActivity('project', 'session', 'phase', 2, 1))['total']);
+            $fixture->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => []]);
+            $empty = $this->equivalent($fixture, 'execution.get', $exact, new GetExecution('project', 'session'));
+            self::assertSame(0, $empty['summary']['activities']);
+            self::assertSame([], $empty['summary']['usage']);
+            self::assertNotNull($empty['observation']);
+            $fixture->access = ExecutionAccess::create(['project' => null]);
+            self::assertSame(2, $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions($selection))['activities']);
+            self::assertSame($before, $fixture->state());
+            self::assertSame($eventCount, $fixture->eventCount);
+            self::assertSame([], $fixture->diagnostics);
+        } finally { $fixture->connection->close(); }
+    }
+
+    #[DataProvider('databases')]
     public function test_that_guarded_http_matches_shared_queries_across_the_complete_safe_live_journey(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, tables: $tables);

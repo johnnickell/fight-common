@@ -86,6 +86,34 @@ final readonly class DbalExecutionReadSupport
     }
 
     /**
+     * Returns current activity constraints while preserving independently permitted state and detail evidence
+     *
+     * @return array{string, list<string>}
+     */
+    public function activityConstraints(ExecutionAccess $access, string $alias): array
+    {
+        $where = '1 = 1';
+        $parameters = [];
+        foreach ($access->activityGrants() as $project => $activities) {
+            if ($activities === null) {
+                continue;
+            }
+
+            $where .= ' AND ('.$alias.'.project_id <> ? OR '.$this->activityType($alias)." <> 'object'";
+            $parameters[] = (string) $project;
+            foreach ($activities as $activity) {
+                [$producer, $id] = explode('/', $activity, 2);
+                $where .= ' OR ('.$alias.'.producer_id = ? AND '.$alias.'.observation_id = ?)';
+                array_push($parameters, $producer, $id);
+            }
+
+            $where .= ')';
+        }
+
+        return [$where, $parameters];
+    }
+
+    /**
      * Returns retained permitted evidence in finite keyset batches without protected storage
      *
      * @return iterable<Observation>
@@ -97,6 +125,9 @@ final readonly class DbalExecutionReadSupport
         ?string $phase = null
     ): iterable {
         [$where, $parameters] = $this->phaseConstraints($access, 'o');
+        [$activityWhere, $activityParameters] = $this->activityConstraints($access, 'o');
+        $where .= ' AND '.$activityWhere;
+        array_push($parameters, ...$activityParameters);
         $producer = '';
         $id = '';
         do {
@@ -183,5 +214,22 @@ final readonly class DbalExecutionReadSupport
     public function limit(string $sql, int $limit, int $offset = 0): string
     {
         return $this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit, $offset);
+    }
+
+    /**
+     * Returns the stored activity discriminator without loading concealed payloads into PHP
+     */
+    private function activityType(string $alias): string
+    {
+        $platform = $this->connection->getDatabasePlatform();
+        if ($platform instanceof PostgreSQLPlatform) {
+            return "COALESCE(json_typeof(CAST(".$alias.".payload AS json)->'activity'), '')";
+        }
+
+        if ($platform instanceof AbstractMySQLPlatform) {
+            return "LOWER(COALESCE(JSON_TYPE(JSON_EXTRACT(".$alias.".payload, '$.activity')), ''))";
+        }
+
+        return "COALESCE(json_type(".$alias.".payload, '$.activity'), '')";
     }
 }
