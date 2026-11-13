@@ -30,6 +30,13 @@ $connection = DriverManager::getConnection($config['params']);
 $tables = new LifecycleTables($config['tables'] ?? []);
 if ($connection->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $connection->executeStatement('PRAGMA busy_timeout = 3000'); }
 $scope = $_GET['scope'] ?? 'scope';
+if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/ready') {
+    // Exercise autoload, the real connection, schemas and endpoint composition, but open no subscription.
+    new TaskLiveFixture($connection, tables: $tables);
+    header('Content-Type: text/plain');
+    echo 'task-live-ready';
+    return;
+}
 $requestKey = $_SERVER['HTTP_X_FIGHT_TEST_REQUEST'] ?? bin2hex(random_bytes(8));
 $diagnostics = new TaskLiveDiagnostics($connection, $tables);
 $diagnostics->event('request-start', ['request' => $requestKey, 'query' => $_SERVER['QUERY_STRING'] ?? '', 'lifetimeSeconds' => (int) ($_GET['lifetime'] ?? 8), 'internalDeadline' => 'unavailable; execution starts lazily inside emit', 'internalStopReason' => 'unavailable']);

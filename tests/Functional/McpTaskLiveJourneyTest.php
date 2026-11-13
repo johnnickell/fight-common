@@ -23,6 +23,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
@@ -33,6 +34,7 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
     private LifecycleTables $tables;
     private array $defaultSnapshot = [];
     private array $servers = [];
+    private array $preparedWorkers = [];
     private array $trace = [];
     private array $socketRequests = [];
 
@@ -42,6 +44,7 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         $this->database($backend, $configured);
         $leftServer = $this->server(); $rightServer = $this->server(); $poll = $this->server();
         $start = $this->rpc($poll, TaskEndpoint::request()); self::assertSame('task', $start['result']['resultType']);
+        $this->prepareWorkers(['notice', 'input', 'continue']);
         $left = $this->open($leftServer, $composition, ['taskIds' => [TaskFixture::ID]], 7, 'left');
         $right = $this->open($rightServer, $composition.'&mixed=1', ['taskIds' => [TaskFixture::ID], 'toolsListChanged' => true], '7', 'right');
         self::assertSame(['taskIds' => [TaskFixture::ID]], $this->next($left)['params']['notifications']);
@@ -216,7 +219,21 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
     {
         $reservation = stream_socket_server('tcp://127.0.0.1:0', $errno, $error); self::assertIsResource($reservation, $error); $address = stream_socket_get_name($reservation, false); fclose($reservation);
         $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', '-d', 'display_errors=0', '-S', $address, 'tests/Fixture/Mcp/task-live-server.php'], dirname(__DIR__, 2), ['FIGHT_TASK_LIVE_DIRECTORY' => $this->directory]); $process->start(); $this->servers[] = $process;
-        for ($i = 0; $i < 300; ++$i) { $probe = @stream_socket_client('tcp://'.$address, $errno, $error, 0.05); if (is_resource($probe)) { fclose($probe); return $address; } usleep(10000); }
+        for ($i = 0; $i < 300; ++$i) {
+            $probe = @stream_socket_client('tcp://'.$address, $errno, $error, 0.05);
+            if (is_resource($probe)) {
+                try {
+                    // Use the same HTTP read budget as send(), not a shorter new autoload deadline.
+                    stream_set_timeout($probe, 10);
+                    fwrite($probe, "GET /ready HTTP/1.1\r\nHost: $address\r\nConnection: close\r\n\r\n");
+                    $response = stream_get_contents($probe);
+                    if (stream_get_meta_data($probe)['timed_out'] || !str_ends_with($response, 'task-live-ready')) { self::fail('Task endpoint not ready: '.$response.$process->getErrorOutput()); }
+                    $this->trace['serverReadiness'][] = ['address' => $address, ...TaskLiveDiagnostics::clock()];
+                    return $address;
+                } finally { fclose($probe); }
+            }
+            usleep(10000);
+        }
         self::fail($process->getErrorOutput());
     }
 
@@ -279,11 +296,41 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         $this->trace['requests'][$requestKey]['boundaries'][] = ['boundary' => $boundary, ...TaskLiveDiagnostics::clock(), 'eof' => feof($socket), 'metadata' => stream_get_meta_data($socket)];
     }
     private function assertNewer(array $old, array $new): void { self::assertSame($old['_meta'][McpTasks::REVISION]['scope'], $new['_meta'][McpTasks::REVISION]['scope']); self::assertGreaterThan($old['_meta'][McpTasks::REVISION]['value'], $new['_meta'][McpTasks::REVISION]['value']); }
+    private function prepareWorkers(array $modes): void
+    {
+        foreach ($modes as $mode) {
+            $key = $this->directory.'/worker-'.$mode;
+            $process = new Process([PHP_BINARY, 'tests/TestCase/Mcp/Task/http-worker.php', $this->directory.'/config.json', $mode, $key], dirname(__DIR__, 2), timeout: 10);
+            $process->start(); $this->preparedWorkers[$mode] = $process;
+        }
+        foreach ($modes as $mode) {
+            $process = $this->preparedWorkers[$mode]; $ready = $this->directory.'/worker-'.$mode.'.ready';
+            do {
+                $process->checkTimeout(); clearstatcache(true, $ready);
+                if (file_exists($ready)) {
+                    $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'ready', ...TaskLiveDiagnostics::clock(), 'supplier' => json_decode(file_get_contents($ready), true, flags: JSON_THROW_ON_ERROR)];
+                    break;
+                }
+                if (!$process->isRunning()) { throw new ProcessFailedException($process); }
+                usleep(1000);
+            } while (true);
+        }
+    }
+
     private function worker(string $mode): array
     {
         $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'enter', ...TaskLiveDiagnostics::clock()];
-        $process = new Process([PHP_BINARY, 'tests/TestCase/Mcp/Task/http-worker.php', $this->directory.'/config.json', $mode], dirname(__DIR__, 2), timeout: 10);
-        try { $process->mustRun(); } finally { $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'leave', ...TaskLiveDiagnostics::clock(), 'exit' => $process->getExitCode(), 'output' => $process->getOutput(), 'error' => $process->getErrorOutput()]; } $data = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR); self::assertNotSame(getmypid(), $data['pid']); $this->trace['suppliers'][] = $data; return $data;
+        $process = $this->preparedWorkers[$mode] ?? new Process([PHP_BINARY, 'tests/TestCase/Mcp/Task/http-worker.php', $this->directory.'/config.json', $mode], dirname(__DIR__, 2), timeout: 10);
+        try {
+            if (isset($this->preparedWorkers[$mode])) {
+                $process->checkTimeout();
+                if (!$process->isRunning()) { throw new ProcessFailedException($process); }
+                touch($this->directory.'/worker-'.$mode.'.release');
+                $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'release', ...TaskLiveDiagnostics::clock()];
+                $process->wait();
+                if (!$process->isSuccessful()) { throw new ProcessFailedException($process); }
+            } else { $process->mustRun(); }
+        } finally { $process->stop(0); $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'leave', ...TaskLiveDiagnostics::clock(), 'exit' => $process->getExitCode(), 'output' => $process->getOutput(), 'error' => $process->getErrorOutput()]; } $data = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR); self::assertNotSame(getmypid(), $data['pid']); $this->trace['suppliers'][] = $data; return $data;
     }
 
     private function assertPrivateStorage(): void
@@ -301,6 +348,11 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     protected function tearDown(): void
     {
+        foreach ($this->preparedWorkers as $mode => $process) {
+            $process->stop(0);
+            $this->trace['workerCleanup'][] = ['mode' => $mode, 'running' => $process->isRunning(), 'exit' => $process->getExitCode(), 'output' => $process->getOutput(), 'error' => $process->getErrorOutput()];
+        }
+        $this->preparedWorkers = [];
         foreach ($this->servers as $process) { $process->stop(); $this->trace['servers'][] = ['exit' => $process->getExitCode(), 'log' => $process->getErrorOutput(), 'output' => $process->getOutput()]; } $this->servers = [];
         $defaultsUnchanged = true;
         if (isset($this->connection)) {
