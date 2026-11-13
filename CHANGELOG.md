@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.1] - 2026-11-10
+## [1.5.1] - 2026-11-13
 
-These maintenance release notes describe the prepared candidate, not certification or publication.
+Initial preparation was on 2026-11-10.
+[v1.5.1](https://github.com/johnnickell/fight-common/releases/tag/v1.5.1) was published at
+2026-11-13T02:56:08Z as an immutable stable/latest release with no uploaded assets. Its signed tag,
+exact-commit certification, registry references and production consumer were independently read back.
 
 ### Security
 

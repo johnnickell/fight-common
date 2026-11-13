@@ -64,7 +64,7 @@ not deleted or repointed.
       "line": "1.5",
       "branch": "1.5",
       "initial_release": {"tag": "v1.5.0", "commit": "06fb5cd3720af9cf8295198f74040d95b64c5155"},
-      "latest_release": {"tag": "v1.5.0", "commit": "06fb5cd3720af9cf8295198f74040d95b64c5155"},
+      "latest_release": {"tag": "v1.5.1", "commit": "c73690164a9f112dbf14d774c56a7c01519b88aa"},
       "phase": "current",
       "allowed_fixes": ["bug", "security"],
       "ends_at": null,
@@ -81,7 +81,7 @@ not deleted or repointed.
 | 1.2 | Limited security, data-loss and critical-compatibility fixes | 2027-04-05 05:41:42 | `v1.2.0` |
 | 1.3 | Limited security, data-loss and critical-compatibility fixes | 2027-04-12 15:10:25 | `v1.3.0` |
 | 1.4 | Limited security, data-loss and critical-compatibility fixes | 2027-05-09 20:13:04 | `v1.4.2` |
-| 1.5 | Current: bug and security fixes | Not set until its successor publishes | `v1.5.0` |
+| 1.5 | Current: bug and security fixes | Not set until its successor publishes | `v1.5.1` |
 
 The six-month clock for **each** superseded minor survives later minor releases: 1.0 does not become
 end-of-life merely because 1.2 exists, nor 1.1 merely because 1.3 ships. The 1.1 deadline follows
@@ -143,3 +143,13 @@ that signed release commit and retain the normal maintenance protections. Line 1
 limited fixes until the exclusive six-calendar-month UTC boundary `2027-05-09T20:13:04Z`. Lines 1.0–1.3 keep
 their existing deadlines and branches. This publication neither removes deprecated APIs nor qualifies downstream
 application adoption.
+
+## 1.5.1 maintenance publication
+
+[`v1.5.1`](https://github.com/johnnickell/fight-common/releases/tag/v1.5.1) was published at
+`2026-11-13T02:56:08Z` as an immutable stable/latest release with no uploaded assets. Signed tag object
+`18b972c028803c6febf0151a91889852499e6125` identifies exact certified maintenance commit
+`c73690164a9f112dbf14d774c56a7c01519b88aa` on `1.5`. GitHub attestation, registry source/dist
+references and an isolated production registry installation/representative consumer match that release.
+It supersedes v1.5.0 as the maintained patch on 1.5; initial-release baselines and all support windows
+remain unchanged.
