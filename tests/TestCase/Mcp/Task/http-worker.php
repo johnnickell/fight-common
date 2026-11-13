@@ -20,8 +20,30 @@ $lifecycleTables = new LifecycleTables($config['tables'] ?? []);
 $tables = isset($config['tables']) ? $lifecycleTables->task : new DbalTaskTables($config['stateTable'] ?? 'fight_task_state', $config['taskTable'] ?? 'fight_tasks');
 $fixture = new TaskFixture($connection, $tables);
 $mode = $argv[2];
+$notice = $mode === 'notice' ? new NoticeFixture($connection, $lifecycleTables->notice) : null;
+if (isset($argv[3])) {
+    // Prepare an independent supplier without reading a Task version or performing its operation early.
+    $connection->executeQuery('SELECT 1')->fetchOne();
+    $ready = $argv[3].'.ready';
+    $temporary = $ready.'.'.getmypid().'.tmp';
+    $payload = json_encode(['pid' => getmypid(), 'readyAt' => hrtime(true)], JSON_THROW_ON_ERROR);
+    try {
+        // The parent must see either no marker or complete JSON, never a file still being written.
+        if (file_put_contents($temporary, $payload) !== strlen($payload)) { throw new RuntimeException('Cannot write Task supplier readiness'); }
+        if (!rename($temporary, $ready)) { throw new RuntimeException('Cannot publish Task supplier readiness'); }
+    } finally {
+        if (file_exists($temporary) && !unlink($temporary)) { throw new RuntimeException('Cannot remove temporary Task supplier readiness'); }
+    }
+    $deadline = microtime(true) + 10;
+    do {
+        clearstatcache(true, $argv[3].'.release');
+        if (file_exists($argv[3].'.release')) { break; }
+        if (microtime(true) >= $deadline) { throw new RuntimeException('Task supplier was not released'); }
+        usleep(1000);
+    } while (true);
+}
 $attempted = false;
-if ($mode === 'notice') { (new NoticeFixture($connection, $lifecycleTables->notice))->record(['id' => 'live-catalog', 'type' => 'mcp.tools.list_changed']); }
+if ($mode === 'notice') { $notice->record(['id' => 'live-catalog', 'type' => 'mcp.tools.list_changed']); }
 elseif ($mode === 'input') { $fixture->issue(confirmation: true, count: 2); }
 elseif ($mode === 'continue') {
     $fixture->acquire();

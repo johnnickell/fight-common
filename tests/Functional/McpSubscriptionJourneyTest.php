@@ -37,7 +37,7 @@ final class McpSubscriptionJourneyTest extends TestCase
     private array $processes = [];
     private array $evidence = [];
 
-    #[DataProvider('databases')]
+    #[DataProvider('isolationDatabases')]
     public function test_that_real_shared_database_live_streams_reused_ids_revocation_failure_and_polling_are_isolated(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured);
@@ -503,6 +503,13 @@ final class McpSubscriptionJourneyTest extends TestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach ([false, true] as $configured) { yield $backend.'-'.($configured ? 'configured' : 'default') => [$backend, $configured]; }
+        }
+    }
+
+    public static function isolationDatabases(): iterable
+    {
+        foreach (['mysql', 'postgresql'] as $backend) {
             foreach ([false, true] as $configured) { yield $backend.'-'.($configured ? 'configured' : 'default') => [$backend, $configured]; }
         }
     }

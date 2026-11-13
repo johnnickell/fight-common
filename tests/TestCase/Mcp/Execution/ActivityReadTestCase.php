@@ -18,7 +18,9 @@ use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
+use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
 use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
+use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
 use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
@@ -28,6 +30,93 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 abstract class ActivityReadTestCase extends ExecutionReadTestCase
 {
+    #[DataProvider('databases')]
+    public function test_that_summary_counts_and_usage_follow_current_activity_visibility(string $backend): void
+    {
+        $db = $this->database($backend);
+        $record = $this->writer($db);
+        $record(ObservationFixture::session());
+        $record(ObservationFixture::phase());
+        $visible = ObservationFixture::activity();
+        $hidden = ObservationFixture::activity(['observation_id' => '10000000-0000-4000-8000-000000000001']);
+        $record($visible);
+        $record($hidden);
+        [$queryBus, $admission, $executionQueryBus] = $this->activityBus($db);
+        $admission->access = ExecutionAccess::create(['project' => ['session']], ['project' => ['phase']], ['project' => [$this->key($visible)]]);
+        self::assertSame(1, $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase'))->toArray()['total']);
+        $summary = $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray();
+        self::assertSame(1, $summary['activities']);
+        self::assertSame('12.5', array_column($summary['usage'], null, 'metric')['provider/output']['measured']);
+        self::assertSame($summary, $executionQueryBus->fetch(new GetExecution('project', 'session'))->toArray()['summary']);
+        // Paging activity never narrows the full-selection summary, and admission is fresh per call.
+        self::assertSame(1, $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 2, 1))->toArray()['total']);
+        self::assertSame($summary, $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray());
+        $admission->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => []]);
+        $empty = $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray();
+        self::assertSame(1, $empty['executions']);
+        self::assertSame(0, $empty['activities']);
+        self::assertSame(0, $empty['activities_without_usage']);
+        self::assertSame([], $empty['usage']);
+        self::assertNotNull($executionQueryBus->fetch(new GetExecution('project', 'session'))->toArray()['observation']);
+        foreach ([[], ['project' => null]] as $grants) {
+            $admission->access = ExecutionAccess::create(['project' => null], activityGrants: $grants);
+            $all = $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray();
+            self::assertSame(2, $all['activities']);
+            self::assertSame('25', array_column($all['usage'], null, 'metric')['provider/output']['measured']);
+        }
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_hidden_activity_cannot_change_freshness_order_or_models_but_state_and_detail_remain_independent(string $backend): void
+    {
+        $db = $this->database($backend);
+        $record = $this->writer($db);
+        $record(ObservationFixture::session());
+        $record(ObservationFixture::phase());
+        $visible = ObservationFixture::activity();
+        $record($visible);
+        // The same UUID from another producer must not match the visible producer's grant.
+        $data = $visible->toArray();
+        $data['producer_id'] = 'other-producer';
+        $data['activity']['model_id'] = 'hidden:model';
+        $hidden = Observation::fromArray($data);
+        $record($hidden);
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+        $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-23T12:00:00.000001Z'], ['producer_id' => $hidden->producerId()]);
+        [$queryBus, $admission, $executionQueryBus] = $this->activityBus($db);
+        $admission->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => [$this->key($visible)]]);
+        $before = $this->storedState($db);
+        $selection = ExecutionSelection::create(['project']);
+        $summary = $executionQueryBus->fetch(new SummarizeExecutions($selection))->toArray();
+        self::assertSame(1, $summary['activities']);
+        self::assertSame('2026-10-22T12:00:00.000001Z', $summary['latest_recorded_at']);
+        self::assertSame($summary['latest_recorded_at'], $executionQueryBus->fetch(new ListExecutions($selection))->toArray()['executions'][0]['latest_recorded_at']);
+        $phase = $executionQueryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray()['phases'][0];
+        self::assertSame(['model:one'], $phase['models']);
+        self::assertSame($summary['latest_recorded_at'], $phase['latest_recorded_at']);
+        self::assertNotNull($phase['observation']);
+        self::assertSame([], $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase'))->activities()[0]->details());
+        self::assertSame($before, $this->storedState($db));
+        self::assertFalse($db->isTransactionActive());
+        // Hidden corrupt-version evidence must not be decoded to calculate permitted projections.
+        $db->update($this->table($db, 'observations'), ['version' => 999], ['producer_id' => $hidden->producerId()]);
+        self::assertSame($summary, $executionQueryBus->fetch(new SummarizeExecutions($selection))->toArray());
+        self::assertSame(['model:one'], $executionQueryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray()['phases'][0]['models']);
+        $admission->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => []]);
+        self::assertSame([], $executionQueryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray()['phases'][0]['models']);
+        // Detail evidence has its own retained freshness meaning; reference/body grants stay independent.
+        $db->update($this->table($db, 'observations'), ['version' => 1], ['producer_id' => $hidden->producerId()]);
+        $detail = $this->detail($hidden, CaptureCompleteness::ABSENT);
+        $record($detail, ProtectedContent::create($detail->detail(), null));
+        $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-24T12:00:00.000001Z'], ['observation_id' => $detail->id()->toString()]);
+        self::assertSame('2026-10-24T12:00:00.000001Z', $executionQueryBus->fetch(new SummarizeExecutions($selection))->toArray()['latest_recorded_at']);
+        self::assertSame([], $executionQueryBus->fetch(new SummarizeExecutions($selection))->toArray()['usage']);
+        $db->update($this->table($db, 'observations'), ['version' => 999], ['observation_id' => $visible->id()->toString(), 'producer_id' => $visible->producerId()]);
+        $admission->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => [$this->key($visible)]]);
+        try { $executionQueryBus->fetch(new SummarizeExecutions($selection)); self::fail('Visible corrupt evidence must fail, never return a partial summary.'); }
+        catch (ExecutionReadFailed $failure) { self::assertSame('Execution evidence could not be read completely.', $failure->getMessage()); }
+    }
+
     #[DataProvider('databases')]
     public function test_that_activity_query_uses_current_scope_and_explicit_reference_grants_without_bodies_or_mutation(string $backend): void
     {
