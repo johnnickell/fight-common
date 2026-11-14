@@ -43,11 +43,12 @@ git pull --ff-only
 git switch -c feature/task-NNNNN-short-description
 ```
 
-For coordinated or concurrent work, use a linked checkout outside the repository's ignored run area:
+For coordinated or concurrent work, create a linked source checkout under the canonical base repository's
+`.runs/worktrees/` directory. Run this example from that base checkout:
 
 ```bash
 git worktree add -b feature/task-NNNNN-short-description \
-  ../.worktrees/fight-common-short-description develop
+  .runs/worktrees/fight-common-short-description develop
 ```
 
 Run every command from the selected checkout. Keep investigation notes in `.runs/notes/`, reusable local handoffs
