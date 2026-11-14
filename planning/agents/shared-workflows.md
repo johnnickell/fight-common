@@ -172,7 +172,7 @@ locations prospectively; do not relocate legacy evidence or rewrite historical r
 | `.runs/reviews/<TASK-ID>/review.md` | Current independent technical review; preserve prior reports |
 | `.runs/qa/<TASK-ID>/qa.md` | Current independent QA; preserve unique run reports/captures |
 | `.runs/handoffs/`, `.runs/notes/`, `.runs/archive/` | Existing handoffs, notes and explicitly archived evidence |
-| `.runs/worktrees/` | Worktree coordination scratch; source checkouts stay outside `.runs/` |
+| `<base>/.runs/worktrees/<slug>/` | Registered source checkouts under the canonical base resolved through Git metadata; existing registered paths are preserved |
 
 Task scratch may live in the selected checkout when appropriate; canonical reports stay at the base. Engineer
 and coordinator may read independent reports, never publish their verdicts. Preserve useful evidence through
