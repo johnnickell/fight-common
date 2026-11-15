@@ -240,8 +240,9 @@ handoff. Archive moves preserve records, repair local Markdown references, and r
 New TASK branches use `feature/task-NNNNN-<slug>` from `develop`, and PR titles use
 `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities without retrospective renaming; release and
 patch conventions remain unchanged. Never commit directly to `develop` or `main`. Choose the main checkout or an
-isolated worktree with the user outside `.runs/`. Ignored `.runs/worktrees/` coordination scratch, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/`, and
-`.runs/archive/` hold local execution material. Use the prospective [evidence layout](agents/shared-workflows.md#ignored-evidence)
+isolated worktree with the user. Create new source worktrees at `<repo_path>/.runs/worktrees/<slug>/`, where
+`repo_path` is the canonical base checkout resolved through Git metadata; preserve existing registered paths.
+Ignored `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/`, and `.runs/archive/` hold local execution evidence. Use the prospective [evidence layout](agents/shared-workflows.md#ignored-evidence)
 for Build coordination, task runs and canonical QA reports; do not migrate historical evidence implicitly.
 [Review](../docs/engineering/standards/Review.md) and [QA](../docs/engineering/standards/QA.md) own their independent
 base-worktree reports. Durable requirements and outcomes belong in planning records.
