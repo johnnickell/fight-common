@@ -19,35 +19,31 @@ PRODUCTION_ROOT = "https://johnnickell.github.io/fight-common/"
 REQUIRED_ROUTES = {
     "Quick Start": f"{PRODUCTION_ROOT}quick-start/",
     "Architecture": f"{PRODUCTION_ROOT}architecture/",
-    "Component Atlas": f"{PRODUCTION_ROOT}#component-atlas",
-    "Framework Support": f"{PRODUCTION_ROOT}frameworks/framework-support/",
+    "Components": f"{PRODUCTION_ROOT}#component-atlas",
+    "Frameworks": f"{PRODUCTION_ROOT}frameworks/framework-support/",
+    "JSend compatibility": f"{PRODUCTION_ROOT}components/validation/",
+    "MCP foundation migration": "docs/maintenance/mcp-foundation-namespaces.md",
+    "MCP aggregate migration": "docs/mcp-namespaces.md#approved-aggregate-alignment-target",
     "Contributing": f"{PRODUCTION_ROOT}maintenance/contributing/",
     "Repository": "https://github.com/johnnickell/fight-common",
     "Source": "https://github.com/johnnickell/fight-common/tree/main/src",
     "Changelog": "CHANGELOG.md",
     "License": "LICENSE",
 }
-CAPABILITY_ROUTES = {
-    "Values": "components/values/",
-    "Specifications": "components/specifications/",
-    "Event Sourcing": "components/event-sourcing/",
-    "Messaging": "components/messaging/",
-    "Validation": "components/validation/",
-    "Dependency Injection": "components/dependency-injection/",
-    "HTTP Client": "components/http-client/",
-    "Cache": "components/cache/",
-    "Mail": "components/mail/",
-    "Observability": "components/observability/",
-    "Process": "components/process/",
-    "Scheduler": "components/scheduler/",
-}
 ALLOWED_RAW_TAGS = frozenset({"picture", "source", "img"})
-EXPECTED_BADGES = frozenset({"Tests", "PHP 8.5+", "License: MIT"})
-IDENTITY_ALT = "Fight Common: the Inward Port mark beside the Fight Common wordmark"
-EXPECTED_BADGE_MARKUP = (
-    "[![Tests](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml)",
-    "[![PHP 8.5+](https://img.shields.io/badge/php-8.5%2B-8892BF.svg?logo=php&logoColor=white)](https://www.php.net/)",
-    "[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)",
+TEST_WORKFLOW = "https://github.com/johnnickell/fight-common/actions/workflows/tests.yml"
+LATEST_RELEASE_NOTES = "https://github.com/johnnickell/fight-common/releases/latest"
+# Read GitHub’s selected stable release, rather than sorting tags or releases separately.
+STABLE_RELEASE_IMAGE = (
+    "https://img.shields.io/badge/dynamic/json?"
+    "url=https%3A%2F%2Fapi.github.com%2Frepos%2Fjohnnickell%2Ffight-common%2Freleases%2Flatest"
+    "&query=%24.tag_name&label=Stable%20release"
+)
+EXPECTED_BADGES = (
+    ("Tests", f"{TEST_WORKFLOW}/badge.svg?branch=main", TEST_WORKFLOW),
+    ("PHP 8.5+", "https://img.shields.io/badge/php-8.5%2B-8892BF.svg?logo=php&logoColor=white", "https://www.php.net/"),
+    ("License: MIT", "https://img.shields.io/badge/license-MIT-blue.svg", "LICENSE"),
+    ("Stable release", STABLE_RELEASE_IMAGE, LATEST_RELEASE_NOTES),
 )
 
 
@@ -56,6 +52,7 @@ class ReadmeParser(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.links: list[tuple[str, str]] = []
         self.images: list[dict[str, str]] = []
+        self.image_links: list[tuple[str, str, str | None]] = []
         self.sources: list[dict[str, str]] = []
         self.heading_ids: set[str] = set()
         self._link_href: str | None = None
@@ -68,6 +65,7 @@ class ReadmeParser(HTMLParser):
             self._link_text = []
         elif tag == "img":
             self.images.append(attributes)
+            self.image_links.append((attributes.get("alt", ""), attributes.get("src", ""), self._link_href))
         elif tag == "source":
             self.sources.append(attributes)
         elif re.fullmatch(r"h[1-6]", tag) and attributes.get("id"):
@@ -138,14 +136,12 @@ def validate_identity(root: Path, parser: ReadmeParser) -> None:
 
 
 def validate_badges(source: str, parser: ReadmeParser) -> None:
-    badges = {image.get("alt", "") for image in parser.images if image.get("alt", "") != IDENTITY_ALT}
-    if (
-        badges != EXPECTED_BADGES
-        or len(parser.images) != 4
-        or source.count("![") != 3
-        or any(source.count(markup) != 1 for markup in EXPECTED_BADGE_MARKUP)
-    ):
-        fail("README must contain exactly the factual Tests, PHP 8.5+, and MIT badges")
+    for alt, image, target in EXPECTED_BADGES:
+        markup = f"[![{alt}]({image})]({target})"
+        if source.count(markup) != 1 or parser.image_links.count((alt, image, target)) != 1:
+            fail(f"README must contain exactly one correctly linked {alt} badge")
+    if len(parser.images) != len(EXPECTED_BADGES) + 1 or source.count("![") != len(EXPECTED_BADGES):
+        fail("README must contain only the Tests, PHP 8.5+, MIT, and Stable release badges plus its identity image")
 
 
 def document_fragments(path: Path) -> set[str]:
@@ -196,8 +192,8 @@ def validate_content(root: Path, source: str, parser: ReadmeParser) -> None:
         fail("README package identity must agree with composer.json")
     if f"site_url: {PRODUCTION_ROOT}" not in mkdocs:
         fail("README production routes must agree with mkdocs.yml")
-    if not source.startswith("<picture>") or source.find("# Fight Common") > 500 or "framework-neutral" not in source.lower():
-        fail("README must identify Fight Common and its framework-neutral purpose immediately")
+    if not source.startswith("<picture>") or not 0 <= source.find("# Fight Common") <= 500:
+        fail("README must identify Fight Common immediately")
     if source.count("composer require johnnickell/fight-common") != 1:
         fail("README must contain the exact shortest Composer installation command once")
     if "Adapter → Application → Domain" not in source:
@@ -214,21 +210,13 @@ def validate_content(root: Path, source: str, parser: ReadmeParser) -> None:
         f"{PRODUCTION_ROOT}#component-atlas": root / "docs/README.md",
         f"{PRODUCTION_ROOT}frameworks/framework-support/": root / "docs/frameworks/framework-support/index.md",
         f"{PRODUCTION_ROOT}maintenance/contributing/": root / "docs/maintenance/contributing/index.md",
+        f"{PRODUCTION_ROOT}components/validation/": root / "docs/components/validation/index.md",
     }
     for route, path in route_sources.items():
         if not path.is_file():
             fail(f"README production route has no canonical documentation source: {route}")
     if "component-atlas" not in document_fragments(root / "docs/README.md"):
         fail("README Component Atlas route has no canonical documentation fragment")
-    for label, suffix in CAPABILITY_ROUTES.items():
-        route = f"{PRODUCTION_ROOT}{suffix}"
-        if not any(text == label and target == route for text, target in links):
-            fail(f"README is missing the canonical {label} capability route")
-        if not (root / "docs" / suffix / "index.md").is_file():
-            fail(f"README capability route has no canonical documentation source: {route}")
-    for group in ("Model", "Coordinate", "Connect", "Operate"):
-        if not re.search(rf"\|[^\n]*\b{group}\b", source):
-            fail(f"README is missing the {group} capability group")
     if "DoctrineTransactionalUnitOfWork" in source or "deprecated 1.x compatibility" in source:
         fail("README duplicates detailed repository-guide semantics")
     if "Copyright © 2026 John Nickell" not in source:

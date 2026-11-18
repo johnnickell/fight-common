@@ -1,18 +1,24 @@
-# Framework-Neutral Quick Start
+# Quick Start { #framework-neutral-quick-start }
 
-Build one order-processing path from a command to a post-commit event and a follow-up command.
-The example keeps business language in your code and uses Fight Common only for the messaging,
-transaction, and adapter seams.
+Use Fight Common to process an order and request fulfillment. A command asks the app to do something.
+An event tells other parts of the app what happened. This example works without a framework.
+
+## Install Fight Common
+
+You need PHP 8.5 or later and [Composer](https://getcomposer.org/), PHP’s package manager. In your project, run:
+
+~~~bash
+composer require johnnickell/fight-common
+~~~
 
 ## Pick your framework
 
-The portable example below works without a framework. If you prefer to begin from a complete
-application skeleton, choose the repository that matches your runtime.
+You can skip this section and run the example without a framework. If you want to see how a full app is set up,
+look at the starter for your framework.
 
 !!! note "Starter release status"
-    The five starter repositories are the intended shortest path once their <code>1.0.0</code>
-    releases are published. They are still being prepared for that release, so treat these clone
-    commands as a preview of the coming workflow—not a current stable-install promise.
+    The five starters are meant to be the quickest way to begin after their `1.0.0` releases are published.
+    They are still being prepared for that release. The clone commands below are previews, not stable installs.
 
 <div class="atlas-framework-picker">
   <a href="https://github.com/johnnickell/project-symfony"><strong>Symfony</strong><code>git clone https://github.com/johnnickell/project-symfony.git my-app</code></a>
@@ -22,16 +28,10 @@ application skeleton, choose the repository that matches your runtime.
   <a href="https://github.com/johnnickell/project-slim"><strong>Slim</strong><code>git clone https://github.com/johnnickell/project-slim.git my-app</code></a>
 </div>
 
-For today, start with PHP 8.5+ and Composer:
-
-~~~bash
-composer require johnnickell/fight-common
-~~~
-
 ## The supporting domain type
 
-Messages should carry your own validated domain types. <code>OrderId</code> rejects malformed
-identifiers at construction, so every command, event, and handler receives an identifier it can trust.
+Use your own types for data your app cares about. `OrderId` rejects IDs in the wrong format when you create it,
+so commands and events can carry an ID that has already been checked.
 
 <span class="atlas-code-filename">src/Domain/Order/OrderId.php</span>
 
@@ -47,15 +47,13 @@ use Fight\Common\Domain\Exception\DomainException;
 --8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-id"
 ~~~
 
-The complete journey also uses application-owned <code>CustomerId</code>,
-<code>PaymentMethod</code>, <code>ShoppingCart</code>, <code>Order</code>, repository ports, and
-payment and fulfillment ports. Those types describe the order domain; they are not Fight Common classes.
+The full example also uses `CustomerId`, `PaymentMethod`, `ShoppingCart`, and `Order`. Interfaces for storage,
+payment, and fulfillment are called ports. Your app owns these types and interfaces, not Fight Common.
 
 ## The command
 
-<code>ProcessOrder</code> is the request to perform work. Implementing Fight's <code>Command</code>
-contract makes it serializable for synchronous or asynchronous buses without putting routing logic
-inside the message.
+`ProcessOrder` asks the app to process an order. Fight Common’s `Command` interface lets the app send the request
+for work now or pass it to a worker later. The message itself does not decide which handler runs.
 
 <span class="atlas-code-filename">src/Domain/Order/ProcessOrder.php</span>
 
@@ -74,9 +72,8 @@ use Fight\Common\Domain\Messaging\Command\Command;
 
 ## The event
 
-<code>OrderProcessed</code> records the business fact that the order was saved successfully. It
-carries the order identity—not fulfillment instructions—so downstream application code can decide
-what happens next.
+`OrderProcessed` says the order was saved. It carries the order ID, not instructions to fulfill it.
+Other parts of the app decide what happens next.
 
 <span class="atlas-code-filename">src/Domain/Order/OrderProcessed.php</span>
 
@@ -95,10 +92,9 @@ use Fight\Common\Domain\Messaging\Event\Event;
 
 ## The command handler
 
-<code>ProcessOrderHandler</code> coordinates the use case. It loads the cart, asks the payment port
-for a stable reference, saves the order transactionally, and only then triggers
-<code>OrderProcessed</code>. Dispatching the event after <code>commitTransactional()</code> returns
-keeps subscribers from observing an order that was rolled back.
+`ProcessOrderHandler` loads the cart, gets a stable payment reference, and saves the order in a database transaction.
+It sends `OrderProcessed` only after `commitTransactional()` returns successfully. That way, listeners do not see an
+order whose save was rolled back.
 
 <span class="atlas-code-filename">src/Application/Order/ProcessOrderHandler.php</span>
 
@@ -125,8 +121,8 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 
 ## The follow-up command
 
-Fulfillment is separate work with its own retry boundary. <code>FulfillOrder</code> carries only the
-order ID, so it can be dispatched immediately or transported to a worker later.
+The app can retry fulfillment on its own. `FulfillOrder` carries only the order ID. The app can send the command
+right away or hand it to a worker later.
 
 <span class="atlas-code-filename">src/Domain/Order/FulfillOrder.php</span>
 
@@ -145,9 +141,8 @@ use Fight\Common\Domain\Messaging\Command\Command;
 
 ## The event subscriber
 
-The subscriber translates the completed business fact into the next application request. That
-translation belongs in Application code: the event stays factual and the Domain remains unaware of
-command routing.
+The subscriber listens for `OrderProcessed` and sends `FulfillOrder`. The app makes this choice without putting
+command routing in the event or in its business rules.
 
 <span class="atlas-code-filename">src/Application/Order/OrderProcessedSubscriber.php</span>
 
@@ -169,9 +164,8 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 
 ## The fulfillment handler
 
-<code>FulfillOrderHandler</code> reloads authoritative order state and verifies the stored payment
-reference before requesting fulfillment. A pending or failed payment stops the workflow instead of
-turning an uncertain payment into an irreversible external action.
+`FulfillOrderHandler` loads the stored order and checks its payment reference. It requests fulfillment only after
+it confirms that payment succeeded. A pending or failed payment stops the request.
 
 <span class="atlas-code-filename">src/Application/Order/FulfillOrderHandler.php</span>
 
@@ -196,9 +190,8 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 
 ## Wire the application
 
-Composition is the Adapter edge. Register the two handlers, connect the event subscriber, and
-replace the demonstration repositories and external-service fakes with adapters selected by your
-application.
+Register both handlers and connect the event subscriber. In your own app, replace the example’s storage and fake
+services with adapters: code that connects to the database and services you use.
 
 <span class="atlas-code-filename">config/order-processing.php</span>
 
@@ -208,8 +201,8 @@ application.
 
 ## Dispatch the command
 
-The entry point creates application-owned values and sends the command through Fight's public
-<code>CommandBus</code>. The caller does not select a handler directly.
+Create the values your app needs and send the command through Fight Common’s `CommandBus`. The bus finds the
+right handler, so the caller does not have to pick one.
 
 <span class="atlas-code-filename">public/process-order.php</span>
 

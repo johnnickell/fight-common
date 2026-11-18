@@ -8,85 +8,53 @@
 [![Tests](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml)
 [![PHP 8.5+](https://img.shields.io/badge/php-8.5%2B-8892BF.svg?logo=php&logoColor=white)](https://www.php.net/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Stable release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fjohnnickell%2Ffight-common%2Freleases%2Flatest&query=%24.tag_name&label=Stable%20release)](https://github.com/johnnickell/fight-common/releases/latest)
 
-Framework-neutral PHP building blocks for applications that keep business rules independent from frameworks and
-infrastructure. Fight Common gives experienced PHP teams focused domain primitives, application contracts, and
-optional adapters without taking ownership of the application around them.
+Fight Common is a PHP library for tasks like checking input, handling commands and events, and sending email.
+Use the parts you need. You can keep your business rules separate from the framework and services you use.
+
+Install with [Composer](https://getcomposer.org/), PHP's package manager. You need PHP 8.5 or later.
 
 ```bash
 composer require johnnickell/fight-common
 ```
 
-[Quick Start](https://johnnickell.github.io/fight-common/quick-start/) ·
-[Architecture](https://johnnickell.github.io/fight-common/architecture/) ·
-[Component Atlas](https://johnnickell.github.io/fight-common/#component-atlas) ·
-[Framework Support](https://johnnickell.github.io/fight-common/frameworks/framework-support/)
+## Choose a capability
+
+- [Quick Start](https://johnnickell.github.io/fight-common/quick-start/) — Run an order example without a framework.
+- [Components](https://johnnickell.github.io/fight-common/#component-atlas) — Find a guide for the part you need.
+- [Frameworks](https://johnnickell.github.io/fight-common/frameworks/framework-support/) — Check support and find setup guides.
 
 ## Inward architecture
 
-Dependencies point inward: **Adapter → Application → Domain**.
-
-| Layer | Owns |
-| --- | --- |
-| **Adapter** | Framework, provider, and infrastructure integration. |
-| **Application** | Use-case coordination and ports expressed against the Domain. |
-| **Domain** | Pure business rules and durable primitives with no framework dependency. |
-
-The [Architecture guide](https://johnnickell.github.io/fight-common/architecture/) is authoritative for the
-complete dependency policy and enforcement model.
-
-## Choose a capability
-
-| Model | Coordinate | Connect | Operate |
-| --- | --- | --- | --- |
-| [Values](https://johnnickell.github.io/fight-common/components/values/) | [Messaging](https://johnnickell.github.io/fight-common/components/messaging/) | [HTTP Client](https://johnnickell.github.io/fight-common/components/http-client/) | [Observability](https://johnnickell.github.io/fight-common/components/observability/) |
-| [Specifications](https://johnnickell.github.io/fight-common/components/specifications/) | [Validation](https://johnnickell.github.io/fight-common/components/validation/) | [Cache](https://johnnickell.github.io/fight-common/components/cache/) | [Process](https://johnnickell.github.io/fight-common/components/process/) |
-| [Event Sourcing](https://johnnickell.github.io/fight-common/components/event-sourcing/) | [Dependency Injection](https://johnnickell.github.io/fight-common/components/dependency-injection/) | [Mail](https://johnnickell.github.io/fight-common/components/mail/) | [Scheduler](https://johnnickell.github.io/fight-common/components/scheduler/) |
-|  | [MCP Protocol Semantics](https://johnnickell.github.io/fight-common/components/mcp/) |  |  |
-
-The [Repositories guide](https://johnnickell.github.io/fight-common/components/repositories/) and the complete
-[Component Atlas](https://johnnickell.github.io/fight-common/#component-atlas) hold the implementation detail;
-this README stays deliberately compact.
+The [Architecture guide](https://johnnickell.github.io/fight-common/architecture/) explains the dependency rule:
+**Adapter → Application → Domain**. Adapters connect to tools such as databases and frameworks. Application code
+runs use cases. The domain holds the business rules and does not depend on the other two layers.
 
 ## JSend response compatibility
 
-Fight Common retains its published `1.x` framework-neutral envelope and Symfony response behavior. The
-[Validation guide](https://johnnickell.github.io/fight-common/components/validation/) is the authoritative route
-for response composition and integration guidance.
+The published `1.x` JSend response format still works, with or without Symfony. See the
+[Validation guide](https://johnnickell.github.io/fight-common/components/validation/) for the framework-neutral
+response envelope and Symfony response behavior.
 
 ## MCP foundation imports
 
-Prefer the canonical `Application\Mcp\Capability`, `Protocol`, `Http` and `Tool` names.
-The [complete migration map](docs/maintenance/mcp-foundation-namespaces.md) explains released-name compatibility;
-`McpResponder` and `McpDiagnostics` stay at root without deprecation.
+If you use the Model Context Protocol (MCP), start with the
+[foundation migration map](docs/maintenance/mcp-foundation-namespaces.md) for the recommended imports and
+supported old names. `McpResponder` and `McpDiagnostics` stay in the root MCP namespace and are not deprecated.
+The [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target) covers moved code
+that was never released and the aliases kept for released code.
 
-Execution handlers and read contracts now mirror Domain aggregates directly under `Application\Mcp`.
-Concrete inspection Tools live in `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}` and still dispatch
-through QueryBus; DBAL adapters use `Adapter\Mcp\Persistence\{Aggregate}\Dbal`. See the
-[aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target) for direct never-released moves
-and the unchanged released bridges.
-
-[Execution observations](docs/execution-observations.md#typed-activity-execution-facts) can optionally retain safe
-`ActivityExecution` target, partial timing, independently measured Duration and observed call/process result inside
-`PhaseActivity`. The existing Command → DBAL → shared Query → guarded `execution.activity` path preserves them;
-omitted execution is null. Returned/thrown/exited/cancelled never establishes business or Workflow success.
-Consumers still own capture, redaction and permissions; body removal does not redact safe metadata or copies.
-
-For [durable Tasks](docs/durable-tasks.md#explicit-composition), inject Domain `TaskRepository`, the existing
-`TransactionalUnitOfWork` and the protected `CommittedTaskReader` capability separately. The DBAL repository and
-Task transaction boundary share one dedicated connection; persistence does not own commit. Each Task handler
-owns its named use case with only its required capabilities; read handlers have no mutation/transaction dependencies.
+See [execution observations](docs/execution-observations.md#typed-activity-execution-facts) for optional activity
+records and their limits, and [durable Tasks](docs/durable-tasks.md#explicit-composition) for the separate
+storage, transaction and read interfaces.
 
 ## Project routes
 
-- Read the [documentation](https://johnnickell.github.io/fight-common/) or begin with the
-  [Quick Start](https://johnnickell.github.io/fight-common/quick-start/).
-- Check supported integration paths in [Framework Support](https://johnnickell.github.io/fight-common/frameworks/framework-support/).
-- See how to [contribute](https://johnnickell.github.io/fight-common/maintenance/contributing/).
-- Browse the [repository](https://github.com/johnnickell/fight-common), [source](https://github.com/johnnickell/fight-common/tree/main/src),
-  and [changelog](CHANGELOG.md).
-- Fight Common is available under the [MIT License](LICENSE).
+[Contributing](https://johnnickell.github.io/fight-common/maintenance/contributing/) ·
+[Repository](https://github.com/johnnickell/fight-common) ·
+[Source](https://github.com/johnnickell/fight-common/tree/main/src) ·
+[Changelog](CHANGELOG.md) · [MIT License](LICENSE) ·
+[Local tooling](docs/engineering/LOCAL_TOOLING.md)
 
 Copyright © 2026 John Nickell.
-
-See [local Docker, worktree and build-cache operations](docs/engineering/LOCAL_TOOLING.md) for explicit main/worktree selection, guarded teardown and fresh versus reused gate evidence.
