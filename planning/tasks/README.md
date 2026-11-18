@@ -115,4 +115,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | done | — |
 | [TASK-00214](00214-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to main | done | — |
 | [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | done | — |
+| [TASK-00216](00216-TASK.md) | Make the public docs easier to use and show the stable release | in-progress | — |
 <!-- /planning:records -->

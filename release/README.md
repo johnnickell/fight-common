@@ -39,6 +39,22 @@ and the immutable starter-receipt references accepted by T-00075.
 
 The command performs no merge, tag, push, GitHub, Packagist, or deployment action.
 
+## Stable release badge checklist
+
+These are read-only checks, not certification or permission to publish. Both the README badge and its link use
+GitHub’s latest published stable release, not the most recently pushed tag. A draft or prerelease is not latest.
+
+- [ ] **Before shipping:** Run `./bin/docs validate` to check the README markup. Open
+  [GitHub’s latest release notes](https://github.com/johnnickell/fight-common/releases/latest) and record the tag
+  and final notes URL. Compare the tag with the README’s Stable release badge. If the publication is an older-line
+  patch, keep this tag as the expected latest and ensure the authorized publication marks the patch **not latest**
+  (GitHub’s `make_latest: false`).
+- [ ] **After authorized publication:** Check the published README badge and follow its link again. For a new
+  latest stable release, both should show the new tag and the link should open its notes. For an older-line patch,
+  both should still show the tag recorded before shipping. Record the observed badge version and notes URL.
+  Badge and GitHub image caches can lag. If the badge or notes are unavailable or disagree, record **unverified**
+  with what you observed and recheck after the cache has refreshed. Do not mark a mismatch as passed.
+
 ## Layout and verification
 
 - `src/` contains only code used directly by certification.

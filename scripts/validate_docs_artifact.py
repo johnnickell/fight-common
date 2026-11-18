@@ -54,24 +54,14 @@ CANONICAL_ROUTES = (
     "maintenance/coding-standard/",
 )
 HOMEPAGE_TEXT = (
-    "Keep your core clean. Connect everything else.",
-    "Adopt focused PHP components without coupling Domain or Application code to a framework.",
+    "Build PHP apps with Fight Common",
     "composer require johnnickell/fight-common",
-    "Adapter",
-    "Application",
-    "Domain",
-    "Understand the architecture",
-    "Start building",
-    "Explore components",
-    "Model the Domain",
-    "Coordinate Application Behavior",
-    "Connect Systems",
-    "Operate Workloads",
-    "Integrate Frameworks",
+    "Browse components",
 )
 HOMEPAGE_LINKS = (
     "architecture/",
     "quick-start/",
+    "#component-atlas",
     "components/values/",
     "components/collections/",
     "components/specifications/",
@@ -187,6 +177,8 @@ MAIL_CONFIGURATION_FORMATS = (
 QUICK_START_INSTALLATION_COMMAND = "composer require johnnickell/fight-common"
 QUICK_START_EXPECTED_OUTPUT = "Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested."
 QUICK_START_ARTICLE_ANCHORS = (
+    "framework-neutral-quick-start",
+    "install-fight-common",
     "pick-your-framework",
     "the-supporting-domain-type",
     "the-command",
