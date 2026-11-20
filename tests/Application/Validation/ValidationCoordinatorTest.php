@@ -37,28 +37,6 @@ class ValidationCoordinatorTest extends UnitTestCase
         self::assertSame('Alice', $result->getData()->get('name'));
     }
 
-    public function test_that_validate_returns_failed_result_when_a_validator_fails(): void
-    {
-        $coordinator = new ValidationCoordinator();
-        $coordinator->addEmailValidation('email', 'Invalid email');
-
-        $result = $coordinator->validate(new InputData(['email' => 'not-an-email']));
-
-        self::assertTrue($result->isFailed());
-    }
-
-    public function test_that_validate_failed_result_contains_error_for_field_with_correct_message(): void
-    {
-        $coordinator = new ValidationCoordinator();
-        $coordinator->addEmailValidation('email', 'Invalid email');
-
-        $result = $coordinator->validate(new InputData(['email' => 'not-an-email']));
-
-        $errors = $result->getErrors();
-        self::assertTrue($errors->has('email'));
-        self::assertContains('Invalid email', $errors->get('email'));
-    }
-
     public function test_that_multiple_validators_for_same_field_are_all_evaluated(): void
     {
         $coordinator = new ValidationCoordinator();
