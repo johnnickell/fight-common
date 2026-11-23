@@ -14,13 +14,21 @@ use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTransaction;
+use Fight\Common\Application\Mcp\Notice\Data\NoticeView;
 use Fight\Common\Application\Mcp\Notice\Exception\CommittedNoticeDispatchFailed;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeConflict;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeReadFailed;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeStorageFailed;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublication;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationDiagnostics;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationGrant;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationPolicy;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationStatus;
+use Fight\Common\Application\Mcp\Notice\Publication\RecordNoticeAndPublish;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeAccess;
+use Fight\Common\Application\Socket\PrivatePublisher;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\Command\RecordNotice;
 use Fight\Common\Domain\Mcp\Notice\Command\RemoveNotices;
@@ -33,6 +41,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeInspectionFixture;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRemovalFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
@@ -165,6 +174,68 @@ final class DbalNoticeConstraintIntegrationTest extends UnitTestCase
             $retry->recordNoticeHandler->handle($second);
             self::assertSame($rows[1]->recordedAt(), $recovery->readAfter('scope', 1, 100)[0]->recordedAt());
             self::assertCount(2, $recovery->readAfter('scope', 0, 100));
+        });
+    }
+
+    public function test_that_explicit_publication_reads_a_committed_notice_after_recording_dispatch_fails(): void
+    {
+        $this->checkRecordingBoundary('sqlite', function (Connection $connection, Connection $observer, DbalNoticeTables $tables): void {
+            $writer = new NoticeFixture($connection, $tables);
+            $inspection = new NoticeInspectionFixture($observer, $tables);
+            $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void {
+                throw new RuntimeException('Private recording subscriber failure');
+            });
+
+            $grant = null;
+            $grantChecks = 0;
+            $policy = $this->mock(NoticePublicationPolicy::class);
+            $policy->shouldReceive('currentGrant')->once()->andReturnUsing(
+                static function (NoticeView $view) use (&$grant, &$grantChecks, $observer): ?NoticePublicationGrant {
+                    ++$grantChecks;
+                    self::assertFalse($observer->isTransactionActive());
+                    self::assertSame('notice-1', $view->notice()->id());
+
+                    return $grant;
+                }
+            );
+            $diagnostics = $this->mock(NoticePublicationDiagnostics::class);
+            $diagnostics->shouldNotReceive('record');
+            $sends = [];
+            $publisher = $this->mock(PrivatePublisher::class);
+            $publisher->shouldReceive('pushPrivate')->once()->andReturnUsing(
+                static function (string $topic, string $message) use ($connection, $observer, &$sends): void {
+                    self::assertFalse($connection->isTransactionActive());
+                    self::assertFalse($observer->isTransactionActive());
+                    $sends[] = [$topic, json_decode($message, true, flags: JSON_THROW_ON_ERROR)];
+                }
+            );
+            $publication = new NoticePublication($inspection->queryBus, $policy, $diagnostics, privatePublisher: $publisher);
+            $recording = new RecordNoticeAndPublish($writer->commandBus, $publication);
+            $command = RecordNotice::fromArray(NoticeFixture::data(['metadata' => ['app/label' => 'retained']]));
+
+            try {
+                $recording->record($command);
+                self::fail('Recording dispatch failure must propagate after commit.');
+            } catch (CommittedNoticeDispatchFailed $failure) {
+                self::assertSame('notice-1', $failure->event()->toArray()['id']);
+            }
+            self::assertSame(0, $inspection->admissions);
+            self::assertSame(0, $grantChecks);
+            self::assertSame([], $sends);
+            $noticeTable = $tables->noticeTable()->quoted($observer->getDatabasePlatform());
+            self::assertSame(1, (int) $observer->fetchOne('SELECT COUNT(*) FROM '.$noticeTable));
+
+            $grant = NoticePublicationGrant::create('https://feed.test/recovery', true, metadata: ['app/label']);
+            self::assertSame(NoticePublicationStatus::PUBLISHED, $publication->publish(new GetNotice('scope', 'producer', 'notice-1')));
+            self::assertSame(1, $inspection->admissions);
+            self::assertSame(1, $grantChecks);
+            self::assertSame([['https://feed.test/recovery', [
+                'version' => 1,
+                'scope' => 'scope',
+                'producer' => 'producer',
+                'id' => 'notice-1',
+                'metadata' => ['app/label' => 'retained']
+            ]]], $sends);
         });
     }
 
