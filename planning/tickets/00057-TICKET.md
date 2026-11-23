@@ -36,10 +36,10 @@ Show phase and end-to-end timings, exact Unit coverage, retained checks, and any
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00218](../tasks/00218-TASK.md) | Lock the hosted timing baseline | done |
-| [TASK-00219](../tasks/00219-TASK.md) | Reduce subscription capacity-lock test cost | in-progress |
+| [TASK-00219](../tasks/00219-TASK.md) | Reduce subscription capacity-lock test cost | done |
 | [TASK-00230](../tasks/00230-TASK.md) | Shorten the remaining gate and measure the combined result | ready-for-agent |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
-[WF-049](../wayfinder/tickets/WF-049-set-test-and-ci-runtime-target.md) owns the timing baseline and initial investigation. Requirements and TASK decomposition are approved. [TASK-00218](../tasks/00218-TASK.md) recorded the accepted hosted timing baseline. Tests and runner behavior are unchanged.
+[WF-049](../wayfinder/tickets/WF-049-set-test-and-ci-runtime-target.md) owns the timing baseline and initial investigation. Requirements and TASK decomposition are approved. [TASK-00218](../tasks/00218-TASK.md) recorded the accepted hosted timing baseline. [TASK-00219](../tasks/00219-TASK.md) reduced the Functional subscription capacity-lock matrix from 84 cases to 19, with independent review and QA. The local measurements do not establish hosted savings; TASK-00230 owns that comparison.

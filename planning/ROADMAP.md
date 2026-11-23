@@ -33,7 +33,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00219](tasks/00219-TASK.md) | Reduce subscription capacity-lock test cost | in-progress | — |
+| Ready Frontier | [TASK-00220](tasks/00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
