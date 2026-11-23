@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | ready-for-agent | — |
+| Ready Frontier | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -40,7 +40,6 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 2 | [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | — | — |
 | 3 | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | [TICKET-00058 — Replace project context with a concise glossary](../tickets/00058-TICKET.md) | ready-for-agent | — | — |
 | 4 | [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
 | 9 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
@@ -56,7 +55,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 7 | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md) | — |
 | 8 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md) | — |
 | 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | [TASK-00226](00226-TASK.md), [TASK-00227](00227-TASK.md) | — |
-| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | [TASK-00219](00219-TASK.md), [TASK-00221](00221-TASK.md), [TASK-00222](00222-TASK.md), [TASK-00223](00223-TASK.md), [TASK-00224](00224-TASK.md) | — |
+| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md), [TASK-00222](00222-TASK.md), [TASK-00223](00223-TASK.md), [TASK-00224](00224-TASK.md) | — |
 
 ## Needs Info
 
@@ -93,6 +92,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | done | — | [PR #261](https://github.com/johnnickell/fight-common/pull/261) |
 | 2 | [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | — (standalone chore) | done | — | [PR #317](https://github.com/johnnickell/fight-common/pull/317) |
+| 2 | [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | [PR #324](https://github.com/johnnickell/fight-common/pull/324) |
 | 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #165](https://github.com/johnnickell/fight-common/pull/165) |
 | 3 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | — (standalone chore) | done | — | [PR #262](https://github.com/johnnickell/fight-common/pull/262) |
 | 4 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #166](https://github.com/johnnickell/fight-common/pull/166) |

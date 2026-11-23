@@ -485,17 +485,40 @@ final class McpSubscriptionJourneyTest extends TestCase
 
     public static function contentionCases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach (['fast', 'expired', 'overlong', 'timeout', 'pre-renewal-expired'] as $mode) {
-                foreach (['body', 'emitter'] as $transport) {
-                    foreach ([false, true] as $configured) {
-                        $selection = $configured ? 'configured' : 'default';
-                        yield $backend.'-'.$mode.'-'.$transport.'-'.$selection => [$backend, $mode, $transport, 0, $configured];
-                        if (in_array($mode, ['fast', 'expired'], true)) {
-                            yield $backend.'-'.$mode.'-'.$transport.'-delayed-bootstrap-'.$selection => [$backend, $mode, $transport, 1100000, $configured];
-                        }
-                    }
-                }
+        // Run every lock outcome on every driver. Transport and table selection vary without a full cross-product.
+        $cases = [
+            'sqlite' => [
+                ['fast', 'emitter', 0, true],
+                // Keep both exact witnesses for the earlier SQLite freshness failure.
+                ['expired', 'body', 0, false],
+                ['expired', 'body', 0, true],
+                ['overlong', 'emitter', 0, false],
+                ['timeout', 'body', 0, true],
+                ['pre-renewal-expired', 'body', 0, false],
+                ['fast', 'body', 1100000, false],
+            ],
+            'mysql' => [
+                ['fast', 'body', 0, false],
+                ['expired', 'emitter', 0, true],
+                ['overlong', 'body', 0, true],
+                ['timeout', 'emitter', 0, false],
+                ['pre-renewal-expired', 'emitter', 0, true],
+                ['expired', 'emitter', 1100000, true],
+            ],
+            'postgresql' => [
+                ['fast', 'body', 0, true],
+                ['expired', 'emitter', 0, false],
+                ['overlong', 'body', 0, false],
+                ['timeout', 'emitter', 0, true],
+                ['pre-renewal-expired', 'body', 0, true],
+                ['fast', 'emitter', 1100000, true],
+            ],
+        ];
+        foreach ($cases as $backend => $backendCases) {
+            foreach ($backendCases as [$mode, $transport, $bootstrapDelayMicroseconds, $configured]) {
+                $delay = $bootstrapDelayMicroseconds > 0 ? '-delayed-bootstrap' : '';
+                $selection = $configured ? 'configured' : 'default';
+                yield $backend.'-'.$mode.'-'.$transport.$delay.'-'.$selection => [$backend, $mode, $transport, $bootstrapDelayMicroseconds, $configured];
             }
         }
     }

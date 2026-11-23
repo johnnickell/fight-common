@@ -118,7 +118,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00216](00216-TASK.md) | Make the public docs easier to use and show the stable release | done | — |
 | [TASK-00217](00217-TASK.md) | Remove duplicate invalid-email coordinator tests | done | — |
 | [TASK-00218](00218-TASK.md) | Lock the hosted timing baseline | done | [TICKET-00057](../tickets/00057-TICKET.md) |
-| [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | ready-for-agent | [TICKET-00057](../tickets/00057-TICKET.md) |
+| [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | done | [TICKET-00057](../tickets/00057-TICKET.md) |
 | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent | [TICKET-00058](../tickets/00058-TICKET.md) |
 | [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
