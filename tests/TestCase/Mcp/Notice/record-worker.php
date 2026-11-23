@@ -8,6 +8,7 @@ use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
 use Fight\Common\Domain\Mcp\Notice\Command\RecordNotice;
 use Fight\Common\Domain\Mcp\Notice\Event\NoticeRecorded;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 
@@ -50,7 +51,14 @@ if ($role === 'second') {
 }
 file_put_contents($directory.'/'.$role.'-started', 'yes');
 $status = 'recorded'; $uncertain = null;
-try { $fixture->commandBus->execute(RecordNotice::fromArray($data)); }
+try {
+    $command = RecordNotice::fromArray($data);
+    if ($config['direct'] ?? false) {
+        $fixture->recordNoticeHandler->handle(CommandMessage::create($command));
+    } else {
+        $fixture->commandBus->execute($command);
+    }
+}
 catch (Throwable $failure) { $status = $failure::class; if ($failure instanceof \Fight\Common\Application\Mcp\Notice\Exception\NoticeStorageFailed) { $uncertain = $failure->outcomeUncertain(); } }
 echo json_encode(['status' => $status, 'events' => $events, 'admissions' => $fixture->admissions, 'uncertain' => $uncertain], JSON_THROW_ON_ERROR);
 $connection->close(); Mockery::close();

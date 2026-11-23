@@ -8,7 +8,11 @@ use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeStorageFailed;
+use Fight\Common\Domain\Mcp\Notice\Command\RecordNotice;
+use Fight\Common\Domain\Mcp\Notice\Command\RemoveNotices;
 use Fight\Common\Domain\Mcp\Notice\NoticeRemovalSelection;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRemovalFixture;
 
 require dirname(__DIR__, 4).'/vendor/autoload.php';
@@ -57,13 +61,24 @@ if ($role === 'second') {
 file_put_contents($directory.'/'.$role.'-started', $operation);
 $status = 'ok'; $uncertain = null; $window = null;
 try {
-    if ($operation === 'remove') { $fixture->remove(NoticeRemovalSelection::fromArray($config['selection'])); }
-    elseif ($operation === 'window') {
+    $direct = $config['direct'] ?? false;
+    if ($operation === 'remove') {
+        $selection = NoticeRemovalSelection::fromArray($config['selection']);
+        if ($direct) {
+            $fixture->removeNoticesHandler->handle(CommandMessage::create(new RemoveNotices($selection)));
+        } else {
+            $fixture->remove($selection);
+        }
+    } elseif ($operation === 'window') {
         $snapshot = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         $window = ['positions' => array_map(static fn ($row) => $row->position(), $snapshot->notices()), 'high' => $snapshot->highWater(), 'lost' => $snapshot->lostThrough()];
     } else {
         $changes = match ($operation) { 'distinct' => ['id' => 'notice-3'], 'conflict' => ['topic' => 'changed'], default => [] };
-        $fixture->recording->record($changes);
+        if ($direct) {
+            $fixture->recording->recordNoticeHandler->handle(CommandMessage::create(RecordNotice::fromArray(NoticeFixture::data($changes))));
+        } else {
+            $fixture->recording->record($changes);
+        }
     }
 } catch (Throwable $failure) {
     $status = $failure::class;

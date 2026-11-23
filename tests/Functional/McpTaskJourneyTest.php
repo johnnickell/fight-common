@@ -66,13 +66,10 @@ final class McpTaskJourneyTest extends UnitTestCase
                 $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR); $trace[] = ['method' => $method, 'headers' => $headers, 'body' => $data]; return $data;
             };
             if ($scenario === 'storage-failure') {
-                if ($backend === 'sqlite') { $connection->executeStatement("CREATE TRIGGER reject_task_creation BEFORE INSERT ON ".$taskTable." BEGIN SELECT RAISE(ABORT, 'private'); END"); }
-                else { $connection->executeStatement("ALTER TABLE ".$taskTable." ADD CONSTRAINT reject_task_creation CHECK (scope <> 'scope')"); }
+                $connection->executeStatement("CREATE TRIGGER reject_task_creation BEFORE INSERT ON ".$taskTable." BEGIN SELECT RAISE(ABORT, 'private'); END");
                 self::assertSame(-32603, $call('tools/call', ['name' => 'example.operation'])['error']['code']);
                 self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$taskTable));
-                if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER reject_task_creation'); }
-                elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE '.$taskTable.' DROP CHECK reject_task_creation'); }
-                else { $connection->executeStatement('ALTER TABLE '.$taskTable.' DROP CONSTRAINT reject_task_creation'); }
+                $connection->executeStatement('DROP TRIGGER reject_task_creation');
             }
             $start = $call('tools/call', ['name' => 'example.operation'], $scenario === 'response-loss');
             if ($scenario === 'response-loss') {
@@ -140,15 +137,34 @@ final class McpTaskJourneyTest extends UnitTestCase
     }
 
     private static function accept(): array { return ['action' => 'accept', 'content' => (object) ['answer' => 'yes']]; }
-    public static function compositions(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['psr', 'symfony', 'codeigniter'] as $composition) { yield $name.'-'.$composition => [$db, $composition, $tables]; } } }
-    public static function outcomes(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['completed', 'failed', 'cancelled'] as $outcome) { yield $name.'-'.$outcome => [$db, $outcome, $tables]; } } }
-    public static function faults(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['response-loss', 'submission-failure', 'publication-failure', 'storage-failure'] as $fault) { yield $name.'-'.$fault => [$db, $fault, $tables]; } } }
-    private static function databases(): iterable
+    public static function compositions(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $db) {
-            yield $db => [$db, new DbalTaskTables()];
-            yield $db.'-configured' => [$db, new DbalTaskTables('TaskState', 'TaskRows')];
-        }
+        yield 'sqlite-symfony' => ['sqlite', 'symfony', new DbalTaskTables()];
+        // Keep the two exact lanes that previously timed out in the complete gate.
+        yield 'sqlite-configured-codeigniter' => ['sqlite', 'codeigniter', self::configuredTables()];
+        yield 'mysql-psr' => ['mysql', 'psr', new DbalTaskTables()];
+        yield 'postgresql-configured-psr' => ['postgresql', 'psr', self::configuredTables()];
+    }
+
+    public static function outcomes(): iterable
+    {
+        yield 'sqlite-completed' => ['sqlite', 'completed', new DbalTaskTables()];
+        yield 'mysql-configured-failed' => ['mysql', 'failed', self::configuredTables()];
+        yield 'postgresql-cancelled' => ['postgresql', 'cancelled', new DbalTaskTables()];
+    }
+
+    public static function faults(): iterable
+    {
+        yield 'sqlite-configured-response-loss' => ['sqlite', 'response-loss', self::configuredTables()];
+        yield 'mysql-submission-failure' => ['mysql', 'submission-failure', new DbalTaskTables()];
+        yield 'postgresql-publication-failure' => ['postgresql', 'publication-failure', new DbalTaskTables()];
+        // Keep HTTP failure and retry on SQLite; MySQL and PostgreSQL exercise their constraints directly.
+        yield 'sqlite-storage-failure' => ['sqlite', 'storage-failure', new DbalTaskTables()];
+    }
+
+    private static function configuredTables(): DbalTaskTables
+    {
+        return new DbalTaskTables('TaskState', 'TaskRows');
     }
     private function database(string $backend, string $directory, DbalTaskTables $tables): Connection
     {

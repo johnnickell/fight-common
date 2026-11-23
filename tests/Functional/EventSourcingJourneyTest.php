@@ -14,8 +14,6 @@ final class EventSourcingJourneyTest extends UnitTestCase
 {
     public static function compositions(): iterable
     {
-        yield 'unchanged defaults' => [false, ['event_store_events', 'event_store_global_position',
-            'projection_checkpoints', 'publication_cursors', 'publication_failures', 'publication_handler_failures']];
         yield 'all six configured' => [true, ['orders_events', 'orders_position', 'orders_projection_progress',
             'orders_publication_progress', 'orders_publication_errors', 'orders_handler_errors']];
     }

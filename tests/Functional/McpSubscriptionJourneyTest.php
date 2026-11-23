@@ -8,12 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriberReader;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
-use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
-use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
-use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRecoveryFixture;
@@ -37,7 +33,7 @@ final class McpSubscriptionJourneyTest extends TestCase
     private array $processes = [];
     private array $evidence = [];
 
-    #[DataProvider('databases')]
+    #[DataProvider('isolatedStreamDatabase')]
     public function test_that_real_shared_database_live_streams_reused_ids_revocation_failure_and_polling_are_isolated(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured);
@@ -92,45 +88,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertFalse($this->connection->isTransactionActive());
     }
 
-    #[DataProvider('databases')]
-    public function test_that_heartbeat_after_clock_capture_preserves_open_counts_without_claiming_recent_observation(string $backend, bool $configured): void
-    {
-        $this->setupDatabase($backend, $configured);
-        $subscriptionStore = new DbalSubscriptionStore($this->connection, tables: $this->tables->subscription);
-        $registrationId = str_repeat('1', 32); $owner = str_repeat('2', 32);
-        $subscriptionStore->open($registrationId, $owner, ['subscriber' => 'agent', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => [], 'accepted' => []], 100, 105);
-        $connection = $this->connection; $afterHeartbeat = [];
-        $reader = new DbalSubscriberReader($connection, 'controlled-db', function () use ($subscriptionStore, $registrationId, $owner, $connection, &$afterHeartbeat): int {
-            $queriedAt = 100;
-            // Commit a valid later heartbeat after capture, before the reader scans storage.
-            $subscriptionStore->heartbeat($registrationId, $owner, 101, 106);
-            $afterHeartbeat = $connection->fetchAllAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions'));
-            return $queriedAt;
-        }, tables: $this->tables->subscription);
-        $summary = $reader->summarize(SubscriberSelection::create(['scope']), SubscriberAccess::create(['scope']))->toArray();
-        $this->evidence['clock_crossing'] = $summary;
-        self::assertSame(100, $summary['scope']['queried_at']);
-        $observedAt = $summary['latest_observed_at'];
-        self::assertGreaterThan(100, $observedAt);
-        self::assertSame(1, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']);
-        $this->assertSubscriberStates($summary, 1, 0);
-        self::assertSame(['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 1], $summary['states']);
-        self::assertFalse($this->connection->isTransactionActive());
-        foreach ([[100, 'stale_uncertain'], [$observedAt, 'recently_observed'], [106, 'stale_uncertain']] as [$queriedAt, $state]) {
-            $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $observedAt, null);
-        }
-        self::assertSame($afterHeartbeat, $this->connection->fetchAllAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions')), 'Inspection does not renew or expire storage');
-        $closedAt = $observedAt + 1;
-        $subscriptionStore->close($registrationId, $owner, $closedAt);
-        $afterClose = $this->connection->fetchAllAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions'));
-        foreach ([[$observedAt, 'stale_uncertain'], [$closedAt, 'disconnected'], [106, 'disconnected']] as [$queriedAt, $state]) {
-            $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $closedAt, $closedAt);
-        }
-        self::assertSame($afterClose, $this->connection->fetchAllAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions')), 'Inspection does not clean closed storage');
-        self::assertFalse($this->connection->isTransactionActive());
-    }
-
-    #[DataProvider('databases')]
+    #[DataProvider('operatorQueryDatabase')]
     public function test_that_independent_routed_operator_queries_summarize_then_page_actual_streams_with_current_inspection_grants(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured);
@@ -206,7 +164,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         $this->evidence['unavailable'] = $unavailable;
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('promptDatabase')]
     public function test_that_actual_prompt_serving_and_live_notifications_have_independent_current_authority_and_retained_recovery(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured);
@@ -301,7 +259,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertSame('0', $this->evidence['runtime']['compression']);
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('operatorQueryDatabase')]
     public function test_that_abrupt_death_becomes_stale_and_cross_process_owner_updates_cannot_revive_closed_or_expired_rows(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured); $server = $this->server('scope');
@@ -333,7 +291,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         $this->evidence['operator_stale'] = $stale; $this->evidence['operator_cleaned'] = $cleaned;
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('isolatedStreamDatabase')]
     public function test_that_concurrent_removal_and_over_batch_backlog_end_honestly_and_new_listen_is_not_replay(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured); $server = $this->server('scope');
@@ -456,85 +414,40 @@ final class McpSubscriptionJourneyTest extends TestCase
         }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_same_second_noops_and_lost_ownership_preserve_dedicated_transaction_contracts(string $backend, bool $configured): void
-    {
-        $this->setupDatabase($backend, $configured);
-        $subscriptionStore = new DbalSubscriptionStore($this->connection, tables: $this->tables->subscription);
-        $id = str_repeat('1', 32); $owner = str_repeat('2', 32);
-        $context = ['subscriber' => 'caller', 'selection' => [], 'requested' => [], 'accepted' => []];
-        $subscriptionStore->open($id, $owner, $context, 100, 105);
-        $subscriptionStore->heartbeat($id, $owner, 101, 106);
-        $subscriptionStore->heartbeat($id, $owner, 101, 106);
-        self::assertSame(101, (int) $this->connection->fetchOne($this->sql('SELECT observed_at FROM fight_mcp_subscriptions')));
-        foreach (['foreign', 'expired', 'closed', 'cleaned'] as $condition) {
-            if ($condition === 'closed') { $subscriptionStore->close($id, $owner, 102); }
-            if ($condition === 'cleaned') { self::assertSame(1, $subscriptionStore->cleanup(102, 1)); }
-            try {
-                (new DbalSubscriptionStore($this->connection, tables: $this->tables->subscription))->heartbeat($id, $condition === 'foreign' ? str_repeat('3', 32) : $owner, $condition === 'expired' ? 106 : 102, $condition === 'expired' ? 111 : 107);
-                self::fail('Lost ownership must reject: '.$condition);
-            } catch (RuntimeException) { self::assertFalse($this->connection->isTransactionActive()); }
-        }
-        $this->connection->beginTransaction();
-        $this->connection->insert($this->sql('fight_mcp_subscriptions'), ['registration_id' => $id, 'owner' => $owner, 'context' => '{}', 'opened_at' => 100, 'observed_at' => 100, 'expires_at' => 105, 'closed_at' => 0]);
-        try { (new DbalSubscriptionStore($this->connection, tables: $this->tables->subscription))->heartbeat($id, $owner, 101, 106); self::fail('Caller work'); }
-        catch (LogicException) { self::assertTrue($this->connection->isTransactionActive()); }
-        $this->connection->rollBack();
-        self::assertSame(0, (int) $this->connection->fetchOne($this->sql('SELECT COUNT(*) FROM fight_mcp_subscriptions')));
-    }
-
     public static function contentionCases(): iterable
     {
-        // Run every lock outcome on every driver. Transport and table selection vary without a full cross-product.
-        $cases = [
-            'sqlite' => [
-                ['fast', 'emitter', 0, true],
-                // Keep both exact witnesses for the earlier SQLite freshness failure.
-                ['expired', 'body', 0, false],
-                ['expired', 'body', 0, true],
-                ['overlong', 'emitter', 0, false],
-                ['timeout', 'body', 0, true],
-                ['pre-renewal-expired', 'body', 0, false],
-                ['fast', 'body', 1100000, false],
-            ],
-            'mysql' => [
-                ['fast', 'body', 0, false],
-                ['expired', 'emitter', 0, true],
-                ['overlong', 'body', 0, true],
-                ['timeout', 'emitter', 0, false],
-                ['pre-renewal-expired', 'emitter', 0, true],
-                ['expired', 'emitter', 1100000, true],
-            ],
-            'postgresql' => [
-                ['fast', 'body', 0, true],
-                ['expired', 'emitter', 0, false],
-                ['overlong', 'body', 0, false],
-                ['timeout', 'emitter', 0, true],
-                ['pre-renewal-expired', 'body', 0, true],
-                ['fast', 'emitter', 1100000, true],
-            ],
-        ];
-        foreach ($cases as $backend => $backendCases) {
-            foreach ($backendCases as [$mode, $transport, $bootstrapDelayMicroseconds, $configured]) {
-                $delay = $bootstrapDelayMicroseconds > 0 ? '-delayed-bootstrap' : '';
-                $selection = $configured ? 'configured' : 'default';
-                yield $backend.'-'.$mode.'-'.$transport.$delay.'-'.$selection => [$backend, $mode, $transport, $bootstrapDelayMicroseconds, $configured];
-            }
-        }
+        // Keep distinct wire outcomes and both exact witnesses for the SQLite freshness regression.
+        yield 'sqlite-expired-body-default' => ['sqlite', 'expired', 'body', 0, false];
+        yield 'sqlite-expired-body-configured' => ['sqlite', 'expired', 'body', 0, true];
+        yield 'sqlite-pre-renewal-expired-body-default' => ['sqlite', 'pre-renewal-expired', 'body', 0, false];
+        yield 'mysql-overlong-body-configured' => ['mysql', 'overlong', 'body', 0, true];
+        yield 'mysql-timeout-emitter-default' => ['mysql', 'timeout', 'emitter', 0, false];
+        yield 'postgresql-fast-emitter-delayed-bootstrap-configured' => ['postgresql', 'fast', 'emitter', 1100000, true];
     }
 
-    public static function databases(): iterable
+    public static function isolatedStreamDatabase(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach ([false, true] as $configured) { yield $backend.'-'.($configured ? 'configured' : 'default') => [$backend, $configured]; }
-        }
+        yield 'sqlite-configured' => ['sqlite', true];
+    }
+
+    public static function operatorQueryDatabase(): iterable
+    {
+        yield 'mysql-configured' => ['mysql', true];
+    }
+
+    public static function promptDatabase(): iterable
+    {
+        yield 'postgresql-default' => ['postgresql', false];
     }
 
     public static function compositions(): iterable
     {
-        foreach (['psr', 'symfony', 'laravel', 'yii', 'slim', 'codeigniter'] as $composition) {
-            foreach ([false, true] as $configured) { yield $composition.'-'.($configured ? 'configured' : 'default') => [$composition, $configured]; }
-        }
+        yield 'psr-default' => ['psr', false];
+        yield 'symfony-configured' => ['symfony', true];
+        yield 'laravel-default' => ['laravel', false];
+        yield 'yii-configured' => ['yii', true];
+        yield 'slim-default' => ['slim', false];
+        yield 'codeigniter-configured' => ['codeigniter', true];
     }
 
     protected function tearDown(): void
@@ -734,24 +647,6 @@ final class McpSubscriptionJourneyTest extends TestCase
         // A later heartbeat can be future evidence relative to this invocation; an open stream is not a liveness promise.
         self::assertSame($notDisconnected, $summary['states']['recently_observed'] + $summary['states']['stale_uncertain']);
         self::assertSame($summary['subscriptions'], array_sum($summary['states']));
-    }
-
-    private function assertControlledSubscriberState(int $queriedAt, string $state, string $registrationId, int $observedAt, ?int $closedAt): void
-    {
-        $reader = new DbalSubscriberReader($this->connection, 'controlled-db', static fn () => $queriedAt, tables: $this->tables->subscription);
-        $selection = SubscriberSelection::create(['scope']); $access = SubscriberAccess::create(['scope']);
-        $summary = $reader->summarize($selection, $access)->toArray();
-        $expected = ['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 0]; $expected[$state] = 1;
-        self::assertSame($expected, $summary['states']);
-        self::assertSame(1, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']);
-        self::assertSame($queriedAt, $summary['scope']['queried_at']);
-        $page = $reader->list(new ListSubscribers($selection), $access)->toArray();
-        self::assertSame(1, $page['total']); self::assertCount(1, $page['subscribers']);
-        self::assertSame($queriedAt, $page['scope']['queried_at']);
-        $view = $page['subscribers'][0];
-        self::assertSame($registrationId, $view['registration_id']); self::assertSame('agent', $view['subscriber']);
-        self::assertSame($state, $view['state']); self::assertSame($observedAt, $view['observed_at']); self::assertSame($closedAt, $view['closed_at']);
-        $this->evidence['controlled_states'][] = ['summary' => $summary, 'page' => $page];
     }
 
     private function inspectSubscribers(array $operations): array

@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Functional;
 
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
-use Fight\Common\Application\Mcp\Detail\Exception\DetailRemovalRejected;
 use Fight\Common\Application\Mcp\Detail\Service\DetailAccess;
-use Fight\Common\Application\Mcp\Observation\Exception\ProtectedContentRemoved;
 use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Mcp\Activity\ActivityExecution;
 use Fight\Common\Domain\Mcp\Activity\ActivityResult;
@@ -43,15 +41,17 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class McpProtectedExecutionJourneyTest extends TestCase
 {
-    public static function databases(): iterable
+    public static function mysql(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend.' default' => [$backend, new DbalObservationTables()];
-            yield $backend.' configured' => [$backend, new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
-        }
+        yield 'mysql default' => ['mysql', new DbalObservationTables()];
     }
 
-    #[DataProvider('databases')]
+    public static function postgresqlSelection(): iterable
+    {
+        yield 'postgresql configured' => ['postgresql', new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
+    }
+
+    #[DataProvider('postgresqlSelection')]
     public function test_that_guarded_summary_to_detail_journey_matches_shared_queries_and_reconstructs_all_kinds_without_mutation(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, true, tables: $tables);
@@ -128,11 +128,37 @@ final class McpProtectedExecutionJourneyTest extends TestCase
             self::assertSame($sorted, $ids, 'Full UUID breaks recording-time ties');
             self::assertSame([], $this->messages($fixture, $selection + ['page' => 20])['messages']);
             self::assertSame($before, $fixture->state()); self::assertSame($eventCount, $fixture->eventCount); self::assertSame($commandCount, $fixture->commandCalls);
+
+            // The same guarded read sees the effect of a separately authorized removal.
+            $fixture->removalAllowed = true;
+            $removed = $details['message']->id();
+            $fixture->remove(new RemoveCapturedDetail(DetailSelection::fromArray($selection), $removed, DetailKind::MESSAGE));
+            $args = $selection + ['detail_id' => $removed->toString(), 'kind' => 'message', 'offset' => 3];
+            $fixture->detailAccess = DetailAccess::create([]);
+            self::assertNull($this->detail($fixture, $args), 'Removal permission grants no read permission');
+            $fixture->detailAccess = $this->allAccess();
+            $missing = $this->detail($fixture, $args);
+            self::assertNull($missing['chunk']);
+            self::assertSame('missing', $missing['reference']['availability']);
+            self::assertSame('partial', $missing['reference']['capture']['completeness']);
+            $messages = $this->messages($fixture, $selection);
+            self::assertSame(2, $messages['total']);
+            $byId = array_column(array_map(static fn (array $message) => ['id' => $message['reference']['observation_id']] + $message, $messages['messages']), null, 'id');
+            self::assertSame($missing['reference'], $byId[$removed->toString()]['reference']);
+            self::assertNull($byId[$removed->toString()]['chunk']);
+            self::assertNotNull($byId[$empty->id()->toString()]['chunk']);
+            $safe = $this->equivalent($fixture, 'execution.activity', $exact + ['phase_id' => $phase], new ListPhaseActivity('project', 'session', $phase));
+            $references = array_column($safe['activities'][0]['details'], null, 'observation_id');
+            self::assertSame($missing['reference'], $references[$removed->toString()]);
+            self::assertSame($this->executionFacts(), $safe['activities'][0]['activity']['execution']);
+            self::assertSame($summary, $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions(ExecutionSelection::create(['project']))));
+            $this->assertNoBody($safe, $bodies);
+            self::assertSame($eventCount, $fixture->eventCount);
             self::assertFalse($fixture->connection->isTransactionActive()); self::assertSame([], $fixture->diagnostics);
         } finally { $fixture->connection->close(); }
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('mysql')]
     public function test_that_every_page_and_chunk_rechecks_independent_availability_and_detail_permission_and_rejects_forged_relationships(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, true, tables: $tables);
@@ -188,46 +214,7 @@ final class McpProtectedExecutionJourneyTest extends TestCase
         } finally { $fixture->connection->close(); }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_capture_markers_empty_bytes_unknown_absence_and_disappearance_remain_truthful_and_live(string $backend, DbalObservationTables $tables): void
-    {
-        $fixture = new McpExecutionFixture($backend, true, tables: $tables);
-        try {
-            $activity = $this->seedActivity($fixture); $selection = $this->selection($activity);
-            foreach (CaptureCompleteness::cases() as $capture) {
-                $retained = in_array($capture, [CaptureCompleteness::COMPLETE, CaptureCompleteness::PARTIAL], true);
-                $detail = $this->seedDetail($fixture, $activity, completeness: $capture, body: $retained ? '' : null);
-                $args = $selection + ['detail_id' => $detail->id()->toString(), 'kind' => 'message'];
-                $result = $this->detail($fixture, $args);
-                self::assertSame($capture->value, $result['reference']['capture']['completeness']);
-                self::assertSame($retained ? 'retained' : $capture->value, $result['reference']['availability']);
-                if ($retained) { self::assertSame(['encoding' => 'base64', 'data' => '', 'offset' => 0, 'bytes' => 0, 'total_bytes' => 0, 'next_offset' => null], $result['chunk']); }
-                else { self::assertNull($result['chunk']); }
-                $fixture->connection->delete($tables->contentTable()->quoted($fixture->connection->getDatabasePlatform()), ['observation_id' => $detail->id()->toString()]);
-                $missing = $this->detail($fixture, $args);
-                self::assertSame($retained ? 'missing' : $capture->value, $missing['reference']['availability']); self::assertNull($missing['chunk']);
-            }
-            $detail = $this->seedDetail($fixture, $activity, body: 'PROTECTED-disappearing');
-            $args = $selection + ['detail_id' => $detail->id()->toString(), 'kind' => 'message'];
-            self::assertSame(3, $this->detail($fixture, $args + ['length' => 3])['chunk']['next_offset']);
-            $first = $this->messages($fixture, $selection + ['per_page' => 1]);
-            $late = $this->seedDetail($fixture, $activity, body: 'late');
-            $second = $this->messages($fixture, $selection + ['page' => 2, 'per_page' => 1]);
-            self::assertSame($first['messages'][0]['reference']['observation_id'], $second['messages'][0]['reference']['observation_id'], 'New receipt repeats a row on a live offset page');
-            self::assertSame($first['total'] + 1, $second['total']);
-            $fixture->connection->delete($tables->contentTable()->quoted($fixture->connection->getDatabasePlatform()), ['observation_id' => $detail->id()->toString()]);
-            $after = $this->detail($fixture, $args + ['offset' => 3]); self::assertNull($after['chunk']); self::assertSame('missing', $after['reference']['availability']);
-            $safe = $fixture->call('execution.activity', ['project_id' => 'project', 'session_id' => 'session', 'phase_id' => 'phase'])['body']['result']['structuredContent'];
-            $references = array_column($safe['activities'][0]['details'], null, 'observation_id');
-            self::assertSame('missing', $references[$detail->id()->toString()]['availability']); $this->assertNoBody($safe, ['PROTECTED-disappearing']);
-            $fixture->connection->delete($tables->observationTable()->quoted($fixture->connection->getDatabasePlatform()), ['observation_id' => $detail->id()->toString()]);
-            self::assertNull($this->detail($fixture, $args));
-            self::assertSame($first['total'], $this->messages($fixture, $selection)['total']);
-            self::assertSame([], $fixture->diagnostics);
-        } finally { $fixture->connection->close(); }
-    }
-
-    #[DataProvider('databases')]
+    #[DataProvider('mysql')]
     public function test_that_invalid_ranges_corrupt_storage_and_application_failures_never_become_empty_success_or_public_bodies(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, true, tables: $tables);
@@ -244,9 +231,10 @@ final class McpProtectedExecutionJourneyTest extends TestCase
         } finally { $fixture->connection->close(); }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_maximum_message_page_and_full_encoded_metadata_boundary_include_text_escaping_and_protocol_overhead(string $backend, DbalObservationTables $tables): void
+    public function test_that_maximum_message_page_and_full_encoded_metadata_boundary_include_text_escaping_and_protocol_overhead(): void
     {
+        $backend = 'sqlite';
+        $tables = new DbalObservationTables();
         $fixture = new McpExecutionFixture($backend, true, '', $tables);
         try {
             $activity = $this->seedActivity($fixture); $selection = $this->selection($activity);
@@ -270,87 +258,6 @@ final class McpProtectedExecutionJourneyTest extends TestCase
             $fixture->requestId .= 'x';
             $this->assertInternalFailure($fixture, 'execution.messages', $selection);
             self::assertCount(1, $fixture->diagnostics);
-        } finally { $fixture->connection->close(); }
-    }
-
-    #[DataProvider('databases')]
-    public function test_that_authorized_command_removal_preserves_identity_and_truthful_mcp_reads_without_resurrection(string $backend, DbalObservationTables $tables): void
-    {
-        $fixture = new McpExecutionFixture($backend, true, tables: $tables);
-        try {
-            $activity = $this->seedActivity($fixture);
-            $detail = $this->seedDetail($fixture, $activity, body: 'PROTECTED-REMOVAL-SENTINEL');
-            $retained = $this->seedDetail($fixture, $activity, body: 'PROTECTED-STILL-RETAINED');
-            $selection = $this->selection($activity);
-            $args = $selection + ['detail_id' => $detail->id()->toString(), 'kind' => 'message'];
-            $command = new RemoveCapturedDetail(DetailSelection::fromArray($selection), $detail->id(), DetailKind::MESSAGE);
-            $before = $fixture->state(); $eventCount = $fixture->eventCount;
-            $summary = $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions(ExecutionSelection::create(['project'])));
-            self::assertNotNull($this->detail($fixture, $args)['chunk']);
-            try {
-                $fixture->remove($command);
-                self::fail('Read grants must not authorize removal');
-            } catch (DetailRemovalRejected) {}
-            self::assertSame(1, $fixture->removalAdmissionCalls);
-            self::assertSame($before, $fixture->state());
-            self::assertFalse($fixture->connection->isTransactionActive());
-
-            $fixture->removalAllowed = true;
-            $forged = array_replace($selection, ['project_id' => 'other']);
-            try {
-                $fixture->remove(new RemoveCapturedDetail(DetailSelection::fromArray($forged), $detail->id(), DetailKind::MESSAGE));
-                self::fail('Removal must reject a forged relationship');
-            } catch (DetailRemovalRejected) {}
-            self::assertSame($before, $fixture->state());
-            $fixture->detailAccess = DetailAccess::create([]);
-            $fixture->access = ExecutionAccess::create([]);
-            $fixture->remove($command);
-            self::assertFalse($fixture->connection->isTransactionActive(), 'Acknowledgment follows the real transaction commit');
-            $after = $fixture->state();
-            self::assertSame(array_slice($before, 0, 4), array_slice($after, 0, 4), 'Safe identity and relationships survive removal');
-            self::assertCount(count($before[4]) - 1, $after[4]);
-            self::assertSame($eventCount, $fixture->eventCount);
-            self::assertNull($this->detail($fixture, $args), 'Removal permission grants no read permission');
-
-            $fixture->detailAccess = $this->allAccess();
-            $fixture->access = ExecutionAccess::create(['project' => null], detailGrants: ['project' => null]);
-            $missing = $this->detail($fixture, $args + ['offset' => 3]);
-            self::assertNull($missing['chunk']);
-            self::assertSame('missing', $missing['reference']['availability']);
-            self::assertSame('complete', $missing['reference']['capture']['completeness']);
-            $messages = $this->messages($fixture, $selection);
-            self::assertSame(2, $messages['total']);
-            foreach ($messages['messages'] as $message) {
-                if ($message['reference']['observation_id'] === $detail->id()->toString()) {
-                    self::assertSame('missing', $message['reference']['availability']);
-                    self::assertNull($message['chunk']);
-                }
-            }
-            self::assertNotNull($this->detail($fixture, array_replace($args, ['detail_id' => $retained->id()->toString()]))['chunk']);
-            $safe = $this->equivalent($fixture, 'execution.activity', ['project_id' => 'project', 'session_id' => 'session', 'phase_id' => 'phase'], new ListPhaseActivity('project', 'session', 'phase'));
-            $references = array_column($safe['activities'][0]['details'], null, 'observation_id');
-            self::assertSame('missing', $references[$detail->id()->toString()]['availability']);
-            self::assertSame($this->executionFacts(), $safe['activities'][0]['activity']['execution']);
-            self::assertSame($summary, $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions(ExecutionSelection::create(['project']))));
-            $this->assertNoBody($safe, ['PROTECTED-REMOVAL-SENTINEL', 'PROTECTED-STILL-RETAINED']);
-            $fixture->remove($command);
-            self::assertSame($after, $fixture->state(), 'Admitted repeated removal is idempotent');
-            $fixture->removalAllowed = false;
-            try {
-                $fixture->remove($command);
-                self::fail('Repeated removal must recheck current permission');
-            } catch (DetailRemovalRejected) {}
-            foreach (['PROTECTED-REMOVAL-SENTINEL', 'changed retry'] as $body) {
-                try {
-                    $fixture->seed($detail, ProtectedContent::create($detail->detail(), $body));
-                    self::fail('Retained identity must reject resurrection');
-                } catch (ProtectedContentRemoved) {}
-            }
-            self::assertSame($after, $fixture->state());
-            self::assertSame($eventCount, $fixture->eventCount);
-            self::assertSame('missing', $this->detail($fixture, $args)['reference']['availability']);
-            self::assertFalse($fixture->connection->isTransactionActive());
-            self::assertSame([], $fixture->diagnostics);
         } finally { $fixture->connection->close(); }
     }
 

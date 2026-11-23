@@ -5,7 +5,15 @@ declare(strict_types=1);
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
+use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
+use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
+use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
+use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
+use Fight\Common\Domain\Mcp\Task\Command\RemoveTasks;
+use Fight\Common\Domain\Mcp\Task\Command\RequestTaskInput;
+use Fight\Common\Domain\Mcp\Task\TaskSelection;
 use Fight\Common\Domain\Mcp\Task\TaskState;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Mockery as M;
 
@@ -40,23 +48,46 @@ $fixture->onAdmission = static function () use ($fixture, $directory, $role): vo
     file_put_contents($directory.'/'.$role.'-admitted', 'ready');
     if ($role === 'second' && file_exists($directory.'/revoked')) { $fixture->createAllowed = false; $fixture->updateAllowed = false; $fixture->removeAllowed = false; }
 };
+$create = $fixture->create(...);
+$remove = $fixture->remove(...);
+$record = $fixture->record(...);
+if ($config['direct'] ?? false) {
+    $create = static fn (?int $ttl = null) => $fixture->createTaskHandler->handle(CommandMessage::create(
+        new CreateTask(TaskFixture::definition(), TaskState::create('working'), $ttl)
+    ));
+    $remove = static fn () => $fixture->removeTasksHandler->handle(CommandMessage::create(
+        new RemoveTasks(TaskSelection::fromIds('scope', [TaskFixture::id()]))
+    ));
+    $record = static function (TaskState $state) use ($fixture): void {
+        if ($state->status() === 'input_required') {
+            $forms = McpInputRequired::fromRequests(['form-0' => TaskFixture::form()]);
+            $fixture->requestTaskInputHandler->handle(CommandMessage::create(new RequestTaskInput(
+                'scope', TaskFixture::id(), 'producer', 1, TaskInputForms::batch($forms, 'caller', $fixture->now + 1000)
+            )));
+            return;
+        }
+        $fixture->recordTaskStateHandler->handle(CommandMessage::create(
+            new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, $state)
+        ));
+    };
+}
 file_put_contents($directory.'/'.$role.'-started', 'ready');
 try {
     if (in_array($mode, ['remove-progress', 'remove-outcome', 'update-remove', 'create-remove', 'remove-repeat', 'remove-revoked', 'remove-rollback-update', 'remove-create'], true)) {
         $removes = $role === 'first'
             ? !in_array($mode, ['update-remove', 'create-remove'], true)
             : in_array($mode, ['update-remove', 'create-remove', 'remove-repeat', 'remove-revoked'], true);
-        if ($removes) { $fixture->remove(); }
-        elseif (($role === 'first' && $mode === 'create-remove') || ($role === 'second' && $mode === 'remove-create')) { $fixture->create(); }
-        else { $fixture->record($mode === 'remove-progress' ? TaskState::create('working', 'Late progress') : TaskFixture::completed()); }
+        if ($removes) { $remove(); }
+        elseif (($role === 'first' && $mode === 'create-remove') || ($role === 'second' && $mode === 'remove-create')) { $create(); }
+        else { $record($mode === 'remove-progress' ? TaskState::create('working', 'Late progress') : TaskFixture::completed()); }
     } elseif (in_array($mode, ['duplicate', 'conflict', 'rollback', 'revoked'], true)) {
-        $fixture->create($role === 'second' && $mode === 'conflict' ? 1000 : null);
+        $create($role === 'second' && $mode === 'conflict' ? 1000 : null);
     } else {
         $state = TaskFixture::completed(true);
         if ($role === 'second' && $mode === 'late-input') { $state = TaskFixture::input(); }
         if ($role === 'second' && $mode === 'late-progress') { $state = TaskState::create('working', 'Delayed progress'); }
         if ($role === 'second' && $mode === 'late-cancel') { $state = TaskState::create('cancelled'); }
-        $fixture->record($state);
+        $record($state);
     }
     $status = 'committed';
 } catch (Throwable $failure) { $status = $failure::class; }

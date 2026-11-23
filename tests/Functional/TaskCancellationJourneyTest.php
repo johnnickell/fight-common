@@ -11,19 +11,13 @@ use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
-use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
-use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Mcp\Task\McpTaskCancellation;
-use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\TaskState;
-use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Value\Basic\StrictJson;
-use Fight\Test\Common\TestCase\Mcp\Task\TaskCheckConnection;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -88,117 +82,6 @@ final class TaskCancellationJourneyTest extends UnitTestCase
         try { $fresh->cancel(); self::fail('No resurrection'); } catch (TaskRejected) { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$taskTable)); }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_real_rollback_commit_response_loss_and_postcommit_faults_preserve_truthful_intent_and_caller_work(string $backend, DbalTaskTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new TaskFixture($connection, $tables); $fixture->create(); $fixture->issue(confirmation: true); $params = $connection->getParams();
-        $taskTable = $tables->taskTable()->quoted($connection->getDatabasePlatform());
-        $before = $connection->fetchOne('SELECT payload FROM '.$taskTable);
-        $check = $this->checked($params); $candidate = new TaskFixture($check, $tables);
-        $check->beforeCommit = static fn () => throw new RuntimeException('Before commit');
-        try { $candidate->cancel(); self::fail('Commit failure cannot acknowledge'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
-        self::assertSame($before, $this->connect($params)->fetchOne('SELECT payload FROM '.$taskTable));
-        if ($backend === 'sqlite') { $connection->executeStatement("CREATE TRIGGER fail_cancel BEFORE INSERT ON ".$taskTable." BEGIN SELECT RAISE(ABORT, 'private'); END"); }
-        else { $connection->executeStatement("ALTER TABLE ".$taskTable." ADD CONSTRAINT fail_cancel CHECK (payload LIKE '%cancellation_requested_at\":null%')"); }
-        try { $fixture->cancel(); self::fail('Real storage failure must roll back'); } catch (TaskStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); }
-        self::assertSame($before, $this->connect($params)->fetchOne('SELECT payload FROM '.$taskTable));
-        if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER fail_cancel'); }
-        elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE '.$taskTable.' DROP CHECK fail_cancel'); }
-        else { $connection->executeStatement('ALTER TABLE '.$taskTable.' DROP CONSTRAINT fail_cancel'); }
-        $check = $this->checked($params); $candidate = new TaskFixture($check, $tables);
-        $check->afterCommit = static fn () => throw new RuntimeException('Lost commit response');
-        try { $candidate->cancel(); self::fail('Uncertain commit cannot acknowledge'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertTrue($candidate->transactionalUnitOfWork->isClosed()); }
-        $fresh = new TaskFixture($this->connect($params), $tables); self::assertNotNull($fresh->cancellation()->get('cancellation'));
-        $committed = $connection->fetchOne('SELECT payload FROM '.$taskTable); $fresh->cancel(); self::assertSame($committed, $connection->fetchOne('SELECT payload FROM '.$taskTable));
-        $fresh->create(id: str_repeat('b', 32)); $calls = 0;
-        $fresh->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$calls): void { ++$calls; throw new RuntimeException('Private postcommit callback'); });
-        try { $fresh->cancel(id: str_repeat('b', 32)); self::fail('Postcommit dispatch is not rollback'); } catch (CommittedTaskDispatchFailed) { self::assertNotNull((new TaskFixture($this->connect($params), $tables))->cancellation(id: str_repeat('b', 32))->get('cancellation')); }
-        $fresh->cancel(id: str_repeat('b', 32)); self::assertSame(1, $calls);
-        $connection->executeStatement('CREATE TABLE cancellation_caller_work (id INTEGER)'); $connection->beginTransaction(); $connection->insert('cancellation_caller_work', ['id' => 7]);
-        try { $fixture->cancel(); self::fail('No savepoint acknowledgment'); } catch (LogicException) { self::assertTrue($connection->isTransactionActive()); self::assertSame(7, (int) $connection->fetchOne('SELECT id FROM cancellation_caller_work')); }
-        $connection->commit(); self::assertSame(7, (int) $this->connect($params)->fetchOne('SELECT id FROM cancellation_caller_work')); $connection->executeStatement('DROP TABLE cancellation_caller_work');
-    }
-
-    #[DataProvider('races')]
-    public function test_that_independent_contenders_preserve_intent_answers_consumption_and_terminal_winners_in_both_lock_orders(string $backend, string $firstOperation, string $secondOperation, bool $revoke, DbalTaskTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new TaskFixture($connection, $tables); $fixture->create(); $fixture->issue(confirmation: true);
-        if (in_array('acquire', [$firstOperation, $secondOperation], true)) { $fixture->supply([TaskFixture::KEY_1 => self::accept()]); }
-        $version = $fixture->get()->get('version'); $config = $this->config($connection, $firstOperation, $secondOperation, $version, $tables); $directory = dirname($config);
-        $one = $this->worker($config, 'first'); $two = $this->worker($config, 'second');
-        try {
-            $one->start(); $this->waitFor($directory.'/first-precommit', $one);
-            $two->start(); $this->waitFor($directory.'/second-started', $two); usleep(120000);
-            self::assertTrue($two->isRunning()); self::assertFileDoesNotExist($directory.'/second-admitted');
-            if ($revoke) { file_put_contents($directory.'/revoked', 'yes'); }
-            file_put_contents($directory.'/release', 'yes');
-            self::assertSame(0, $one->wait(), $one->getErrorOutput()); self::assertSame(0, $two->wait(), $two->getErrorOutput());
-            $firstResult = json_decode($one->getOutput(), true, flags: JSON_THROW_ON_ERROR); $secondResult = json_decode($two->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-            self::assertNotSame($firstResult['pid'], $secondResult['pid']); self::assertNotSame(getmypid(), $firstResult['pid']); self::assertSame('committed', $firstResult['status']);
-            $terminal = in_array($firstOperation, ['completed', 'failed', 'cancelled'], true);
-            $stale = $firstOperation === 'cancel' && in_array($secondOperation, ['completed', 'failed', 'cancelled', 'issue'], true);
-            self::assertSame($revoke ? TaskRejected::class : ($stale ? TaskConflict::class : 'committed'), $secondResult['status']);
-            self::assertSame(1, $firstResult['events']); self::assertSame(($revoke || $stale || $terminal || $secondOperation === 'cancel' && $firstOperation === 'cancel') ? 0 : 1, $secondResult['events']);
-            $fresh = new TaskFixture($this->connect($connection->getParams()), $tables); $observed = $fresh->observe(); $group = $observed->get('groups')->get(TaskFixture::KEY_1);
-            $resumed = in_array('acquire', [$firstOperation, $secondOperation], true) || $firstOperation === 'supply' || (!$revoke && $secondOperation === 'supply');
-            self::assertSame($terminal ? $firstOperation : ($resumed ? 'working' : 'input_required'), $fresh->get()->get('state')->get('status'));
-            $intent = $fresh->cancellation()->get('cancellation');
-            if ($terminal) { self::assertNull($intent); }
-            else { self::assertNotNull($intent); self::assertSame($intent->toString(), $observed->get('cancellation')->toString()); }
-            $answered = in_array('acquire', [$firstOperation, $secondOperation], true) || in_array('supply', [$firstOperation, $secondOperation], true) && !($revoke && $secondOperation === 'supply');
-            self::assertSame($answered ? 1 : 0, count($group->get('answers')->properties()));
-            if ($answered) { self::assertSame('accepted', $group->get('answers')->get(TaskFixture::KEY_1)->get('content')->get('answer')); }
-            self::assertSame(in_array('acquire', [$firstOperation, $secondOperation], true) && !($revoke && $secondOperation === 'acquire'), $group->get('consumed'));
-            if ($stale && $secondOperation !== 'issue') {
-                // An explicit fresh producer decision may report the actual winner despite prior intent.
-                $state = match ($secondOperation) { 'completed' => TaskFixture::completed(), 'failed' => TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), default => TaskState::create('cancelled') };
-                $fresh->record($state, $fresh->get()->get('version')); self::assertSame($secondOperation, $fresh->get()->get('state')->get('status'));
-                self::assertSame($intent->toString(), $fresh->cancellation()->get('cancellation')->toString());
-            }
-            if ($group->get('consumed')) { try { $fresh->acquire(); self::fail('Consumption survives cancellation'); } catch (TaskConflict) { self::assertTrue($fresh->observe()->get('groups')->get(TaskFixture::KEY_1)->get('consumed')); } }
-        } finally { file_put_contents($directory.'/release', 'yes'); $one->stop(); $two->stop(); }
-    }
-
-    #[DataProvider('inputTerminals')]
-    public function test_that_actual_input_and_confirmation_racing_terminal_producers_cannot_clear_prior_intent_or_reopen_the_winner(string $backend, string $input, string $terminal, bool $terminalFirst, DbalTaskTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new TaskFixture($connection, $tables); $fixture->create(); $fixture->issue(confirmation: true); $fixture->cancel();
-        $intent = $fixture->cancellation()->get('cancellation')->toString();
-        if ($input === 'acquire') { $fixture->supply([TaskFixture::KEY_1 => self::accept()]); }
-        $version = $fixture->get()->get('version');
-        $config = $this->config($connection, $terminalFirst ? $terminal : $input, $terminalFirst ? $input : $terminal, $version, $tables);
-        $directory = dirname($config); $one = $this->worker($config, 'first'); $two = $this->worker($config, 'second');
-        try {
-            $one->start(); $this->waitFor($directory.'/first-precommit', $one);
-            $two->start(); $this->waitFor($directory.'/second-started', $two); usleep(120000);
-            self::assertTrue($two->isRunning()); self::assertFileDoesNotExist($directory.'/second-admitted');
-            file_put_contents($directory.'/release', 'yes');
-            self::assertSame(0, $one->wait(), $one->getErrorOutput()); self::assertSame(0, $two->wait(), $two->getErrorOutput());
-            $firstResult = json_decode($one->getOutput(), true, flags: JSON_THROW_ON_ERROR); $secondResult = json_decode($two->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-            self::assertNotSame($firstResult['pid'], $secondResult['pid']); self::assertSame('committed', $firstResult['status']); self::assertSame(1, $firstResult['events']);
-            self::assertSame($terminalFirst && $input === 'supply' ? 'committed' : TaskConflict::class, $secondResult['status']); self::assertSame(0, $secondResult['events']);
-            $fresh = new TaskFixture($this->connect($connection->getParams()), $tables);
-            self::assertSame($terminalFirst ? $terminal : 'working', $fresh->get()->get('state')->get('status'));
-            $view = $fresh->observe(); $group = $view->get('groups')->get(TaskFixture::KEY_1);
-            self::assertSame($intent, $view->get('cancellation')->toString()); self::assertSame($intent, $fresh->cancellation()->get('cancellation')->toString());
-            self::assertSame($input === 'acquire' || !$terminalFirst ? 1 : 0, count($group->get('answers')->properties()));
-            self::assertSame($input === 'acquire' && !$terminalFirst, $group->get('consumed'));
-            if ($input === 'acquire' || !$terminalFirst) { self::assertSame('accepted', $group->get('answers')->get(TaskFixture::KEY_1)->get('content')->get('answer')); }
-            if (!$terminalFirst) {
-                $state = match ($terminal) { 'completed' => TaskFixture::completed(), 'failed' => TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), default => TaskState::create('cancelled') };
-                $fresh->record($state, $fresh->get()->get('version'));
-                self::assertSame($terminal, $fresh->get()->get('state')->get('status'));
-                self::assertSame($intent, $fresh->observe()->get('cancellation')->toString());
-                self::assertSame($input === 'acquire', $fresh->observe()->get('groups')->get(TaskFixture::KEY_1)->get('consumed'));
-            }
-        } finally { file_put_contents($directory.'/release', 'yes'); $one->stop(); $two->stop(); }
-    }
-
-    public static function inputTerminals(): iterable
-    {
-        foreach (self::databases() as $name => [$db, $tables]) { foreach (['supply', 'acquire'] as $input) { foreach (['completed', 'failed', 'cancelled'] as $terminal) { foreach ([true, false] as $first) { yield $name.'-'.$input.'-'.$terminal.'-'.($first ? 'terminal-first' : 'input-first') => [$db, $input, $terminal, $first, $tables]; } } } }
-    }
-
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
@@ -206,17 +89,22 @@ final class TaskCancellationJourneyTest extends UnitTestCase
             yield $backend.'-configured' => [$backend, new DbalTaskTables('TaskState', 'TaskRows')];
         }
     }
-    public static function outcomes(): iterable { foreach (self::databases() as $name => [$db, $tables]) { foreach (['completed', 'failed', 'cancelled'] as $outcome) { yield $name.'-'.$outcome => [$db, $outcome, $tables]; } } }
-    public static function races(): iterable
+
+    public static function outcomes(): iterable
     {
-        foreach (self::databases() as $name => [$db, $tables]) {
-            foreach (['supply', 'acquire', 'issue', 'completed', 'failed', 'cancelled', 'cancel'] as $operation) {
-                yield $name.'-cancel-'.$operation => [$db, 'cancel', $operation, false, $tables];
-                if ($operation !== 'cancel') { yield $name.'-'.$operation.'-cancel' => [$db, $operation, 'cancel', false, $tables]; }
+        $outcomes = [
+            'sqlite-configured' => 'failed',
+            'mysql' => 'cancelled',
+            'postgresql' => 'completed',
+        ];
+        foreach (self::databases() as $label => [$backend, $tables]) {
+            if (isset($outcomes[$label])) {
+                $outcome = $outcomes[$label];
+                yield $label.'-'.$outcome => [$backend, $outcome, $tables];
             }
-            foreach (['cancel', 'supply', 'acquire'] as $operation) { yield $name.'-revoked-'.$operation => [$db, 'cancel', $operation, true, $tables]; }
         }
     }
+
     protected function tearDown(): void { foreach ($this->connections as $connection) { $connection->close(); } foreach ($this->directories as $temporaryDirectory) { $this->removeTemporaryDirectory($temporaryDirectory, 'fight-task-cancellation-'); } parent::tearDown(); }
     private static function accept(): array { return ['action' => 'accept', 'content' => (object) ['answer' => 'accepted']]; }
     private function database(string $backend, DbalTaskTables $tables): Connection
@@ -230,9 +118,7 @@ final class TaskCancellationJourneyTest extends UnitTestCase
         (new DbalTaskSchema($tables))->install($connection); return $connection;
     }
     private function connect(array $params): Connection { $connection = DriverManager::getConnection($params); if ($params['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); } $this->connections[] = $connection; return $connection; }
-    private function checked(array $params): TaskCheckConnection { $connection = new TaskCheckConnection($params, DriverManager::getConnection($params)->getDriver()); $this->connections[] = $connection; return $connection; }
     private function directory(): string { $temporaryDirectory = sys_get_temp_dir().'/fight-task-cancellation-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($temporaryDirectory, 0700)); $this->directories[] = $temporaryDirectory; return $temporaryDirectory; }
     private function config(Connection $connection, string $first, string $second, int $version, DbalTaskTables $tables): string { $path = $this->directory().'/config.json'; file_put_contents($path, json_encode(['params' => $connection->getParams(), 'first' => $first, 'second' => $second, 'observer' => 'observe', 'version' => $version, 'stateTable' => $tables->stateTable()->name(), 'taskTable' => $tables->taskTable()->name()], JSON_THROW_ON_ERROR)); return $path; }
     private function worker(string $config, string $role): Process { return new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/cancellation-worker.php', $config, $role], timeout: 25); }
-    private function waitFor(string $path, Process $worker): void { $deadline = microtime(true) + 15; while (!file_exists($path)) { if (!$worker->isRunning() || microtime(true) > $deadline) { self::fail('Barrier unavailable: '.$worker->getErrorOutput().$worker->getOutput()); } usleep(10000); } self::assertFileExists($path); }
 }

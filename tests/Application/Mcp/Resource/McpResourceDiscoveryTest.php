@@ -215,6 +215,26 @@ final class McpResourceDiscoveryTest extends UnitTestCase
         }
     }
 
+    public function test_that_invalid_extension_metadata_after_a_full_page_still_rejects_discovery(): void
+    {
+        $provider = new class implements McpResourceProvider {
+            public int $enumerations = 0;
+
+            public function resources(): iterable
+            {
+                ++$this->enumerations;
+                yield McpResourceInfo::fromArray(['uri' => 'context:/a', 'name' => 'Valid first descriptor']);
+                yield McpResourceInfo::fromArray(['uri' => 'context:/secret', 'name' => 'Private descriptor', '_meta' => ['bad key' => 'private extension value']]);
+            }
+        };
+        try {
+            $this->discovery([$provider], limits: new McpResourceLimits(pageSize: 1))->handle($this->request());
+            self::fail('Malformed metadata must not become a successful partial page.');
+        } catch (DomainException) {
+            self::assertSame(1, $provider->enumerations);
+        }
+    }
+
     public function test_that_scan_limits_count_hidden_metadata_and_stop_lazy_providers(): void
     {
         $resourceProvider = new class implements McpResourceProvider {

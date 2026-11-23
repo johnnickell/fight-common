@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
+use Fight\Common\Domain\Mcp\Task\Command\AcquireTaskInput;
+use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
+use Fight\Common\Domain\Mcp\Task\Command\SupplyTaskInput;
 use Fight\Common\Domain\Mcp\Task\TaskState;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskCheckConnection;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
@@ -26,8 +30,20 @@ $connection->beforeCommit = static function () use ($role, $directory): void {
 };
 $tables = new DbalTaskTables($config['stateTable'], $config['taskTable']);
 $fixture = new TaskFixture($connection, $tables); $events = 0;
+$admissions = 0;
+$direct = $config['direct'] ?? false;
+$supply = static function (array $answers) use ($direct, $fixture): void {
+    if ($direct) {
+        $fixture->supplyTaskInputHandler->handle(CommandMessage::create(new SupplyTaskInput(
+            'scope', TaskFixture::id(), 'caller', StrictJson::fromObject($answers)
+        )));
+    } else {
+        $fixture->supply($answers);
+    }
+};
 $fixture->eventDispatcher->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore(\Fight\Common\Domain\Mcp\Task\Event\TaskChanged::class), static function () use (&$events): void { ++$events; });
-$admission = static function () use ($fixture, $directory, $role): void {
+$admission = static function () use ($fixture, $directory, $role, &$admissions): void {
+    ++$admissions;
     file_put_contents($directory.'/'.$role.'-admitted', 'yes');
     if ($role === 'second' && file_exists($directory.'/revoked')) { $fixture->submitAllowed = false; $fixture->continueAllowed = false; $fixture->updateAllowed = false; }
 };
@@ -45,20 +61,30 @@ try {
             'cancelled-first' => TaskState::create('cancelled'),
             default => TaskFixture::completed()
         };
-        $fixture->record($state, 2);
+        if ($direct) {
+            $fixture->recordTaskStateHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::id(), 'producer', 2, $state)));
+        } else {
+            $fixture->record($state, 2);
+        }
     } elseif ($mode === 'acquire') {
-        $fixture->acquire();
+        if ($direct) {
+            $fixture->acquireTaskInputHandler->handle(CommandMessage::create(new AcquireTaskInput('scope', TaskFixture::id(), 'caller', TaskFixture::KEY_1)));
+        } else {
+            $fixture->acquire();
+        }
     } elseif ($mode === 'refusal' && $role === 'first') {
-        $fixture->supply([TaskFixture::KEY_1 => ['action' => 'decline']]);
+        $supply([TaskFixture::KEY_1 => ['action' => 'decline']]);
     } elseif ($mode === 'partial-refusal' && $role === 'second') {
-        $fixture->supply([TaskFixture::KEY_2 => ['action' => 'cancel']]);
+        $supply([TaskFixture::KEY_2 => ['action' => 'cancel']]);
     } else {
         $answer = $role === 'second' && $mode === 'conflict' ? 'conflicting-second' : 'first-answer';
-        $fixture->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => $answer]]]);
+        $supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => $answer]]]);
     }
     $status = 'committed';
 } catch (Throwable $failure) { $status = $failure::class; }
-$result = ['status' => $status, 'events' => $events, 'pid' => getmypid()];
+$result = $direct
+    ? ['status' => $status, 'events' => $events, 'admissions' => $admissions]
+    : ['status' => $status, 'events' => $events, 'pid' => getmypid()];
 if (is_string($trace) && $trace !== '') {
     file_put_contents($trace, json_encode(['phase' => 'finished', 'backend' => $config['params']['driver'], 'mode' => $mode, 'role' => $role, ...$result], JSON_THROW_ON_ERROR)."\n", FILE_APPEND | LOCK_EX);
 }

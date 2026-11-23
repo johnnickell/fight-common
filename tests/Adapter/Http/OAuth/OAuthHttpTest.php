@@ -141,7 +141,34 @@ final class OAuthHttpTest extends UnitTestCase
         yield ['https://resource.test/mcp', ['Content-Type' => 'Application/X-WWW-Form-Urlencoded; charset=UTF-8'], []];
     }
 
-    public function test_that_success_returns_the_downstream_response_unchanged_after_claim_handoff(): void
+    #[DataProvider('nonBearerRequests')]
+    public function test_that_absent_and_hmac_credentials_do_not_dispatch_to_the_protected_handler(?string $scheme): void
+    {
+        $factory = new HttpFactory();
+        $validator = $this->createMock(OAuthTokenValidator::class);
+        $validator->expects(self::never())->method('validate');
+        $handoff = $this->createMock(OAuthClaimsHandoff::class);
+        $handoff->expects(self::never())->method('accept');
+        $diagnostics = $this->createMock(OAuthDiagnostics::class);
+        $diagnostics->expects(self::once())->method('record')->with(OAuthFailure::MISSING_CREDENTIALS, null);
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects(self::never())->method('handle');
+        $server = new OAuthResourceServer(OAuthFixture::requirements(), $validator, $handoff, $diagnostics);
+        $request = new ServerRequest('POST', OAuthFixture::RESOURCE, $scheme === null ? [] : ['Authorization' => $scheme]);
+        $response = (new OAuthMiddleware($server, OAuthScopeSet::fromArray(['mcp:read']), new OAuthResponseFactory($factory, $factory)))->process($request, $handler);
+        self::assertSame(401, $response->getStatusCode());
+        self::assertSame('', (string) $response->getBody());
+        self::assertSame('Bearer resource_metadata="https://resource.test/.well-known/oauth-protected-resource/mcp", scope="mcp:read"', $response->getHeaderLine('WWW-Authenticate'));
+    }
+
+    public static function nonBearerRequests(): iterable
+    {
+        yield 'missing' => [null];
+        yield 'signed request scheme' => ['HMAC-SHA256'];
+    }
+
+    #[DataProvider('downstreamStatuses')]
+    public function test_that_successful_authorization_returns_the_downstream_response_unchanged(int $status): void
     {
         $factory = new HttpFactory();
         $validator = $this->createMock(OAuthTokenValidator::class);
@@ -152,7 +179,7 @@ final class OAuthHttpTest extends UnitTestCase
         $diagnostics = $this->createMock(OAuthDiagnostics::class);
         $diagnostics->expects(self::never())->method('record');
         $request = new ServerRequest('POST', 'https://resource.test/mcp?q=ordinary', ['Authorization' => 'Bearer token', 'Content-Type' => 'application/json'], '{}');
-        $expected = new Response(202, ['X-Consumer' => 'yes'], 'consumer body');
+        $expected = new Response($status, ['X-Consumer' => 'yes'], 'consumer body');
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects(self::once())->method('handle')->with($request)->willReturnCallback(function () use (&$handedOff, $expected): Response {
             self::assertTrue($handedOff);
@@ -160,6 +187,12 @@ final class OAuthHttpTest extends UnitTestCase
         });
         $server = new OAuthResourceServer(OAuthFixture::requirements(), $validator, $handoff, $diagnostics);
         self::assertSame($expected, (new OAuthMiddleware($server, OAuthScopeSet::fromArray(['mcp:read']), new OAuthResponseFactory($factory, $factory)))->process($request, $handler));
+    }
+
+    public static function downstreamStatuses(): iterable
+    {
+        yield 'accepted' => [202];
+        yield 'downstream failure' => [500];
     }
 
     public function test_that_downstream_failure_is_not_reclassified_or_logged_twice(): void

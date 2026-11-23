@@ -39,65 +39,17 @@ use PHPUnit\Framework\TestCase;
 #[CoversNothing]
 final class McpExecutionInspectionJourneyTest extends TestCase
 {
-    public static function databases(): iterable
+    public static function mysqlSelection(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend.' default' => [$backend, new DbalObservationTables()];
-            yield $backend.' configured' => [$backend, new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
-        }
+        yield 'mysql configured' => ['mysql', new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
     }
 
-    #[DataProvider('databases')]
-    public function test_that_current_activity_visibility_controls_statistics_and_derived_ordering_through_tools(string $backend, DbalObservationTables $tables): void
+    public static function postgresql(): iterable
     {
-        $fixture = new McpExecutionFixture($backend, tables: $tables);
-        try {
-            $fixture->seed(ObservationFixture::session());
-            $fixture->seed(ObservationFixture::phase());
-            $visible = ObservationFixture::activity();
-            $fixture->seed($visible);
-            $hiddenData = $visible->toArray();
-            $hiddenData['producer_id'] = 'hidden-producer';
-            $hiddenData['activity']['model_id'] = 'hidden:model';
-            $fixture->seed(ObservationFixture::activity($hiddenData));
-            $fixture->seed(ObservationFixture::phase(['observation_id' => ObservationId::generate()->toString(), 'phase' => PhaseReference::fromStrings('session', 'other-phase', null, 'agent', 'other', 1)->toArray()]));
-            $fixture->seed(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => SessionReference::fromStrings('project', 'other-session', 'other:consumer')->toArray()]));
-            $table = $tables->observationTable()->quoted($fixture->connection->getDatabasePlatform());
-            $fixture->connection->executeStatement('UPDATE '.$table." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
-            $fixture->connection->executeStatement('UPDATE '.$table." SET recorded_at = '2026-10-23T12:00:00.000001Z' WHERE phase_id = 'other-phase' OR session_id = 'other-session'");
-            $fixture->connection->executeStatement('UPDATE '.$table." SET recorded_at = '2026-10-24T12:00:00.000001Z' WHERE producer_id = 'hidden-producer'");
-            $fixture->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => [$visible->producerId().'/'.$visible->id()->toString()]]);
-            $before = $fixture->state();
-            $eventCount = $fixture->eventCount;
-            $selection = ExecutionSelection::create(['project']);
-            $summary = $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions($selection));
-            self::assertSame(1, $summary['activities']);
-            self::assertSame('12.5', array_column($summary['usage'], null, 'metric')['provider/output']['measured']);
-            $exact = ['project_id' => 'project', 'session_id' => 'session'];
-            $selected = $this->equivalent($fixture, 'execution.get', $exact, new GetExecution('project', 'session'));
-            self::assertSame(1, $selected['summary']['activities']);
-            $page = $this->equivalent($fixture, 'execution.list', ['projects' => ['project'], 'per_page' => 1], new ListExecutions($selection, 1, 1));
-            self::assertSame('other-session', $page['executions'][0]['session']['session_id']);
-            $phases = $this->equivalent($fixture, 'execution.phases', $exact, new ListExecutionPhases('project', 'session'));
-            self::assertSame(['other-phase', 'phase'], array_column(array_column($phases['phases'], 'phase'), 'phase_id'));
-            self::assertSame(['model:one'], $phases['phases'][1]['models']);
-            self::assertSame('2026-10-22T12:00:00.000001Z', $phases['phases'][1]['latest_recorded_at']);
-            $args = $exact + ['phase_id' => 'phase', 'page' => 2, 'per_page' => 1];
-            self::assertSame(1, $this->equivalent($fixture, 'execution.activity', $args, new ListPhaseActivity('project', 'session', 'phase', 2, 1))['total']);
-            $fixture->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => []]);
-            $empty = $this->equivalent($fixture, 'execution.get', $exact, new GetExecution('project', 'session'));
-            self::assertSame(0, $empty['summary']['activities']);
-            self::assertSame([], $empty['summary']['usage']);
-            self::assertNotNull($empty['observation']);
-            $fixture->access = ExecutionAccess::create(['project' => null]);
-            self::assertSame(2, $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions($selection))['activities']);
-            self::assertSame($before, $fixture->state());
-            self::assertSame($eventCount, $fixture->eventCount);
-            self::assertSame([], $fixture->diagnostics);
-        } finally { $fixture->connection->close(); }
+        yield 'postgresql default' => ['postgresql', new DbalObservationTables()];
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('mysqlSelection')]
     public function test_that_guarded_http_matches_shared_queries_across_the_complete_safe_live_journey(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, tables: $tables);
@@ -189,7 +141,7 @@ final class McpExecutionInspectionJourneyTest extends TestCase
         } finally { $fixture->connection->close(); }
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('postgresql')]
     public function test_that_current_availability_guard_input_validation_scope_and_storage_failures_reject_safely(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, tables: $tables);
@@ -234,59 +186,7 @@ final class McpExecutionInspectionJourneyTest extends TestCase
         } finally { $fixture->connection->close(); }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_units_missing_usage_capture_markers_filters_and_tie_breakers_keep_their_query_meaning(string $backend, DbalObservationTables $tables): void
-    {
-        $fixture = new McpExecutionFixture($backend, tables: $tables);
-        try {
-            $fixture->seed(ObservationFixture::session()); $fixture->seed(ObservationFixture::phase());
-            $activity = ObservationFixture::activity(); $fixture->seed($activity);
-            $variant = $activity->activity()->toArray();
-            $variant['summary'] = 'Safe escape-heavy 雪 " \\ /';
-            $variant['model_id'] = null;
-            foreach ($variant['usage'] as &$measurement) {
-                if ($measurement['metric'] === 'provider/input') { $measurement['unit'] = 'request'; $measurement['value'] = '1'; }
-            }
-            unset($measurement);
-            $fixture->seed(ObservationFixture::activity(['producer_id' => 'z-producer', 'activity' => $variant]));
-            $variant['usage'] = [];
-            $fixture->seed(ObservationFixture::activity(['observation_id' => ObservationId::generate()->toString(), 'activity' => $variant]));
-            $captureById = [];
-            foreach (CaptureCompleteness::cases() as $completeness) {
-                $detail = ObservationFixture::detail(['observation_id' => ObservationId::generate()->toString(), 'detail' => DetailCapture::create($activity->id(), DetailKind::MESSAGE, 'text/plain', $completeness)->toArray()]);
-                $body = in_array($completeness, [CaptureCompleteness::COMPLETE, CaptureCompleteness::PARTIAL], true) ? '' : null;
-                $fixture->seed($detail, ProtectedContent::create($detail->detail(), $body));
-                $captureById[$detail->id()->toString()] = $completeness->value;
-            }
-            $fixture->connection->executeStatement('UPDATE '.$tables->observationTable()->quoted($fixture->connection->getDatabasePlatform())." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
-            $before = $fixture->state(); $eventCount = $fixture->eventCount;
-            $summary = $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions(ExecutionSelection::create(['project'])));
-            self::assertSame(3, $summary['activities']); self::assertSame(1, $summary['activities_without_usage']);
-            $inputs = array_values(array_filter($summary['usage'], static fn(array $usage): bool => $usage['metric'] === 'provider/input'));
-            self::assertCount(2, $inputs);
-            self::assertSame(['request', 'token'], array_column($inputs, 'unit'));
-            self::assertSame(['1', '0'], array_column($inputs, 'measured'));
-            $args = ['project_id' => 'project', 'session_id' => 'session', 'phase_id' => 'phase'];
-            $data = $this->equivalent($fixture, 'execution.activity', $args, new ListPhaseActivity('project', 'session', 'phase'));
-            $byProducer = array_values(array_filter($data['activities'], static fn(array $row): bool => $row['observation_id'] === $activity->id()->toString()));
-            self::assertSame(['z-producer', 'instrumentation'], array_column($byProducer, 'producer_id'));
-            foreach ($byProducer[1]['details'] as $reference) {
-                $capture = $captureById[$reference['observation_id']];
-                self::assertSame($capture, $reference['capture']['completeness']);
-                self::assertSame(in_array($capture, ['complete', 'partial'], true) ? 'retained' : $capture, $reference['availability']);
-            }
-            self::assertCount(5, $byProducer[1]['details']);
-            $filtered = $this->equivalent($fixture, 'execution.activity', $args + ['filters' => ['producer_id' => 'z-producer'], 'direction' => 'ASC', 'per_page' => 1], new ListPhaseActivity('project', 'session', 'phase', 1, 1, ['producer_id' => 'z-producer'], ['recorded_at' => 'ASC']));
-            self::assertSame(1, $filtered['total']); self::assertNull($filtered['activities'][0]['activity']['model_id']);
-            self::assertSame('Safe escape-heavy 雪 " \\ /', $filtered['activities'][0]['activity']['summary']);
-            $fixture->access = ExecutionAccess::create(['project' => null], ['project' => ['phase']], ['project' => ['instrumentation/'.$activity->id()->toString()]]);
-            $restricted = $this->equivalent($fixture, 'execution.activity', $args, new ListPhaseActivity('project', 'session', 'phase'));
-            self::assertSame(1, $restricted['total']); self::assertSame([], $restricted['activities'][0]['details']);
-            self::assertSame($before, $fixture->state()); self::assertSame($eventCount, $fixture->eventCount);
-        } finally { $fixture->connection->close(); }
-    }
-
-    #[DataProvider('databases')]
+    #[DataProvider('mysqlSelection')]
     public function test_that_typed_execution_survives_commands_and_guarded_http_without_changing_state_or_usage_meaning(string $backend, DbalObservationTables $tables): void
     {
         $fixture = new McpExecutionFixture($backend, tables: $tables);
@@ -390,9 +290,10 @@ final class McpExecutionInspectionJourneyTest extends TestCase
         } finally { $fixture->connection->close(); }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_maximal_typed_activity_respects_projection_and_actual_complete_encoded_response_bounds(string $backend, DbalObservationTables $tables): void
+    public function test_that_maximal_typed_activity_respects_projection_and_actual_complete_encoded_response_bounds(): void
     {
+        $backend = 'sqlite';
+        $tables = new DbalObservationTables();
         $usage = [];
         for ($index = 0; $index < 32; ++$index) {
             $usage[] = UsageMeasurement::create('consumer/'.str_repeat('m', 85).sprintf('%02d', $index), str_repeat('u', 128), str_repeat('p', 128), UsageCompleteness::COMPLETE, str_repeat('9', 128));

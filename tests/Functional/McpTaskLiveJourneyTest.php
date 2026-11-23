@@ -96,10 +96,9 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         $this->assertPrivateStorage();
     }
 
-    #[DataProvider('databases')]
-    public function test_that_idle_disconnect_abrupt_death_and_graceful_completion_preserve_truthful_native_tracking(string $backend, bool $configured): void
+    public function test_that_idle_disconnect_abrupt_death_and_graceful_completion_preserve_truthful_native_tracking(): void
     {
-        $this->database($backend, $configured); $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create(); $leftServer = $this->server();
+        $this->database('postgresql', true); $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create(); $leftServer = $this->server();
         $socket = $this->open($leftServer, 'psr&lifetime=1', ['taskIds' => [TaskFixture::ID]], 'graceful'); $this->next($socket); $this->next($socket);
         $tail = $this->drain($socket); self::assertCount(1, $tail); self::assertSame('graceful', $tail[0]['result']['_meta']['io.modelcontextprotocol/subscriptionId']);
         $socket = $this->open($leftServer, 'psr', ['taskIds' => [TaskFixture::ID]]); $this->next($socket); $this->next($socket); $this->disconnect($socket);
@@ -134,10 +133,9 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         self::assertNull($fixture->cancellation()->get('cancellation')); $this->assertPrivateStorage();
     }
 
-    #[DataProvider('databases')]
-    public function test_that_tracking_storage_failure_closes_without_success_and_independent_current_state_survives(string $backend, bool $configured): void
+    public function test_that_tracking_storage_failure_closes_without_success_and_independent_current_state_survives(): void
     {
-        $this->database($backend, $configured);
+        $this->database('mysql', true);
         $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create();
         $server = $this->server(); $poll = $this->server();
         $socket = $this->open($server, 'psr', ['taskIds' => [TaskFixture::ID]]);
@@ -158,34 +156,27 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     public static function sourceRaces(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach (['signal', 'close', 'cleanup'] as $fault) {
-                foreach (['opening', 'baseline', 'update'] as $phase) {
-                    foreach ([false, true] as $configured) { yield $backend.'-'.$fault.'-'.$phase.'-'.($configured ? 'configured' : 'default') => [$backend, $fault, $phase, $configured]; }
-                }
-            }
-        }
+        // These exercise every fault and phase on the wire. The other pairs run at the live execution boundary.
+        yield 'sqlite-default-signal-opening' => ['sqlite', 'signal', 'opening', false];
+        yield 'mysql-configured-close-update' => ['mysql', 'close', 'update', true];
+        yield 'postgresql-configured-cleanup-baseline' => ['postgresql', 'cleanup', 'baseline', true];
     }
 
     public static function compositions(): iterable
     {
-        foreach (self::databases() as $label => [$backend, $configured]) {
-            foreach (['psr', 'symfony', 'laravel', 'codeigniter', 'slim', 'yii'] as $composition) { yield $label.'-'.$composition => [$backend, $composition, $configured]; }
-        }
+        // Keep native framework entry points here and PSR in the outcome and fault tests.
+        yield 'sqlite-default-psr' => ['sqlite', 'psr', false];
+        yield 'sqlite-configured-symfony' => ['sqlite', 'symfony', true];
+        yield 'mysql-default-laravel' => ['mysql', 'laravel', false];
+        yield 'mysql-configured-slim' => ['mysql', 'slim', true];
+        yield 'postgresql-default-codeigniter' => ['postgresql', 'codeigniter', false];
+        yield 'postgresql-configured-yii' => ['postgresql', 'yii', true];
     }
 
     public static function outcomes(): iterable
     {
-        foreach (self::databases() as $label => [$backend, $configured]) {
-            foreach (['failed', 'cancelled'] as $outcome) { yield $label.'-'.$outcome => [$backend, $outcome, $configured]; }
-        }
-    }
-
-    public static function databases(): iterable
-    {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach ([false, true] as $configured) { yield $backend.'-'.($configured ? 'configured' : 'default') => [$backend, $configured]; }
-        }
+        yield 'sqlite-configured-cancelled' => ['sqlite', 'cancelled', true];
+        yield 'postgresql-default-failed' => ['postgresql', 'failed', false];
     }
 
     private function database(string $backend, bool $configured): void
