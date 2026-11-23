@@ -89,7 +89,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 1 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | — (standalone bug) | done | — | [PR #301](https://github.com/johnnickell/fight-common/pull/301) |
 | 1 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | — (standalone bug) | done | — | [PR #298](https://github.com/johnnickell/fight-common/pull/298) |
 | 1 | [TASK-00214](00214-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to main | — (standalone chore) | done | — | [PR #316](https://github.com/johnnickell/fight-common/pull/316) |
-| 1 | [TASK-00218](00218-TASK.md) | Lock the hosted timing baseline | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | — |
+| 1 | [TASK-00218](00218-TASK.md) | Lock the hosted timing baseline | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | [PR #323](https://github.com/johnnickell/fight-common/pull/323) |
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | done | — | [PR #261](https://github.com/johnnickell/fight-common/pull/261) |
 | 2 | [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | — (standalone chore) | done | — | [PR #317](https://github.com/johnnickell/fight-common/pull/317) |
