@@ -36,7 +36,7 @@ Show phase and end-to-end timings, exact Unit coverage, retained checks, and any
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00218](../tasks/00218-TASK.md) | Lock the hosted timing baseline | done |
-| [TASK-00219](../tasks/00219-TASK.md) | Reduce subscription capacity-lock test cost | ready-for-agent |
+| [TASK-00219](../tasks/00219-TASK.md) | Reduce subscription capacity-lock test cost | in-progress |
 | [TASK-00230](../tasks/00230-TASK.md) | Shorten the remaining gate and measure the combined result | ready-for-agent |
 <!-- /planning:children -->
 
