@@ -117,4 +117,17 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | done | — |
 | [TASK-00216](00216-TASK.md) | Make the public docs easier to use and show the stable release | done | — |
 | [TASK-00217](00217-TASK.md) | Remove duplicate invalid-email coordinator tests | done | — |
+| [TASK-00218](00218-TASK.md) | Lock the hosted timing baseline | done | [TICKET-00057](../tickets/00057-TICKET.md) |
+| [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | ready-for-agent | [TICKET-00057](../tickets/00057-TICKET.md) |
+| [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent | [TICKET-00058](../tickets/00058-TICKET.md) |
+| [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
+| [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
+| [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
+| [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
+| [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | ready-for-agent | [TICKET-00057](../tickets/00057-TICKET.md) |
 <!-- /planning:records -->

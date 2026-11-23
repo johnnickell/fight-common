@@ -21,9 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| None | — | — | — | — |
-
-No TASK is currently executable; unresolved work may remain.
+| Ready Frontier | [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -42,13 +40,23 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 2 | [TASK-00219](00219-TASK.md) | Reduce subscription capacity-lock test cost | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | — | — |
+| 3 | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | [TICKET-00058 — Replace project context with a concise glossary](../tickets/00058-TICKET.md) | ready-for-agent | — | — |
+| 4 | [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
+| 9 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
+| 10 | [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
+| 11 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 5 | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md) | — |
+| 6 | [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md) | — |
+| 7 | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md) | — |
+| 8 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | [TASK-00221](00221-TASK.md) | — |
+| 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | [TASK-00226](00226-TASK.md), [TASK-00227](00227-TASK.md) | — |
+| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | [TASK-00219](00219-TASK.md), [TASK-00221](00221-TASK.md), [TASK-00222](00222-TASK.md), [TASK-00223](00223-TASK.md), [TASK-00224](00224-TASK.md) | — |
 
 ## Needs Info
 
@@ -81,6 +89,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 1 | [TASK-00209](00209-TASK.md) | Normalize the release certification workspace to its physical path | — (standalone bug) | done | — | [PR #301](https://github.com/johnnickell/fight-common/pull/301) |
 | 1 | [TASK-00210](00210-TASK.md) | Contain terminal Symfony safe-error rendering faults on 1.4 | — (standalone bug) | done | — | [PR #298](https://github.com/johnnickell/fight-common/pull/298) |
 | 1 | [TASK-00214](00214-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to main | — (standalone chore) | done | — | [PR #316](https://github.com/johnnickell/fight-common/pull/316) |
+| 1 | [TASK-00218](00218-TASK.md) | Lock the hosted timing baseline | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | [PR #323](https://github.com/johnnickell/fight-common/pull/323) |
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | done | — | [PR #261](https://github.com/johnnickell/fight-common/pull/261) |
 | 2 | [TASK-00215](00215-TASK.md) | Forward-port the 1.5.1 activity-visibility correction to develop | — (standalone chore) | done | — | [PR #317](https://github.com/johnnickell/fight-common/pull/317) |
