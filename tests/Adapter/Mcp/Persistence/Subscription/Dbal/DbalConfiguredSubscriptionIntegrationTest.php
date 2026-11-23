@@ -16,11 +16,13 @@ use Fight\Common\Application\Mcp\Subscription\Exception\SubscriberReadFailed;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
 use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
+use Fight\Test\Common\Fixture\Mcp\CoordinatedSubscriptionConnection;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 #[CoversNothing]
@@ -82,6 +84,14 @@ final class DbalConfiguredSubscriptionIntegrationTest extends UnitTestCase
         $renewed = $connection->fetchAssociative('SELECT observed_at, expires_at FROM '.$registrationName.' WHERE registration_id = ?', [self::id(1)]);
         self::assertSame(101, (int) $renewed['observed_at']);
         self::assertSame(106, (int) $renewed['expires_at']);
+        $connection->beginTransaction();
+        $connection->insert($registrationName, self::row(3));
+        $nestedStore = new DbalSubscriptionStore(connection: $connection, maxActive: 2, tables: $tables);
+        self::assertInstanceOf(LogicException::class, $this->fails(fn () => $nestedStore->heartbeat(self::id(3), self::id(90), 101, 106)));
+        self::assertTrue($connection->isTransactionActive());
+        self::assertSame(3, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$registrationName));
+        $connection->rollBack();
+        self::assertSame(2, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$registrationName));
         $subscriptionStore->close(self::id(1), self::id(90), 102);
         $subscriptionStore->close(self::id(1), self::id(90), 103);
         self::assertSame(102, (int) $connection->fetchOne('SELECT closed_at FROM '.$registrationName.' WHERE registration_id = ?', [self::id(1)]));
@@ -97,6 +107,9 @@ final class DbalConfiguredSubscriptionIntegrationTest extends UnitTestCase
         $subscriptionStore = new DbalSubscriptionStore(connection: $connection, maxActive: 2, tables: $tables);
         self::assertSame(1, $subscriptionStore->cleanup(105, 1));
         self::assertSame(0, $subscriptionStore->cleanup(105, 256));
+        self::assertInstanceOf(RuntimeException::class, $this->fails(fn () => $subscriptionStore->heartbeat(self::id(1), self::id(90), 105, 110)));
+        self::assertFalse($connection->isTransactionActive());
+        $subscriptionStore = new DbalSubscriptionStore(connection: $connection, maxActive: 2, tables: $tables);
         $subscriptionStore->open(self::id(1), self::id(91), self::context('replacement'), 105, 110);
         self::assertInstanceOf(RuntimeException::class, $this->fails(fn () => $subscriptionStore->heartbeat(self::id(1), self::id(90), 106, 111)));
         $replacementReader = new DbalSubscriberReader(connection: $readerConnection, storageScope: 'db', clock: static fn () => 106, tables: $tables);
@@ -292,6 +305,216 @@ final class DbalConfiguredSubscriptionIntegrationTest extends UnitTestCase
         self::assertInstanceOf(RuntimeException::class, $this->fails(fn () => $schema->install($connection)));
         self::assertFalse($connection->createSchemaManager()->introspectTable($tables->subscriptionTable()->schemaName())->hasIndex($index));
         self::assertTrue($connection->createSchemaManager()->introspectTable('fight_mcp_subscriptions')->hasIndex('fight_mcp_subscription_expiry'));
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_subscriber_reader_classifies_committed_events_against_its_captured_clock_without_writes(string $backend): void
+    {
+        $writer = $this->database($backend);
+        $readerConnection = $this->connect($writer->getParams());
+        $tables = new DbalSubscriptionTables('Join', 'Union');
+        (new DbalSubscriptionSchema(tables: $tables))->install($writer);
+        $name = $tables->subscriptionTable()->quoted($writer->getDatabasePlatform());
+        $store = new DbalSubscriptionStore($writer, tables: $tables);
+        $id = self::id(1);
+        $owner = self::id(90);
+        $store->open($id, $owner, self::context(), 100, 105);
+        $selection = SubscriberSelection::create(['scope']);
+        $access = SubscriberAccess::create(['scope']);
+        $afterHeartbeat = [];
+        $reader = new DbalSubscriberReader($readerConnection, 'controlled-db', static function () use ($store, $id, $owner, $writer, $name, &$afterHeartbeat): int {
+            $capturedAt = 100;
+            $store->heartbeat($id, $owner, 101, 106);
+            $afterHeartbeat = $writer->fetchAllAssociative("SELECT * FROM $name");
+            return $capturedAt;
+        }, tables: $tables);
+        $summary = $reader->summarize($selection, $access)->toArray();
+        self::assertSame(100, $summary['scope']['queried_at']);
+        self::assertSame(101, $summary['latest_observed_at']);
+        self::assertSame(1, $summary['subscriptions']);
+        self::assertSame(1, $summary['subscriber_ids']);
+        self::assertSame(['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 1], $summary['states']);
+
+        $verify = static function (array $cases, int $observedAt, ?int $closedAt) use ($readerConnection, $tables, $selection, $access, $id): void {
+            foreach ($cases as $queriedAt => $state) {
+                $reader = new DbalSubscriberReader($readerConnection, 'controlled-db', static fn () => $queriedAt, tables: $tables);
+                $summary = $reader->summarize($selection, $access)->toArray();
+                $states = ['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 0];
+                $states[$state] = 1;
+                self::assertSame($states, $summary['states']);
+                self::assertSame(1, $summary['subscriptions']);
+                self::assertSame(1, $summary['subscriber_ids']);
+                self::assertSame($queriedAt, $summary['scope']['queried_at']);
+                $page = $reader->list(new ListSubscribers($selection), $access)->toArray();
+                self::assertSame(1, $page['total']);
+                self::assertCount(1, $page['subscribers']);
+                self::assertSame($queriedAt, $page['scope']['queried_at']);
+                $view = $page['subscribers'][0];
+                self::assertSame($id, $view['registration_id']);
+                self::assertSame('agent', $view['subscriber']);
+                self::assertSame($state, $view['state']);
+                self::assertSame($observedAt, $view['observed_at']);
+                self::assertSame($closedAt, $view['closed_at']);
+            }
+        };
+        $verify([100 => 'stale_uncertain', 101 => 'recently_observed', 106 => 'stale_uncertain'], 101, null);
+        self::assertSame($afterHeartbeat, $writer->fetchAllAssociative("SELECT * FROM $name"));
+        $store->close($id, $owner, 102);
+        $afterClose = $writer->fetchAllAssociative("SELECT * FROM $name");
+        $verify([101 => 'stale_uncertain', 102 => 'disconnected', 106 => 'disconnected'], 102, 102);
+        self::assertSame($afterClose, $writer->fetchAllAssociative("SELECT * FROM $name"));
+        self::assertFalse($writer->isTransactionActive());
+        self::assertFalse($readerConnection->isTransactionActive());
+    }
+
+    #[DataProvider('capacityWaits')]
+    public function test_that_serialized_renewal_and_close_observe_the_locked_storage_boundary(string $backend, array $selection, string $outcome): void
+    {
+        $reader = $this->database($backend);
+        $tables = new DbalSubscriptionTables(...$selection);
+        (new DbalSubscriptionSchema(tables: $tables))->install($reader);
+        $params = $reader->getParams();
+        $writer = DriverManager::getConnection($params + ['wrapperClass' => CoordinatedSubscriptionConnection::class]);
+        self::assertInstanceOf(CoordinatedSubscriptionConnection::class, $writer);
+        $this->connections[] = $writer;
+        $platform = $reader->getDatabasePlatform();
+        $writer->capacityLockSql = 'UPDATE '.$tables->stateTable()->quoted($platform).' SET version = version WHERE singleton = 1';
+        $rowSql = 'SELECT * FROM '.$tables->subscriptionTable()->quoted($platform);
+        $seconds = $outcome === 'timeout' ? 1 : 8;
+        match ($backend) {
+            'sqlite' => $writer->executeStatement('PRAGMA busy_timeout = '.($seconds * 1000)),
+            'mysql' => $writer->executeStatement('SET SESSION innodb_lock_wait_timeout = '.$seconds),
+            'postgresql' => $writer->executeStatement("SET lock_timeout = '".$seconds."s'")
+        };
+        $directory = sys_get_temp_dir().'/fight-subscription-lock-'.bin2hex(random_bytes(8));
+        self::assertTrue(mkdir($directory, 0700));
+        $hold = $outcome === 'overlong' ? 5200000 : 2200000;
+        $worker = new Process([PHP_BINARY, dirname(__DIR__, 5).'/Fixture/Mcp/subscription-lock-worker.php', $directory, (string) $hold, '0', 'coordinated'], timeout: 25);
+        try {
+            file_put_contents($directory.'/connection.json', json_encode($params, JSON_THROW_ON_ERROR));
+            file_put_contents($directory.'/tables.json', json_encode(['subscription' => $selection], JSON_THROW_ON_ERROR));
+            $worker->start();
+            self::assertTrue($worker->waitUntil(static fn (string $type, string $output): bool => $type === Process::OUT && str_contains($output, 'worker-ready')));
+            $store = new DbalSubscriptionStore($writer, tables: $tables);
+            $id = self::id(1);
+            $owner = self::id(90);
+            $now = time();
+            $expiry = $now + match ($outcome) {
+                'fast' => 4,
+                'close' => 1,
+                default => 2
+            };
+            $store->open($id, $owner, self::context(), $now, $expiry);
+            $original = $reader->fetchAssociative($rowSql);
+            self::assertIsArray($original);
+            $writer->operation = $outcome === 'close' ? 'close' : 'heartbeat';
+            $writer->beforeTransaction = static function () use ($directory): void {
+                touch($directory.'/lock-request');
+                $deadline = microtime(true) + 3;
+                while (!file_exists($directory.'/lock-ready')) {
+                    if (microtime(true) >= $deadline) {
+                        throw new RuntimeException('Independent worker did not acquire the capacity lock.');
+                    }
+                    usleep(1000);
+                }
+            };
+            if ($outcome === 'close') {
+                $deadline = hrtime(true) + 2000000000;
+                while (time() < $expiry && hrtime(true) < $deadline) {
+                    usleep(1000);
+                }
+                $now = time();
+                self::assertGreaterThanOrEqual($expiry, $now);
+            }
+            $proposed = $now + 5;
+            $failure = null;
+            if ($outcome === 'close') {
+                $store->close($id, $owner, $now);
+            } elseif ($outcome === 'fast') {
+                $store->heartbeat($id, $owner, $now, $proposed);
+            } else {
+                $failure = $this->fails(static fn () => $store->heartbeat($id, $owner, $now, $proposed));
+            }
+            $returned = microtime(true);
+            self::assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            self::assertCount(1, $writer->capacityLocks);
+            $lock = $writer->capacityLocks[0];
+            $locked = self::workerEvidence($directory, 'locked-state');
+            $held = self::workerEvidence($directory, 'lock-ready');
+            self::assertSame($original, $locked['row']);
+            self::assertLessThanOrEqual($lock['entered_at'], $held['acquired_at']);
+            self::assertFalse($writer->isTransactionActive());
+
+            if ($outcome !== 'close') {
+                self::assertLessThan($expiry, $lock['entered_at']);
+            }
+            if ($outcome === 'timeout') {
+                self::assertArrayNotHasKey('acquired_at', $lock);
+                self::assertInstanceOf(Throwable::class, $failure);
+                self::assertSame($failure::class, $lock['failure']);
+                self::assertGreaterThan($lock['entered_at'] + 0.9, $returned);
+                self::assertLessThan($locked['at'], $returned);
+                self::assertLessThan($proposed, $returned);
+            } else {
+                self::assertGreaterThanOrEqual($locked['at'], $lock['acquired_at']);
+            }
+            $row = $reader->fetchAssociative($rowSql);
+            self::assertIsArray($row);
+            if ($outcome === 'fast') {
+                self::assertLessThan($expiry, $lock['acquired_at']);
+                self::assertSame($proposed, (int) $row['expires_at']);
+                self::assertGreaterThan($now, (int) $row['observed_at']);
+                self::assertSame(0, (int) $row['closed_at']);
+            } elseif ($outcome === 'close') {
+                self::assertGreaterThanOrEqual($expiry, $lock['entered_at']);
+                self::assertSame(array_replace($original, ['observed_at' => $now, 'closed_at' => $now]), $row);
+            } else {
+                self::assertSame($original, $row);
+                if ($outcome !== 'timeout') {
+                    self::assertGreaterThanOrEqual($expiry, $lock['acquired_at']);
+                    self::assertInstanceOf(RuntimeException::class, $failure);
+                    self::assertSame($outcome === 'expired'
+                        ? 'Subscription ownership or freshness lost.'
+                        : 'Subscription freshness elapsed while awaiting renewal.', $failure->getMessage());
+                    if ($outcome === 'expired') {
+                        self::assertLessThan($proposed, $returned);
+                    } else {
+                        self::assertGreaterThanOrEqual($proposed, $returned);
+                    }
+                }
+                self::assertInstanceOf(LogicException::class, $this->fails(static fn () => $store->close($id, $owner, time())));
+                self::assertFalse($writer->isTransactionActive());
+                self::assertSame($original, $reader->fetchAssociative($rowSql));
+            }
+        } finally {
+            $worker->stop(1);
+            foreach (glob($directory.'/*') as $path) {
+                unlink($path);
+            }
+            rmdir($directory);
+        }
+    }
+
+    public static function capacityWaits(): iterable
+    {
+        $configured = ['stateTable' => 'Join', 'subscriptionTable' => 'Union'];
+        foreach ([
+            'sqlite' => ['fast' => $configured, 'overlong' => [], 'timeout' => $configured],
+            'mysql' => ['fast' => [], 'expired' => $configured, 'overlong' => $configured, 'timeout' => [], 'close' => $configured],
+            'postgresql' => ['fast' => $configured, 'expired' => [], 'overlong' => [], 'timeout' => $configured, 'close' => $configured]
+        ] as $backend => $outcomes) {
+            foreach ($outcomes as $outcome => $selection) {
+                yield $backend.'-'.$outcome => [$backend, $selection, $outcome];
+            }
+        }
+    }
+
+    private static function workerEvidence(string $directory, string $file): array
+    {
+        $data = file_get_contents($directory.'/'.$file.'.json');
+        self::assertIsString($data);
+
+        return json_decode($data, true, flags: JSON_THROW_ON_ERROR);
     }
 
     public static function selections(): iterable

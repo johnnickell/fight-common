@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Notice\Publication;
 
 use Fight\Common\Application\Mcp\Notice\Data\NoticeView;
+use Fight\Common\Application\Mcp\Notice\Exception\CommittedNoticeDispatchFailed;
+use Fight\Common\Application\Mcp\Notice\Exception\NoticeStorageFailed;
 use Fight\Common\Application\Mcp\Notice\Publication\NoticePublication;
 use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationDiagnostics;
 use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationGrant;
@@ -17,12 +19,15 @@ use Fight\Common\Application\Socket\PrivatePublisher;
 use Fight\Common\Application\Socket\Publisher;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\Command\RecordNotice;
+use Fight\Common\Domain\Mcp\Notice\Event\NoticeRecorded;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\Query\GetNotice;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
+use Throwable;
 
 #[CoversClass(NoticePublication::class)]
 #[CoversClass(NoticePublicationStatus::class)]
@@ -97,6 +102,39 @@ final class NoticePublicationTest extends UnitTestCase
         self::assertSame(NoticePublicationStatus::DENIED, $composition->record($command));
         $failure = new RuntimeException('Recording failed'); $commandBus->shouldReceive('execute')->with($command)->once()->andThrow($failure);
         try { $composition->record($command); self::fail('Recording failure must remain distinct'); } catch (RuntimeException $actual) { self::assertSame($failure, $actual); }
+    }
+
+    public function test_that_optional_publication_cannot_follow_a_failed_recording_or_failed_dispatch(): void
+    {
+        $command = RecordNotice::fromArray(NoticeFixture::data());
+        $fact = NoticeRecorded::fromArray([
+            'version' => 1, 'id' => 'notice-1', 'scope' => 'scope', 'producer' => 'producer',
+            'position' => 1, 'recorded_at' => '2026-10-25T02:00:00.000000Z'
+        ]);
+        $failures = [
+            new NoticeStorageFailed(false, new RuntimeException('Storage rejected the record')),
+            new LogicException('Caller owns transaction'),
+            new CommittedNoticeDispatchFailed($fact, new RuntimeException('Dispatch failed'))
+        ];
+        foreach ($failures as $failure) {
+            $commandBus = $this->mock(CommandBus::class);
+            $commandBus->shouldReceive('execute')->once()->with($command)->andThrow($failure);
+            $queryBus = $this->mock(QueryBus::class);
+            $queryBus->shouldNotReceive('fetch');
+            $policy = $this->mock(NoticePublicationPolicy::class);
+            $policy->shouldNotReceive('currentGrant');
+            $diagnostics = $this->mock(NoticePublicationDiagnostics::class);
+            $diagnostics->shouldNotReceive('record');
+            $publisher = $this->mock(PrivatePublisher::class);
+            $publisher->shouldNotReceive('pushPrivate');
+            $composition = new RecordNoticeAndPublish($commandBus, new NoticePublication($queryBus, $policy, $diagnostics, privatePublisher: $publisher));
+            try {
+                $composition->record($command);
+                self::fail('Recording failure must propagate without a publication attempt.');
+            } catch (Throwable $actual) {
+                self::assertSame($failure, $actual);
+            }
+        }
     }
 
     public function test_that_excess_reference_projection_is_invalid_before_either_publisher_is_invoked(): void

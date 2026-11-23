@@ -8,6 +8,7 @@ use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\Common\TestCase\Mcp\Task\TaskCancellationOperations;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskCheckConnection;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 
@@ -35,18 +36,27 @@ $fixture->onCancellationAdmission = $admission; $fixture->onInputAdmission = $ad
 file_put_contents($directory.'/'.$role.'-started', 'yes');
 $operation = $config[$role];
 try {
-    match ($operation) {
-        'cancel' => $fixture->cancel(),
-        'supply' => $fixture->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => 'accepted']]]),
-        'acquire' => $fixture->acquire(),
-        'issue' => $fixture->issue(expectedVersion: $config['version']),
-        'completed' => $fixture->record(TaskFixture::completed(), $config['version']),
-        'failed' => $fixture->record(TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), $config['version']),
-        'cancelled' => $fixture->record(TaskState::create('cancelled'), $config['version']),
-        'observe' => null
-    };
+    if ($config['direct'] ?? false) {
+        TaskCancellationOperations::invoke($fixture, $operation, $config['version']);
+    } else {
+        match ($operation) {
+            'cancel' => $fixture->cancel(),
+            'supply' => $fixture->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => 'accepted']]]),
+            'acquire' => $fixture->acquire(),
+            'issue' => $fixture->issue(expectedVersion: $config['version']),
+            'completed' => $fixture->record(TaskFixture::completed(), $config['version']),
+            'failed' => $fixture->record(TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), $config['version']),
+            'cancelled' => $fixture->record(TaskState::create('cancelled'), $config['version']),
+            'observe' => null
+        };
+    }
     $status = 'committed';
 } catch (Throwable $failure) { $status = $failure::class; }
+if ($config['direct'] ?? false) {
+    echo json_encode(['status' => $status, 'events' => $events, 'active' => $connection->isTransactionActive()], JSON_THROW_ON_ERROR);
+    $connection->close();
+    return;
+}
 $observed = $fixture->cancellation(); $input = $fixture->observe();
 $result = ['status' => $status, 'events' => $events, 'pid' => getmypid(), 'observation' => $observed, 'input' => $input, 'operation' => $operation, 'backend' => $config['params']['driver']];
 $trace = getenv('FIGHT_COMMON_TASK_CANCELLATION_TRACE');

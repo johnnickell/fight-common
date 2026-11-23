@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRecoveryFixture;
 
 require dirname(__DIR__, 4).'/vendor/autoload.php';
@@ -28,7 +31,20 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $
     }
     $connection->commit();
 });
-$fixture = new NoticeRecoveryFixture($proxy, tables: new DbalNoticeTables(...($config['tables'] ?? [])));
+$tables = new DbalNoticeTables(...($config['tables'] ?? []));
 file_put_contents($directory.'/'.$role.'-started', 'recovery');
-echo json_encode($fixture->call($config['arguments']), JSON_THROW_ON_ERROR);
+if (isset($config['continuationRace'])) {
+    $fixture = new NoticeRecoveryFixture($proxy, tables: $tables);
+    $batch = $fixture->queryBus->fetch(new RecoverNotices(NoticeSelection::create(['scope']), $config['continuationRace']['token'], 1));
+    echo json_encode(['status' => 'ok', 'recordAdmissions' => 0, 'removalAdmissions' => 0, 'batch' => $batch->toArray()], JSON_THROW_ON_ERROR);
+} elseif ($config['direct'] ?? false) {
+    $window = (new DbalNoticeRecoveryReader($proxy, $tables))->readWindow('scope', $config['after'], 1);
+    echo json_encode([
+        'status' => 'ok', 'recordAdmissions' => 0, 'removalAdmissions' => 0,
+        'window' => ['positions' => array_map(static fn ($row) => $row->position(), $window->notices()), 'high' => $window->highWater(), 'lost' => $window->lostThrough()]
+    ], JSON_THROW_ON_ERROR);
+} else {
+    $fixture = new NoticeRecoveryFixture($proxy, tables: $tables);
+    echo json_encode($fixture->call($config['arguments']), JSON_THROW_ON_ERROR);
+}
 $connection->close(); Mockery::close();

@@ -19,7 +19,6 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\NoticeRemovalSelection;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRemovalFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -30,8 +29,9 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
+    private ?DbalNoticeTables $installedTables = null;
 
-    #[DataProvider('databases')]
+    #[DataProvider('routedSelection')]
     public function test_that_bounded_commands_preserve_distinct_unselected_scopes_producers_and_relationships(string $backend, DbalNoticeTables $tables): void
     {
         $connection = $this->database($backend, $tables); $fixture = new NoticeRemovalFixture($connection, $tables);
@@ -62,164 +62,33 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
         }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_exact_maximum_batch_removes_only_selected_records_and_oversized_input_mutates_nothing(string $backend, DbalNoticeTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new NoticeRemovalFixture($connection, $tables); $targets = [];
-        for ($i = 1; $i <= 100; ++$i) {
-            $fixture->recording->record(['id' => 'target-'.$i]); $targets[] = NoticeRemovalFixture::target($i, 'target-'.$i);
-        }
-        $fixture->recording->record(['id' => 'survivor']);
-        $selection = $fixture->selection($targets);
-        try {
-            NoticeRemovalSelection::fromArray(array_replace($selection->toArray(), ['targets' => [...$targets, NoticeRemovalFixture::target(101, 'survivor')]]));
-            self::fail('101 targets must reject before dispatch.');
-        } catch (DomainException) {
-            self::assertSame(0, $fixture->admissions); self::assertSame(101, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$tables->noticeTable()->quoted($connection->getDatabasePlatform())));
-            self::assertSame(0, (int) $connection->fetchOne('SELECT lost_through FROM '.$tables->stateTable()->quoted($connection->getDatabasePlatform())));
-        }
-        $fixture->remove($selection);
-        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams()), $tables))->readWindow('scope', 0, 100);
-        self::assertSame([101], array_map(static fn ($row) => $row->position(), $window->notices()));
-        self::assertSame('survivor', $window->notices()[0]->notice()->id());
-        self::assertSame(100, $window->lostThrough()); self::assertSame(101, $window->highWater());
-        foreach ($this->relatedTables($connection, $tables) as $table) { self::assertSame([101], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
-    }
-
-    #[DataProvider('databases')]
-    public function test_that_every_admission_preflights_without_partial_change_or_recording_permission_substitution(string $backend, DbalNoticeTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new NoticeRemovalFixture($connection, $tables);
-        $fixture->recording->record(['relationships' => ['subject' => null, 'recipients' => [], 'author' => null, 'command' => null, 'event' => null, 'action' => null]]);
-        $fixture->recording->record(['id' => 'notice-2']);
-        $selection = $fixture->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(2, 'notice-2')]);
-        foreach (['subject-agent', 'recipient-agent', 'other-recipient', 'author-agent', 'command-id', 'event-id', 'action-id'] as $reference) {
-            $fixture->deniedReferences = [$reference];
-            try { $fixture->remove($selection); self::fail('Every retained relationship requires removal authority.'); } catch (NoticeRemovalRejected) {
-                self::assertSame(0, (int) $connection->fetchOne('SELECT lost_through FROM '.$tables->stateTable()->quoted($connection->getDatabasePlatform())));
-                self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
-            }
-        }
-        $fixture->deniedReferences = [];
-        foreach ([NoticeRemovalFixture::target(1, 'notice-1', 'SUPER_ADMIN'), NoticeRemovalFixture::target(1, 'notice-1', 'scope', 'cleanup-caller')] as $denied) {
-            try { $fixture->remove($fixture->selection([NoticeRemovalFixture::target(2, 'notice-2'), $denied])); self::fail('Submitted identity is not authority.'); } catch (NoticeRemovalRejected) { self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)); }
-        }
-        $fixture->recording->allowed = true; $fixture->allowed = false;
-        try { $fixture->remove($selection); self::fail('Recording permission does not authorize removal.'); } catch (NoticeRemovalRejected) { self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)); }
-        $fixture->allowed = true; $fixture->deniedReferences = ['subject-agent'];
-        foreach ([$fixture->selection([NoticeRemovalFixture::target(2, 'notice-2')]), $fixture->selection([NoticeRemovalFixture::target(3, 'missing')])] as $request) {
-            $this->assertRemovalRejected(fn () => $fixture->remove($request));
-        }
-        $fixture->deniedReferences = [];
-        $this->assertRemovalRejected(fn () => $fixture->remove($fixture->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(3, 'missing')])));
-        self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
-        $fixture->recording->allowed = false; $fixture->remove($selection);
-        self::assertSame([], $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
-    }
-
-    #[DataProvider('databases')]
-    public function test_that_repeated_empty_feed_reconstruction_keeps_only_one_bounded_body_free_loss_record(string $backend, DbalNoticeTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new NoticeRemovalFixture($connection, $tables);
-        $stateTable = $tables->stateTable()->quoted($connection->getDatabasePlatform());
-        $namespace = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 1)->namespace();
-        for ($i = 1; $i <= 128; ++$i) {
-            $fixture->recording->record(['scope' => $i % 2 === 0 ? 'scope-2' : 'scope']);
-            $selection = NoticeRemovalSelection::fromArray(['version' => 1, 'namespace' => $namespace, 'targets' => [NoticeRemovalFixture::target($i, 'notice-1', $i % 2 === 0 ? 'scope-2' : 'scope')]]);
-            $fixture->remove($selection);
-        }
-        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams()), $tables))->readWindow('scope', 0, 100);
-        self::assertSame([], $window->notices()); self::assertSame(128, $window->highWater()); self::assertSame(128, $window->lostThrough());
-        self::assertFalse($window->hasUnbrokenHistoryAfter($namespace, 0));
-        self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$stateTable));
-        foreach ($this->relatedTables($connection, $tables) as $table) { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); }
-        self::assertSame(['singleton', 'version', 'last_position', 'namespace', 'lost_through'], array_keys($connection->fetchAssociative('SELECT * FROM '.$stateTable)));
-        $fixture->recording->record(); self::assertSame(129, $fixture->recording->noticeRecoveryReader->readAfter('scope', 128, 100)[0]->position());
-        // Operational loss/retirement cannot reuse an old continuation or stale removal across namespaces.
-        $newNamespace = bin2hex(random_bytes(16));
-        $connection->update($stateTable, ['namespace' => $newNamespace, 'lost_through' => 129], ['singleton' => 1]);
-        $retired = $fixture->recording->noticeRecoveryReader->readWindow('scope', 128, 100);
-        self::assertFalse($retired->hasUnbrokenHistoryAfter($namespace, 129));
-        try { $fixture->remove($selection); self::fail('Retired namespace must reject.'); } catch (NoticeRemovalRejected) { self::assertCount(1, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)); }
-        $connection->delete($stateTable, ['singleton' => 1]);
-        try { $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100); self::fail('Unavailable evidence cannot become complete empty history.'); } catch (RuntimeException) { self::assertTrue(true); }
-    }
-
-    #[DataProvider('databases')]
-    public function test_that_all_delete_loss_and_commit_faults_are_atomic_and_lost_acknowledgment_is_explicit(string $backend, DbalNoticeTables $tables): void
+    #[DataProvider('routedSelection')]
+    public function test_that_routed_removal_reports_a_lost_commit_acknowledgment_without_replaying_success(string $backend, DbalNoticeTables $tables): void
     {
         $connection = $this->database($backend, $tables);
-        foreach (['delete-1', 'delete-2', 'loss', 'commit-before', 'commit-after'] as $stage) {
-            $seed = new NoticeRemovalFixture($connection, $tables); $seed->recording->record(); $seed->recording->record(['id' => 'notice-2']); $seed->recording->record(['id' => 'survivor']);
-            $selection = $seed->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(2, 'notice-2')]);
-            $proxy = $this->proxy($connection); $deletes = 0;
-            $failure = new class ('Injected private diagnostic.') extends RuntimeException implements Exception {};
-            $proxy->shouldReceive('delete')->andReturnUsing(static function (...$args) use ($connection, $stage, $failure, &$deletes) {
-                $result = $connection->delete(...$args); ++$deletes;
-                if ($stage === 'delete-'.$deletes) { throw $failure; } return $result;
-            });
-            $proxy->shouldReceive('update')->andReturnUsing(static function (...$args) use ($connection, $stage, $failure) {
-                $result = $connection->update(...$args); if ($stage === 'loss') { throw $failure; } return $result;
-            });
-            $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($connection, $stage, $failure): void {
-                if ($stage === 'commit-after') { $connection->commit(); } throw $failure;
-            });
-            $fixture = new NoticeRemovalFixture($proxy, $tables);
-            try { $fixture->remove($selection); self::fail('Fault must not acknowledge success.'); } catch (NoticeStorageFailed $caught) {
-                self::assertSame(in_array($stage, ['commit-before', 'commit-after'], true), $caught->outcomeUncertain());
-                self::assertSame('Notice storage failed.', $caught->getMessage());
-            }
-            $fresh = new DbalNoticeRecoveryReader($this->connect($connection->getParams()), $tables); $window = $fresh->readWindow('scope', 0, 100);
-            $committed = $stage === 'commit-after';
-            self::assertSame($committed ? [3] : [1, 2, 3], array_map(static fn ($row) => $row->position(), $window->notices()));
-            self::assertSame($committed ? 2 : 0, $window->lostThrough()); self::assertSame(3, $window->highWater());
-            foreach ($this->relatedTables($connection, $tables) as $table) { self::assertSame($committed ? [3] : [1, 2, 3], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table.' ORDER BY position'))); }
-            // A lost successful reply repeats as the same safe missing/denied failure, never a receipt.
-            if ($committed) { $this->assertRemovalRejected(fn () => $seed->remove($selection)); }
-            else { $seed->remove($selection); }
-            self::assertSame([3], array_map(static fn ($row) => $row->position(), $fresh->readAfter('scope', 0, 100)));
-            $this->reset($connection, $tables);
+        $seed = new NoticeRemovalFixture($connection, $tables);
+        $seed->recording->record();
+        $seed->recording->record(['id' => 'notice-2']);
+        $seed->recording->record(['id' => 'survivor']);
+        $selection = $seed->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(2, 'notice-2')]);
+        $proxy = $this->proxy($connection);
+        $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($connection): void {
+            $connection->commit();
+            throw new class ('Injected private diagnostic.') extends RuntimeException implements Exception {};
+        });
+        $fixture = new NoticeRemovalFixture($proxy, $tables);
+        try {
+            $fixture->remove($selection);
+            self::fail('Fault must not acknowledge success.');
+        } catch (NoticeStorageFailed $failure) {
+            self::assertTrue($failure->outcomeUncertain());
+            self::assertSame('Notice storage failed.', $failure->getMessage());
         }
-    }
-
-    #[DataProvider('databases')]
-    public function test_that_real_database_loss_constraint_failure_rolls_back_cascades_and_remains_reusable(string $backend, DbalNoticeTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new NoticeRemovalFixture($connection, $tables);
-        $stateTable = $tables->stateTable()->quoted($connection->getDatabasePlatform());
-        $fixture->recording->record(); $fixture->recording->record(['id' => 'survivor']);
-        $selection = $fixture->selection([NoticeRemovalFixture::target()]);
-        if ($backend === 'sqlite') { $connection->executeStatement("CREATE TRIGGER notice_loss_failure BEFORE UPDATE OF lost_through ON ".$stateTable." BEGIN SELECT RAISE(ABORT, 'private'); END"); }
-        else { $connection->executeStatement('ALTER TABLE '.$stateTable.' ADD CONSTRAINT notice_loss_failure CHECK (lost_through = 0)'); }
-        try { $fixture->remove($selection); self::fail('Actual database failure must roll back deletion and loss.'); }
-        catch (NoticeStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); self::assertSame('Notice storage failed.', $failure->getMessage()); }
-        self::assertFalse($fixture->recording->transactionalUnitOfWork->isClosed());
-        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams()), $tables))->readWindow('scope', 0, 100);
-        self::assertSame([1, 2], array_map(static fn ($row) => $row->position(), $window->notices())); self::assertSame(0, $window->lostThrough());
-        foreach ($this->relatedTables($connection, $tables) as $table) { self::assertSame([1, 2], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table.' ORDER BY position'))); }
-        if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER notice_loss_failure'); }
-        elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE '.$stateTable.' DROP CHECK notice_loss_failure'); }
-        else { $connection->executeStatement('ALTER TABLE '.$stateTable.' DROP CONSTRAINT notice_loss_failure'); }
-        $fixture->remove($selection); self::assertSame([2], array_map(static fn ($row) => $row->position(), $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)));
-    }
-
-    #[DataProvider('databases')]
-    public function test_that_enclosing_work_is_untouched_and_later_consumer_failure_cannot_undo_removal(string $backend, DbalNoticeTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $fixture = new NoticeRemovalFixture($connection, $tables); $fixture->recording->record();
-        $selection = $fixture->selection([NoticeRemovalFixture::target()]);
-        $connection->executeStatement('CREATE TABLE notice_removal_caller (id INTEGER)');
-        $connection->beginTransaction(); $connection->insert('notice_removal_caller', ['id' => 42]);
-        try { $fixture->remove($selection); self::fail('No savepoint acknowledgment.'); } catch (LogicException) {
-            self::assertTrue($connection->isTransactionActive()); self::assertSame(1, $connection->getTransactionNestingLevel());
-            self::assertSame(0, $fixture->admissions); self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM notice_removal_caller'));
-        }
-        $connection->commit();
-        self::assertSame(42, (int) $this->connect($connection->getParams())->fetchOne('SELECT id FROM notice_removal_caller'));
-        $connection->executeStatement('DROP TABLE notice_removal_caller');
-        try { $fixture->remove($selection); self::assertFalse($connection->isTransactionActive()); throw new RuntimeException('later consumer publisher failed'); } catch (RuntimeException $failure) { self::assertSame('later consumer publisher failed', $failure->getMessage()); }
-        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams()), $tables))->readWindow('scope', 0, 100);
-        self::assertSame([], $window->notices()); self::assertSame(1, $window->lostThrough());
+        $fresh = new DbalNoticeRecoveryReader($this->connect($connection->getParams()), $tables);
+        $this->assertRemovalRejected(fn () => $seed->remove($selection));
+        $window = $fresh->readWindow('scope', 0, 100);
+        self::assertSame([3], array_map(static fn ($row) => $row->position(), $window->notices()));
+        self::assertSame(2, $window->lostThrough());
     }
 
     #[DataProvider('races')]
@@ -272,18 +141,34 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
         }
     }
 
+    public static function routedSelection(): iterable
+    {
+        yield 'sqlite' => ['sqlite', new DbalNoticeTables()];
+    }
+
     public static function races(): iterable
     {
-        foreach (self::databases() as $name => [$backend, $tables]) {
-            foreach (['remove-first-identical', 'remove-first-conflicting', 'remove-first-distinct', 'remove-first-repeat', 'record-first-remove', 'retry-first-remove', 'conflict-first-remove', 'remove-rollback-retry', 'remove-first-revoked-record', 'record-first-revoked-remove', 'remove-first-window'] as $mode) { yield $name.'-'.$mode => [$backend, $mode, $tables]; }
-        }
+        // Both lock orders on each driver and the distinct outcomes are retained across this anchor and Integration.
+        yield 'sqlite-partial-record-first-remove' => [
+            'sqlite', 'record-first-remove', new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')
+        ];
     }
 
     protected function tearDown(): void
     {
-        foreach ($this->connections as $connection) { $connection->close(); }
-        foreach ($this->directories as $directory) { $this->removeTemporaryDirectory($directory, 'fight-notice-removal-'); }
-        parent::tearDown();
+        try {
+            if ($this->installedTables !== null) {
+                $connection = $this->connections[0];
+                $tables = $this->installedTables;
+                foreach ([$tables->comparisonTable(), $tables->relationshipTable(), $tables->noticeTable(), $tables->stateTable()] as $table) {
+                    $connection->executeStatement('DROP TABLE IF EXISTS '.$table->quoted($connection->getDatabasePlatform()));
+                }
+            }
+        } finally {
+            foreach ($this->connections as $connection) { $connection->close(); }
+            foreach ($this->directories as $directory) { $this->removeTemporaryDirectory($directory, 'fight-notice-removal-'); }
+            parent::tearDown();
+        }
     }
 
     private function assertRemovalRejected(callable $operation): void
@@ -300,7 +185,10 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
             self::assertIsString($dsn, 'Actual owned disposable '.$backend.' DSN is mandatory; skips do not qualify.');
             $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
         }
-        $connection = $this->connect($params); $this->reset($connection, $tables); return $connection;
+        $connection = $this->connect($params);
+        $this->reset($connection, $tables);
+        $this->installedTables = $tables;
+        return $connection;
     }
 
     private function reset(Connection $connection, DbalNoticeTables $tables): void
@@ -338,7 +226,7 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
     private function proxy(Connection $connection): Connection
     {
         $proxy = $this->mock(Connection::class);
-        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'rollBack'] as $method) {
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'rollBack', 'delete', 'update'] as $method) {
             $proxy->shouldReceive($method)->andReturnUsing(static fn (...$args) => $connection->$method(...$args));
         }
         return $proxy;

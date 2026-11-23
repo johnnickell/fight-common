@@ -30,6 +30,7 @@ final class NoticeFixture implements NoticeAdmission
     public readonly DbalNoticeTransaction $transactionalUnitOfWork;
     public readonly DbalNoticeRecoveryReader $noticeRecoveryReader;
     public readonly RoutingCommandBus $commandBus;
+    public readonly RecordNoticeHandler $recordNoticeHandler;
     public readonly SimpleEventDispatcher $eventDispatcher;
 
     public function __construct(Connection $connection, DbalNoticeTables $tables = new DbalNoticeTables())
@@ -38,10 +39,11 @@ final class NoticeFixture implements NoticeAdmission
         $this->noticeRepository = new DbalNoticeRepository($this->transactionalUnitOfWork);
         $this->noticeRecoveryReader = new DbalNoticeRecoveryReader($connection, $tables);
         $this->eventDispatcher = new SimpleEventDispatcher();
-        $router = new InMemoryCommandRouter();
-        $router->registerHandler(RecordNotice::class, new RecordNoticeHandler(new NoticeRecorder(
+        $this->recordNoticeHandler = new RecordNoticeHandler(new NoticeRecorder(
             $this->noticeRepository, $this->transactionalUnitOfWork, $this, $this->eventDispatcher
-        )));
+        ));
+        $router = new InMemoryCommandRouter();
+        $router->registerHandler(RecordNotice::class, $this->recordNoticeHandler);
         $this->commandBus = new RoutingCommandBus($router);
     }
 

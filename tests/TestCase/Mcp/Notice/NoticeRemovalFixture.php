@@ -25,15 +25,17 @@ final class NoticeRemovalFixture implements NoticeRemovalAdmission
     public array $deniedReferences = [];
     public ?Closure $onAdmit = null;
     public readonly NoticeFixture $recording;
+    public readonly RemoveNoticesHandler $removeNoticesHandler;
     public readonly RoutingCommandBus $commandBus;
 
     public function __construct(Connection $connection, DbalNoticeTables $tables = new DbalNoticeTables())
     {
         $this->recording = new NoticeFixture($connection, $tables);
-        $router = new InMemoryCommandRouter();
-        $router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler(new NoticeRemover(
+        $this->removeNoticesHandler = new RemoveNoticesHandler(new NoticeRemover(
             $this->recording->noticeRepository, $this->recording->transactionalUnitOfWork, $this
-        )));
+        ));
+        $router = new InMemoryCommandRouter();
+        $router->registerHandler(RemoveNotices::class, $this->removeNoticesHandler);
         $this->commandBus = new RoutingCommandBus($router);
     }
 

@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent | — |
+| Active Work | [TASK-00231](00231-TASK.md) | Reduce the Functional suite to at most 99 expanded cases | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -34,7 +34,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 14 | [TASK-00231](00231-TASK.md) | Reduce the Functional suite to at most 99 expanded cases | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 

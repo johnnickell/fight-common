@@ -35,6 +35,15 @@ class HmacAuthenticatorTest extends UnitTestCase
         $this->privateKeyHex = bin2hex(random_bytes(16));
     }
 
+    public function test_that_a_bearer_request_is_not_authenticated_or_allowed_to_consume_a_nonce(): void
+    {
+        $nonces = $this->mock(NonceRepository::class);
+        $nonces->shouldNotReceive('consume');
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 60, $nonces);
+        $this->expectException(AuthException::class);
+        $authenticator->validate(new ServerRequest('POST', 'https://resource.test/mcp', ['Authorization' => 'Bearer fixture-token']));
+    }
+
     private function computeSignature(
         string $privateKeyHex,
         string $method,

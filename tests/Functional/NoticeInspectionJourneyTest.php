@@ -28,8 +28,9 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
 {
     private array $connections = [];
     private array $directories = [];
+    private ?DbalNoticeTables $installedTables = null;
 
-    #[DataProvider('databases')]
+    #[DataProvider('configuredInspection')]
     public function test_that_query_bus_summary_history_and_independent_detail_respect_current_caller_and_full_selection(string $backend, DbalNoticeTables $tables): void
     {
         $connection = $this->database($backend, $tables); $writer = new NoticeFixture($connection, $tables); $events = 0;
@@ -87,7 +88,7 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
         self::assertSame($state, $this->state($connection, $tables)); self::assertSame(106, $events);
     }
 
-    #[DataProvider('databases')]
+    #[DataProvider('liveReads')]
     public function test_that_new_commits_and_fixture_disappearance_change_live_reads_without_expiry_or_access_lease(string $backend, DbalNoticeTables $tables): void
     {
         $connection = $this->database($backend, $tables); $writer = new NoticeFixture($connection, $tables); $reader = new NoticeInspectionFixture($connection, $tables);
@@ -114,28 +115,39 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
         }
     }
 
-    #[DataProvider('databases')]
-    public function test_that_summary_dimension_overflow_is_explicit_on_the_actual_routed_storage_path(string $backend, DbalNoticeTables $tables): void
-    {
-        $connection = $this->database($backend, $tables); $writer = new NoticeFixture($connection, $tables); $reader = new NoticeInspectionFixture($connection, $tables);
-        for ($i = 0; $i < 128; ++$i) { $writer->record(['id' => 'notice-'.$i, 'topic' => 'topic-'.$i]); }
-        $query = new SummarizeNotices(NoticeSelection::create(['scope']));
-        self::assertCount(128, $reader->queryBus->fetch($query)->toArray()['topics']);
-        $writer->record(['id' => 'overflow', 'topic' => 'topic-overflow']);
-        try { $reader->queryBus->fetch($query); self::fail('Full summary must not truncate.'); } catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
-        self::assertSame(129, $reader->queryBus->fetch(new ListNotices(NoticeSelection::create(['scope'])))->toArray()['total']);
-    }
-
     public static function databases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend, new DbalNoticeTables()];
-            yield $backend.'-partial' => [$backend, new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
-            yield $backend.'-configured' => [$backend, new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
-        }
+        yield 'default' => ['sqlite', new DbalNoticeTables()];
+        yield from self::liveReads();
+        yield from self::configuredInspection();
     }
 
-    protected function tearDown(): void { foreach ($this->connections as $connection) { $connection->close(); } foreach ($this->directories as $directory) { $this->removeTemporaryDirectory($directory, 'fight-notice-inspection-'); } parent::tearDown(); }
+    public static function liveReads(): iterable
+    {
+        yield 'mysql-partial' => ['mysql', new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
+    }
+
+    public static function configuredInspection(): iterable
+    {
+        yield 'postgresql-configured' => ['postgresql', new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
+    }
+
+    protected function tearDown(): void
+    {
+        try {
+            if ($this->installedTables !== null) {
+                $connection = $this->connections[0];
+                $tables = $this->installedTables;
+                foreach ([$tables->comparisonTable(), $tables->relationshipTable(), $tables->noticeTable(), $tables->stateTable()] as $table) {
+                    $connection->executeStatement('DROP TABLE IF EXISTS '.$table->quoted($connection->getDatabasePlatform()));
+                }
+            }
+        } finally {
+            foreach ($this->connections as $connection) { $connection->close(); }
+            foreach ($this->directories as $directory) { $this->removeTemporaryDirectory($directory, 'fight-notice-inspection-'); }
+            parent::tearDown();
+        }
+    }
 
     private function database(string $backend, DbalNoticeTables $tables): Connection
     {
@@ -156,7 +168,9 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
             foreach ([$selection->noticeTable(), $selection->stateTable()] as $table) { $names[] = $table->name(); }
         }
         foreach (array_unique($names) as $name) { $connection->executeStatement('DROP TABLE IF EXISTS '.$connection->getDatabasePlatform()->quoteSingleIdentifier($name)); }
-        (new DbalNoticeSchema($tables))->install($connection); return $connection;
+        (new DbalNoticeSchema($tables))->install($connection);
+        $this->installedTables = $tables;
+        return $connection;
     }
 
     private function state(Connection $connection, DbalNoticeTables $tables): array
