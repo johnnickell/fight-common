@@ -13,6 +13,7 @@
 | [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | done |
 | [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | done |
 | [EPIC-00013](epics/00013-EPIC.md) | Make all Common-owned table names configurable | unassigned | done |
+| [EPIC-00014](epics/00014-EPIC.md) | Fight Common 2.0 readiness | 2.0.0 | ready-for-agent |
 <!-- /planning:epics -->
 
 ## Planning frontier
@@ -32,9 +33,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| None | — | — | — | — |
-
-No TASK is currently executable; unresolved work may remain.
+| Active Work | [TASK-00218](tasks/00218-TASK.md) | Lock the hosted timing baseline | in-progress | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
