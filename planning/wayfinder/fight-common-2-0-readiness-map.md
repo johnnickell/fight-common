@@ -45,7 +45,7 @@ None. All four decisions are closed and the EPIC has been approved and written.
 
 ## Planning handoff
 
-[EPIC-00014 — Fight Common 2.0 readiness](../epics/00014-EPIC.md) owns the approved destination. If the full hosted gate misses the ten-minute median target, the maintainer must decide whether to hold the release or accept the measured outcome before tagging. TICKET decomposition is approved and recorded under the EPIC. The approved tooling amendment makes the quality runner the first migration and requires a concrete justification for any Python retained. TASK decomposition is approved and recorded under the four TICKETs. The [TASK Board](../tasks/BOARD.md) owns execution selection; implementation has not started.
+[EPIC-00014 — Fight Common 2.0 readiness](../epics/00014-EPIC.md) owns the approved destination. If the full hosted gate misses the ten-minute median target, the maintainer must decide whether to hold the release or accept the measured outcome before tagging. TICKET decomposition is approved and recorded under the EPIC. The approved tooling amendment makes the quality runner the first migration and requires a concrete justification for any Python retained. TASK decomposition is approved and recorded under the four TICKETs. The [TASK Board](../tasks/BOARD.md) owns execution selection. [TASK-00218](../tasks/00218-TASK.md) recorded the accepted baseline before any test or runner changes.
 
 ## Follow-up work outside the decision map
 
