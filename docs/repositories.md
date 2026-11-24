@@ -77,7 +77,7 @@ null bounds select page 1 and size 100 independently. Resolved bounds must be po
 raise `Fight\Common\Domain\Exception\DomainException` rather than selecting defaults.
 
 Offset is exactly `(page - 1) * perPage`; limit is `perPage`. Both paths check integer representability before
-multiplication and raises the same DomainException family on overflow, not an accidental float-assignment TypeError.
+multiplication and raise the same DomainException family on overflow, not an accidental float-assignment TypeError.
 There is no arbitrary page-size cap: page one with `PHP_INT_MAX` size has zero offset, and page two with that size
 has offset `PHP_INT_MAX`. A database or consumer may impose smaller limits.
 
@@ -95,14 +95,19 @@ can execute them. Neither input nor returned ordering-array edits change a const
 
 ### Legacy pagination and migration
 
-In v1.5.1, the constructor treated zero bounds as defaults, accepted negative bounds when the offset fit, and
-silently mapped unknown strings and coercible non-string directions to ASC. An overflowing offset could raise
-TypeError. In v2.0 these invalid values raise DomainException through either construction path. The constructor
-itself remains public; valid calls and named arguments need no update.
+In v1.5.1, the constructor treated zero bounds as defaults and accepted negative bounds when the offset fit.
+An overflowing offset could raise TypeError. For ordering directions, it normalized strings and values PHP could
+convert to strings: a case-insensitive match for `DESC` became `DESC`, and any other resulting string became
+`ASC`. For example, an object whose `__toString()` returned `desc` produced `DESC`.
+
+In v2.0, both construction paths raise DomainException for invalid bounds, overflowing offsets, and directions
+that are not `ASC` or `DESC` strings (case-insensitive). The constructor remains public; valid calls and named
+arguments need no update. Pass an actual string that matches the intended sort direction, or reject the invalid
+input rather than relying on coercion or a fallback.
 
 For example, replace `new Pagination(page: 0, perPage: 0, orderings: ['title' => 'unknown'])` with
 `new Pagination(page: null, perPage: null, orderings: ['title' => 'ASC'])` if defaults and ascending order were
-intended. Reject invalid inputs otherwise. Check large bounds against the offset limit before querying, and never
+intended. Check large bounds against the offset limit before querying, and never
 interpret a validation error as permission for an unbounded fallback query. `Pagination::strict(...)` lets callers
 exercise these same rules before upgrading from v1.5.1.
 
