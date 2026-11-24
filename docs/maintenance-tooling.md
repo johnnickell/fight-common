@@ -1,5 +1,10 @@
 # Maintenance-line local verification
 
+Run these commands from the 1.4 maintenance checkout, for example at tag `v1.4.2`. The one-off
+`bin/database-runtime` command belongs to that line; it is not part of develop's Compose runtime.
+For historical cleanup on develop, follow the receipt recovery procedure in the checkout's
+`docs/engineering/LOCAL_TOOLING.md`.
+
 The 1.4 checkout uses native one-off Docker containers, not develop's Compose runtime or build cache.
 `./bin/build` always runs the entire gate, including ordinary Composer update. `bin/quality` passes
 `--memory-limit=512M` to PHPStan explicitly so its parallel workers receive the existing per-process limit.
