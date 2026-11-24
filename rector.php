@@ -16,7 +16,8 @@ return RectorConfig::configure()
         __DIR__.'/tests',
         __DIR__.'/release/src',
         __DIR__.'/release/scripts',
-        __DIR__.'/release/consumer'
+        __DIR__.'/release/consumer',
+        __DIR__.'/scripts'
     ])
     ->withPhpSets(php84: true)
     ->withConfiguredRule(ClassPropertyAssignToConstructorPromotionRector::class, [
