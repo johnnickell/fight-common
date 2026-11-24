@@ -2,7 +2,7 @@
 id: TICKET-00058
 epic: EPIC-00014
 title: Replace project context with a concise glossary
-status: ready-for-agent
+status: done
 ---
 
 # Replace project context with a concise glossary
@@ -35,9 +35,9 @@ Show that the glossary is concise, `CONTEXT.md` is gone, live references resolve
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00220](../tasks/00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent |
+| [TASK-00220](../tasks/00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
-[WF-050](../wayfinder/tickets/WF-050-define-the-glossary-cutover.md) owns the approved cutover. Requirements and TASK decomposition are approved. No implementation has started.
+[WF-050](../wayfinder/tickets/WF-050-define-the-glossary-cutover.md) owns the approved cutover. [TASK-00220](../tasks/00220-TASK.md) completed the cutover and records its verification and independent acceptance.

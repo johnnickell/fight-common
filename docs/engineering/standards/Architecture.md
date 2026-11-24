@@ -2,7 +2,7 @@
 
 Use DDD and ports and adapters with the direction `Adapter → Application → Domain`. Domain owns business concepts and invariants. Application coordinates use cases through Domain/Application interfaces. Adapters implement infrastructure and presentation. Keep framework dependencies within the project's explicitly permitted boundaries; use its dependency checker rather than inventing a second layer map.
 
-Read and maintain CONTEXT.md for ubiquitous language, aggregate responsibility, important state transitions, and accepted decisions. A domain concept belongs with the object holding its knowledge even on its first use. Repeated logic appearing more than three times may suggest extraction; this is a design signal, not a numeric rule.
+Use the [glossary](../../../GLOSSARY.md) for shared vocabulary, this standard for aggregate ownership, the component guides for state transitions and contracts, and [planning ADRs](../../../planning/adr/) for accepted decisions. A domain concept belongs with the object holding its knowledge even on its first use. Repeated logic appearing more than three times may suggest extraction; this is a design signal, not a numeric rule.
 
 ```php
 if (!$user->canLogIn()) {
@@ -27,7 +27,10 @@ root owns identity, coherent state transitions and invariants; its aggregate-spe
 interface live beside it. Nest subordinate entities and values under that aggregate's meaningful concept
 branches rather than scattering them into context-wide technical folders. Use `Command` and `Query` branches
 for verb-first payloads and `Event` for past-tense facts; [Naming](Naming.md) owns the naming rules.
-An aggregate is a consistency/identity boundary, not any immutable object or database table.
+An aggregate is a consistency/identity boundary, not any immutable object or database table. Its root need not
+inherit the [Event Sourcing reference base](../../event-sourcing.md) or record events. Nested entities have
+identity within that boundary; values describe replaceable state, and Application read DTOs describe use-case
+results. Immutability alone does not choose among them.
 
 Mirror that owner in `Application/{BoundedContext}/{Aggregate}`. Put use cases in `CommandHandler` and
 `QueryHandler`, and reactions in `EventSubscriber` with names identifying the policy they apply, not merely
@@ -104,7 +107,7 @@ compatibility remain binding.
 
 ## CQRS and persistence
 
-Commands express intent; queries return data without business mutation; events express facts. Follow the project's message identity, metadata, bus, and dispatch contracts. Keep transport information out of domain messages unless it is meaningful use-case context. Application handlers orchestrate; adapters do not become alternate business workflows.
+Commands express intent; queries return data without business mutation; events express facts. Follow the [messaging guide](../../messaging.md) for message identity, metadata, bus, and dispatch contracts. Keep transport information out of domain messages unless it is meaningful use-case context. Application handlers orchestrate; adapters do not become alternate business workflows.
 
 Domain aggregate repositories own retrieval, persistence and removal of their aggregate, not transaction
 lifecycle, connection access, disclosure policy or transport projection. Read-oriented Application ports may own

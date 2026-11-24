@@ -15,7 +15,7 @@ with that provider. Do not copy skills, create symlinks, install packages or cha
 
 For routing-only requests, use [lightweight routing](../CONVENTIONS.md#lightweight-work-routing), not full
 execution orientation. For execution, read [AGENTS.md](../../AGENTS.md), the [profile](project-profile.md),
-[CONTEXT.md](../../CONTEXT.md), selected record/accepted parents and applicable local standards.
+the [glossary](../../GLOSSARY.md) for vocabulary, selected record/accepted parents and applicable local standards and component contracts.
 
 Apply these substitutions throughout provider instructions, including nested references:
 

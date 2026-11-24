@@ -1,6 +1,6 @@
 # Naming
 
-Use readable, responsibility-specific names from CONTEXT.md. A name identifies intent, returned data, a past
+Use readable, responsibility-specific names from the [glossary](../../../GLOSSARY.md). A name identifies intent, returned data, a past
 fact, or a capability; brevity must not obscure what it represents, and it need not explain the entire implementation.
 
 | Concept | Preferred examples | Rule |

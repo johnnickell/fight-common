@@ -38689,8 +38689,8 @@
         {
             "id": "fight-common.behavior.event-dispatch-complete-fanout",
             "normative": {
-                "path": "CONTEXT.md",
-                "section": "Messaging and CQRS"
+                "path": "docs/messaging.md",
+                "section": "Complete event fan-out"
             },
             "fixture": {
                 "path": "tests/Adapter/Messaging/Event/Sync/SimpleEventDispatcherTest.php"
@@ -38699,8 +38699,8 @@
         {
             "id": "fight-common.behavior.message-meta-isolation",
             "normative": {
-                "path": "CONTEXT.md",
-                "section": "Messaging and CQRS"
+                "path": "docs/messaging.md",
+                "section": "Message metadata isolation"
             },
             "fixture": {
                 "path": "tests/Domain/Messaging/Event/EventMessageTest.php"

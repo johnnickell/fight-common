@@ -126,6 +126,16 @@ Local development builds set native `BUILDX_NO_DEFAULT_ATTESTATIONS=1` for the b
 
 The installed CodeIgniter dependency’s native `vendor/codeigniter4/framework/writable/logs` tree is generated test output. Its final bytes are verified as artifacts before reuse; tracked files in output trees remain source inputs.
 
+The PHP image installs `local.ini` with explicit readable permissions. A restrictive checkout umask must not
+prevent the non-root gate user from loading its coverage mode and 512 MiB PHP memory limit.
+
+The legacy cleanup adapter looks for receipts in the canonical checkout's ignored `.runs/database-runs/`.
+For an interrupted legacy run, inspect the exact receipt from its owning checkout and resolve its named holds.
+Resume that receipt with `python3 bin/.disposable-database-lifecycle.py cleanup --receipt /absolute/path/to/receipt.json`.
+Use `--docker` only for the same qualified Docker endpoint/tool. Never replay creation against an existing
+receipt. Changed identity, failed inspection, shared consumers or creation interrupted before the container ID
+was captured can still hold cleanup. Preserve these receipts through review and delivery.
+
 A historical database-receipt cleanup hold is reported separately: it cannot suppress native Compose teardown for this checkout. The public down command still fails until that historical hold is resolved.
 
 Use `./bin/runtime docker ps` to list all selected-checkout containers and their published ports, including plain-run tool previews. `docker compose ps` lists Compose services only.
