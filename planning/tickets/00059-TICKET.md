@@ -38,7 +38,7 @@ Provide a complete inventory and disposition for each item. For exceptions, iden
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00221](../tasks/00221-TASK.md) | Inventory Python and move the quality runner to container PHP | in-progress |
+| [TASK-00221](../tasks/00221-TASK.md) | Inventory Python and move the quality runner to container PHP | done |
 | [TASK-00222](../tasks/00222-TASK.md) | Retire or justify Python in offline planning and archive commands | ready-for-agent |
 | [TASK-00223](../tasks/00223-TASK.md) | Retire or justify Python in host runtime and database tooling | ready-for-agent |
 | [TASK-00224](../tasks/00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent |
@@ -47,4 +47,4 @@ Provide a complete inventory and disposition for each item. For exceptions, iden
 
 ## Decisions and progress
 
-[WF-051](../wayfinder/tickets/WF-051-draw-the-tooling-runtime-boundary.md) records runtime boundaries. The approved EPIC amendment expands retirement beyond the quality runner. Requirements and TASK decomposition are approved. No implementation has started.
+[WF-051](../wayfinder/tickets/WF-051-draw-the-tooling-runtime-boundary.md) records runtime boundaries. The approved EPIC amendment expands retirement beyond the quality runner. Requirements and TASK decomposition are approved. TASK-00221 completed the inventory and quality runner migration; the remaining dispositions are tracked in TASK-00222 through TASK-00225.
