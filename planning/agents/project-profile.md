@@ -2,7 +2,7 @@
 
 ## Identity and architecture
 
-Library: `johnnickell/fight-common`. Read the root AGENTS.md and local engineering standards. Domain context lives in the applicable architecture/component documentation and accepted planning ADRs; inspect for a current CONTEXT.md before introducing or relocating that authority.
+Library: `johnnickell/fight-common`. Read the root AGENTS.md and local engineering standards. Use the [glossary](../../GLOSSARY.md) for Common's vocabulary and the applicable architecture/component documentation and accepted planning ADRs for rules, contracts and decisions.
 
 | Layer | Path | Boundary |
 |---|---|---|
@@ -23,9 +23,9 @@ transaction contracts; no application-only namespace or blanket external-effect 
 For aggregate placement, value classification/inheritance, handler/repository/transaction ownership and the finite
 package exceptions, follow [Architecture](../../docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces).
 [Descriptive naming](../../docs/engineering/standards/Naming.md#variables-properties-and-parameters) applies throughout
-project-owned code while protecting released named parameters. These approved rules precede TASK-00184 through
-TASK-00192; current MCP lifecycle services, combined stores, Tool locations and value types do not yet all conform.
-The current source map in CONTEXT and component docs is not an exemption or a claim of completed refactoring.
+project-owned code while protecting released named parameters. [TASK-00183](../tasks/00183-TASK.md#coordination) records the correction and its implementation sequence. Use the
+[MCP namespace guide](../../docs/mcp-namespaces.md) and the [domain-value inventory](../../docs/maintenance/evidence-domain-values.md)
+for current placement and classification; neither grants an exception to the approved rules.
 
 Value objects are immutable, validate construction, and use named public factories such as `fromString()`/`fromArray()`; invalid values use DomainException as appropriate to their contract. Specifications extend CompositeSpecification and implement `isSatisfiedBy(mixed $candidate): bool`, composing with `and()`/`or()`/`not()`. Typed collections use `ArrayList::of()` and `HashTable::of()` according to their actual signatures.
 
@@ -35,7 +35,7 @@ code, aliases, deprecations or migrations for prior development snapshots. Keep 
 and actually released API guarantees intact. John explicitly confirmed this rule in
 [TASK-00148's correction](../tasks/00148-TASK.md#current-correction--user-amendment-after-publication).
 
-CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::trigger()`. Follow the existing MessageId, Meta and timestamp contracts. Deprecated public APIs remain supported for at least one released minor before removal in the next major. Preserve intentional extensibility of public base classes; final-by-default does not make a reusable abstract/base contract final. Retain framework-required entity mutability/proxy compatibility.
+CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::trigger()`. Follow the [message identity, metadata and timestamp contracts](../../docs/messaging.md#message-metadata-isolation). Deprecated public APIs remain supported for at least one released minor before removal in the next major. Preserve intentional extensibility of public base classes; final-by-default does not make a reusable abstract/base contract final. Retain framework-required entity mutability/proxy compatibility.
 
 ## Commands and verification
 

@@ -8,7 +8,7 @@
 
 ## Question
 
-Which terms need short, canonical definitions in `GLOSSARY.md`, and which material in [CONTEXT.md](../../../CONTEXT.md) needs a different home?
+Which terms need short, canonical definitions in `GLOSSARY.md`, and which material in [CONTEXT.md](https://github.com/johnnickell/fight-common/blob/5c8b9bd03e13d64899b476323a4cf564beefa14a/CONTEXT.md) needs a different home?
 
 ## Must decide
 
@@ -21,7 +21,7 @@ Which terms need short, canonical definitions in `GLOSSARY.md`, and which materi
 - Matt Pocock’s current [domain-modeling skill](https://github.com/mattpocock/skills/blob/abeeaf95660ba9e8b7c753eb38f441ca707a8823/skills/engineering/domain-modeling/SKILL.md) and [glossary format](https://github.com/mattpocock/skills/blob/abeeaf95660ba9e8b7c753eb38f441ca707a8823/skills/engineering/domain-modeling/GLOSSARY-FORMAT.md) recommend one root glossary by default, one- or two-sentence project-specific definitions, and preferred wording where terms are confused. They exclude implementation details and decisions. Fight Access Control’s current root glossary uses short grouped definitions and selective links.
 - Recommend one root `GLOSSARY.md`, grouped by capability rather than by source layer. Start with distinctions Common owns: message envelope vs payload; File Storage vs Filesystem vs File Transfer; execution observation vs durable Task vs live subscription vs retained Notice; ordinary aggregate root vs the Event Sourcing reference base. Include only terms whose Common meaning needs explaining; avoid generic PHP, CQRS, and workflow definitions or a catalog of classes.
 - Keep architecture rules in the engineering standards, contracts and state transitions in component guides, tooling in local tooling or release docs, and decisions and delivery history in ADRs, planning records and Git. Move only material that is not already covered. Do not create a second long context document.
-- Removal needs a real cutover: update AGENTS.md, the engineering standards, project profile and workflow binding. The [compatibility manifest](../../../compatibility/manifest.json) still names `CONTEXT.md` → `Messaging and CQRS` as the normative source for complete event fan-out and message metadata isolation. Move those promises to the messaging component docs and update both manifest entries without changing their fixtures or semantics. Preserve historical task links by pinning the source revision where appropriate, not rewriting what those records said.
+- Removal needs a real cutover: update AGENTS.md, the engineering standards, project profile and workflow binding. The [compatibility manifest](../../../compatibility/manifest.json) still names `CONTEXT.md` → `Messaging and CQRS` as the normative source at the recorded baseline for complete event fan-out and message metadata isolation. Move those promises to the messaging component docs and update both manifest entries without changing their fixtures or semantics. Preserve historical task links by pinning the source revision where appropriate, not rewriting what those records said.
 
 ## Resolution
 

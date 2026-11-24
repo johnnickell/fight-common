@@ -55,6 +55,6 @@ storage, transaction and read interfaces.
 [Repository](https://github.com/johnnickell/fight-common) ·
 [Source](https://github.com/johnnickell/fight-common/tree/main/src) ·
 [Changelog](CHANGELOG.md) · [MIT License](LICENSE) ·
-[Local tooling](docs/engineering/LOCAL_TOOLING.md)
+[Glossary](GLOSSARY.md) · [Local tooling](docs/engineering/LOCAL_TOOLING.md)
 
 Copyright © 2026 John Nickell.

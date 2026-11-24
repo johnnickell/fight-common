@@ -1,6 +1,6 @@
 # Standards governance and project adoption
 
-Each project carries its own AGENTS.md and committed standards under `docs/engineering/standards/`, reached through relative links. Its `planning/agents/project-profile.md` contains actual commands, runtime/operator references, architecture exceptions and release/deployment procedures. Domain language remains in CONTEXT.md.
+Each project carries its own AGENTS.md and committed standards under `docs/engineering/standards/`, reached through relative links. Its `planning/agents/project-profile.md` contains actual commands, runtime/operator references, architecture exceptions and release/deployment procedures. Use the [glossary](../../../GLOSSARY.md) for Common's vocabulary; component guides and ADRs own contracts and decisions.
 
 The engineering authoring source maintains the canonical baseline. Projects receive explicit reviewed copies, not symlinks or automatic live synchronization. Their AGENTS.md and shared standards contain no home-directory paths or private skill dependencies. A contributor can work from the checkout without the author's private tooling. Shared skills read the project's adopted copy when executing there. The [shared workflow binding](../../../planning/agents/shared-workflows.md) resolves installed provider mechanics separately from target policy; optional automation does not make a provider checkout mandatory for ordinary contributions. Keep current local Review/QA definitions available in this checkout.
 

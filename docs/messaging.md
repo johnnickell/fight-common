@@ -164,6 +164,17 @@ $meta->count();             // 2
 
 Implements `Countable`, `IteratorAggregate`, `JsonSerializable`, `Stringable`.
 
+### Message metadata isolation
+
+Standalone `Meta` is mutable. A message takes its own metadata snapshot when constructed and returns a copy from
+`meta()`. Mutating either the supplied `Meta` or a returned copy cannot change the message. Metadata is application,
+transport, audit or observability context, not part of the domain payload.
+
+For an event message, `MessageId` identifies one occurrence and its payload for idempotency. `withMeta()` and
+`mergeMeta()` derive envelopes with isolated metadata without changing that identity, the payload, the envelope
+timestamp or message equality. The timestamp records envelope creation; domain-significant occurrence time belongs
+in the event payload.
+
 ---
 
 ## Commands
@@ -599,9 +610,17 @@ interface EventSubscriber
 
 ### Sync Adapters
 
-**`SimpleEventDispatcher`** — the base implementation. Handlers are stored in-memory by event
-type, sorted by priority (highest first). `dispatch()` calls handlers for the specific event
-type, then handlers registered for `AllEvents`.
+#### Complete event fan-out
+
+The synchronous `SimpleEventDispatcher` attempts every matching handler, even if an earlier handler throws.
+It first calls handlers for the specific event type, then handlers registered for `AllEvents`. Priority is
+highest first within each phase, not across both phases. After both phases finish, the dispatcher throws
+`EventDispatchFailed` if any handler failed, with the failures in invocation order and their original
+throwables. A handler throwing any `Throwable` does not stop either phase. A failure resolving or preparing
+handlers is an infrastructure failure, not proof of completed fan-out.
+
+`trigger()` wraps an event payload before dispatch; `dispatch()` accepts the existing event message. Subscribers
+receiving published stored events should be idempotent, but the general subscriber contract does not require it.
 
 ```php-inline
 $eventDispatcher = new SimpleEventDispatcher();

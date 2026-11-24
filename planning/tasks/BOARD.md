@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent | — |
+| Active Work | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -34,13 +34,12 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 3 | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | [TICKET-00058 — Replace project context with a concise glossary](../tickets/00058-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 3 | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | [TICKET-00058 — Replace project context with a concise glossary](../tickets/00058-TICKET.md) | ready-for-agent | — | — |
 | 4 | [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
 | 9 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
 | 10 | [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |

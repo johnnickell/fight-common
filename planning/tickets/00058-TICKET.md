@@ -35,7 +35,7 @@ Show that the glossary is concise, `CONTEXT.md` is gone, live references resolve
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00220](../tasks/00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | ready-for-agent |
+| [TASK-00220](../tasks/00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress
