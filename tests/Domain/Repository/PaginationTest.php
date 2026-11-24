@@ -15,31 +15,31 @@ use TypeError;
 #[CoversClass(Pagination::class)]
 class PaginationTest extends UnitTestCase
 {
-    public function test_that_strict_construction_uses_defaults_when_bounds_are_omitted(): void
+    public function test_that_both_paths_use_defaults_when_bounds_are_omitted(): void
     {
-        $pagination = Pagination::strict();
-
-        self::assertSame(1, $pagination->page());
-        self::assertSame(100, $pagination->perPage());
-        self::assertSame(0, $pagination->offset());
-        self::assertSame(100, $pagination->limit());
-        self::assertSame([], $pagination->orderings());
+        foreach ([new Pagination(), Pagination::strict()] as $pagination) {
+            self::assertSame(1, $pagination->page());
+            self::assertSame(100, $pagination->perPage());
+            self::assertSame(0, $pagination->offset());
+            self::assertSame(100, $pagination->limit());
+            self::assertSame([], $pagination->orderings());
+        }
     }
 
     #[DataProvider('nullBounds')]
-    public function test_that_strict_construction_defaults_only_null_bounds(
+    public function test_that_both_paths_default_only_null_bounds(
         ?int $page,
         ?int $perPage,
         int $expectedPage,
         int $expectedPerPage,
         int $expectedOffset
     ): void {
-        $pagination = Pagination::strict($page, $perPage);
-
-        self::assertSame($expectedPage, $pagination->page());
-        self::assertSame($expectedPerPage, $pagination->perPage());
-        self::assertSame($expectedOffset, $pagination->offset());
-        self::assertSame($expectedPerPage, $pagination->limit());
+        foreach ([new Pagination($page, $perPage), Pagination::strict($page, $perPage)] as $pagination) {
+            self::assertSame($expectedPage, $pagination->page());
+            self::assertSame($expectedPerPage, $pagination->perPage());
+            self::assertSame($expectedOffset, $pagination->offset());
+            self::assertSame($expectedPerPage, $pagination->limit());
+        }
     }
 
     public static function nullBounds(): iterable
@@ -105,16 +105,16 @@ class PaginationTest extends UnitTestCase
     }
 
     #[DataProvider('integerBoundaries')]
-    public function test_that_strict_construction_accepts_representable_integer_boundaries(
+    public function test_that_both_paths_accept_representable_integer_boundaries(
         int $page,
         int $perPage,
         int $offset
     ): void {
-        $pagination = Pagination::strict($page, $perPage);
-
-        self::assertSame($offset, $pagination->offset());
-        self::assertSame($perPage, $pagination->limit());
-        self::assertSame($page, $pagination->page());
+        foreach ([new Pagination($page, $perPage), Pagination::strict($page, $perPage)] as $pagination) {
+            self::assertSame($offset, $pagination->offset());
+            self::assertSame($perPage, $pagination->limit());
+            self::assertSame($page, $pagination->page());
+        }
     }
 
     public static function integerBoundaries(): iterable
@@ -159,28 +159,32 @@ class PaginationTest extends UnitTestCase
         yield 'non-array orderings' => [1, 10, 'ASC'];
     }
 
-    public function test_that_legacy_negative_page_still_produces_a_negative_offset(): void
+    #[DataProvider('invalidBounds')]
+    #[DataProvider('overflowingBounds')]
+    public function test_that_constructor_rejects_invalid_bounds(int $page, int $perPage): void
     {
-        $pagination = new Pagination(-1, 10);
+        $this->expectException(DomainException::class);
 
-        self::assertSame(-1, $pagination->page());
-        self::assertSame(-20, $pagination->offset());
+        new Pagination(page: $page, perPage: $perPage);
     }
 
-    public function test_that_legacy_negative_size_still_produces_a_negative_limit(): void
+    #[DataProvider('invalidDirections')]
+    public function test_that_constructor_rejects_unsupported_direction_values(mixed $direction): void
     {
-        $pagination = new Pagination(2, -10);
+        $this->expectException(DomainException::class);
 
-        self::assertSame(-10, $pagination->perPage());
-        self::assertSame(-10, $pagination->offset());
-        self::assertSame(-10, $pagination->limit());
+        new Pagination(orderings: ['valid' => 'ASC', 'invalid' => $direction]);
     }
 
-    public function test_that_legacy_offset_overflow_still_raises_a_type_error(): void
-    {
+    #[DataProvider('wrongParameterTypes')]
+    public function test_that_constructor_retains_native_strict_caller_type_errors(
+        mixed $page,
+        mixed $perPage,
+        mixed $orderings
+    ): void {
         $this->expectException(TypeError::class);
 
-        new Pagination(3, PHP_INT_MAX);
+        new Pagination($page, $perPage, $orderings);
     }
 
     // -------------------------------------------------------------------------
@@ -203,9 +207,9 @@ class PaginationTest extends UnitTestCase
 
     public function test_that_orderings_returns_normalized_direction_values(): void
     {
-        $pagination = new Pagination(1, 10, ['name' => 'asc', 'date' => 'DESC', 'id' => 'invalid']);
+        $pagination = new Pagination(page: 1, perPage: 10, orderings: ['name' => 'aSc', 'date' => 'dEsC']);
 
-        self::assertSame(['name' => 'ASC', 'date' => 'DESC', 'id' => 'ASC'], $pagination->orderings());
+        self::assertSame(['name' => 'ASC', 'date' => 'DESC'], $pagination->orderings());
     }
 
     public function test_that_orderings_returns_empty_array_when_none_provided(): void
@@ -227,37 +231,5 @@ class PaginationTest extends UnitTestCase
         $pagination = new Pagination(1, 30);
 
         self::assertSame(30, $pagination->limit());
-    }
-
-    // -------------------------------------------------------------------------
-    // Defaults
-    // -------------------------------------------------------------------------
-
-    public function test_that_null_page_falls_back_to_default(): void
-    {
-        $pagination = new Pagination(null, 10);
-
-        self::assertSame(Pagination::DEFAULT_PAGE, $pagination->page());
-    }
-
-    public function test_that_zero_page_falls_back_to_default(): void
-    {
-        $pagination = new Pagination(0, 10);
-
-        self::assertSame(Pagination::DEFAULT_PAGE, $pagination->page());
-    }
-
-    public function test_that_null_per_page_falls_back_to_default(): void
-    {
-        $pagination = new Pagination(1, null);
-
-        self::assertSame(Pagination::DEFAULT_PER_PAGE, $pagination->perPage());
-    }
-
-    public function test_that_zero_per_page_falls_back_to_default(): void
-    {
-        $pagination = new Pagination(1, 0);
-
-        self::assertSame(Pagination::DEFAULT_PER_PAGE, $pagination->perPage());
     }
 }

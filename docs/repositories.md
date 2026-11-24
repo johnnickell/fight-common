@@ -71,18 +71,19 @@ Constants: `Pagination::ASC`, `Pagination::DESC`, `Pagination::DEFAULT_PAGE`, `P
 
 **Contract `fight-common.behavior.pagination-strict-construction`.**
 `Pagination::strict(?int $page = null, ?int $perPage = null, array $orderings = []): self` returns the existing
-immutable `Pagination`, accepted by existing repository signatures without adapter changes. Omitted or explicit
+immutable `Pagination`, accepted by existing repository signatures without adapter changes. The public constructor
+accepts the same arguments and applies the same rules. Omitted or explicit
 null bounds select page 1 and size 100 independently. Resolved bounds must be positive; zero and negative values
 raise `Fight\Common\Domain\Exception\DomainException` rather than selecting defaults.
 
-Offset is exactly `(page - 1) * perPage`; limit is `perPage`. The factory checks integer representability before
+Offset is exactly `(page - 1) * perPage`; limit is `perPage`. Both paths check integer representability before
 multiplication and raises the same DomainException family on overflow, not an accidental float-assignment TypeError.
 There is no arbitrary page-size cap: page one with `PHP_INT_MAX` size has zero offset, and page two with that size
 has offset `PHP_INT_MAX`. A database or consumer may impose smaller limits.
 
 Ordering values must be strings equal to ASC or DESC case-insensitively. They normalize to uppercase, retain their
 field associations and sequence, and default to an empty array. Unknown, empty, padded or non-string direction values
-raise DomainException; the factory neither trims nor silently substitutes ASC. Exception prose is not stable API.
+raise DomainException; neither path trims nor silently substitutes ASC. Exception prose is not stable API.
 
 PHP owns the `?int` and `array` parameter boundaries: wrong argument types from strict PHP callers raise native
 TypeError, not DomainException. Weak callers retain PHP's native scalar coercion; this API is not an HTTP parser.
@@ -94,27 +95,16 @@ can execute them. Neither input nor returned ordering-array edits change a const
 
 ### Legacy pagination and migration
 
-**Contract `fight-common.behavior.pagination-legacy-construction`.** The existing public constructor remains
-functional: omitted/null/zero bounds select the defaults, ordinary positive bounds compute the same offset/limit,
-and directions normalize case-insensitively with unknown strings becoming ASC. Existing consumers do not have to
-adopt the factory in the minor release. Separate legacy tests retain these expectations.
+In v1.5.1, the constructor treated zero bounds as defaults, accepted negative bounds when the offset fit, and
+silently mapped unknown strings and coercible non-string directions to ASC. An overflowing offset could raise
+TypeError. In v2.0 these invalid values raise DomainException through either construction path. The constructor
+itself remains public; valid calls and named arguments need no update.
 
-Legacy construction is deprecated in PHPDoc/documentation only, with **no runtime deprecation warning**. It does
-not enforce positive bounds or check overflow: negative bounds can produce negative offsets/limits, and an
-unrepresentable offset can fail with TypeError. These reproduced limitations are not repaired by this addition and
-are not new perpetual compatibility promises.
-
-For new or migrated call sites, replace `new Pagination(...)` with `Pagination::strict(...)`, retaining the same
-parameter names. Normalize intentional zero-as-default inputs to null explicitly and resolve unsupported directions
-in consumer input policy before opting in. Handle DomainException for invalid resolved values, not as permission to
-run an unbounded fallback query. Existing repository accessors, ResultSet metadata and adapter signatures are unchanged.
-Incompatible enforcement/removal of legacy construction requires a separately authorized major transition after at
-least one released minor of functional deprecation support; no exact release or automatic migration is assigned.
-
-The factory and its validation failures are additive minor API/behavior under ADRs 0009–0011. No database schema,
-persisted representation, framework support range, dependency or legacy constructor behavior changes. Direct value
-fixtures prove strict and legacy contracts; a real strict Pagination with controlled Doctrine collaborators proves
-adapter translation and result metadata, not real database execution or installed-starter qualification.
+For example, replace `new Pagination(page: 0, perPage: 0, orderings: ['title' => 'unknown'])` with
+`new Pagination(page: null, perPage: null, orderings: ['title' => 'ASC'])` if defaults and ascending order were
+intended. Reject invalid inputs otherwise. Check large bounds against the offset limit before querying, and never
+interpret a validation error as permission for an unbounded fallback query. `Pagination::strict(...)` lets callers
+exercise these same rules before upgrading from v1.5.1.
 
 ---
 
@@ -171,7 +161,7 @@ json_encode($result);                // same structure
 **Contract `fight-common.behavior.result-set-strict-construction`.**
 `ResultSet::strict(int $page, int $perPage, int $totalRecords, ArrayList $records): self` returns the existing
 `ResultSet<T>` with method-level generic inference from `ArrayList<T>`. All four arguments are required, with
-names identical to the public constructor. Construction requires `page >= 1`, `perPage >= 1`,
+names identical to the public constructor, which applies the same rules. Construction requires `page >= 1`, `perPage >= 1`,
 `totalRecords >= 0`, and a record count no greater than **either** `perPage` or `totalRecords`.
 Violations raise `Fight\Common\Domain\Exception\DomainException`; diagnostic prose is not stable API.
 PHP owns native int/ArrayList boundaries: wrong types from strict callers raise TypeError, while weak callers
@@ -201,7 +191,7 @@ integer `page`, `per_page`, `total_pages`, `total_records` and an array of unpro
 Strict validation is **construction-only**. Caller-held references and `records()` can mutate the shared list
 later, even beyond initial size/total bounds; record objects likewise remain shared. Metadata does not track
 those changes. There is no immutable snapshot, defensive/deep copy, continuous validation or provenance flag
-on ResultSet instances. Existing ArrayList element validation is unchanged; this factory does not audit elements.
+on ResultSet instances. Existing ArrayList element validation is unchanged; neither path audits list elements.
 
 **Contract `fight-common.behavior.result-set-jsend-presentation`.**
 Arrayable is **not** a construction requirement. A strict ResultSet of scalar records is legal. The existing
@@ -214,19 +204,16 @@ It certifies neither atomic count/row reads, current totals nor complete pages; 
 
 ### Legacy result construction and compatibility
 
-**Contract `fight-common.behavior.result-set-legacy-construction`.** The public constructor remains functional
-and is **not newly deprecated**. Its signatures, parameter names, permissive bounds/count behavior, shared list
-and output structure are unchanged; zero size or zero total still produces one total page. No runtime notice or
-automatic repository/adapter adoption is introduced, including in DoctrineAuditRepository.
+In v1.5.1, the constructor allowed nonpositive page or size, negative totals and counts above the page size or
+total. In v2.0 these inputs raise DomainException through either path. The constructor remains public with the
+same parameters and output shape, but large valid totals now use exact page counts rather than float rounding.
+For example, a size and total both equal to `PHP_INT_MAX` give one page, not two on 64-bit PHP.
 
-The legacy path does not validate local invariants and retains its floating-point page-count limitations at
-large native values (for example, total and size both `PHP_INT_MAX` can report 2 instead of 1 on 64-bit PHP).
-These limitations are not repaired here or new perpetual compatibility promises. New or explicitly migrated
-call sites may choose `ResultSet::strict(...)` after resolving their input/count policy. The additive factory,
-DomainException failures and exact arithmetic are next-minor API/behavior under ADRs 0009–0011, not authority
-to enforce validation on existing constructor users. No platform/dependency/schema, Pagination or release-policy
-change follows. Direct ResultSet and JSend fixtures prove package behavior, not database isolation or downstream
-consumer adoption; no exact release is assigned.
+For an intentionally empty result that used `new ResultSet(page: 0, perPage: 0, totalRecords: 0, records: $empty)`,
+use `new ResultSet(page: 1, perPage: 25, totalRecords: 0, records: $empty)` if 25 is the actual requested size.
+For nonempty results, fetch at most the requested size and report the actual matching total. If the count exceeds
+the reported total, reconcile the rows and count; do not inflate the total to silence validation. Callers can
+exercise these same rules before upgrading from v1.5.1 by using `ResultSet::strict(...)`.
 
 ---
 
