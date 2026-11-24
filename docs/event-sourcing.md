@@ -252,8 +252,6 @@ the compiler pass neither instantiates nor reflects over them. Symfony resolves
 the provider references and calls `EventMapper::registerProvider()`
 when the mapper is resolved,
 so the portable mapper validation remains authoritative.
-The former `Fight\Common\Adapter\DependencyInjection\EventMappingProviderCompilerPass`
-remains a deprecated 1.x compatibility identity.
 Duplicate aliases, duplicate event classes, invalid durable names, and invalid
 upcaster chains therefore raise `EventMappingException` through the same path as
 manual registration. The mapper needs to be public only if application code

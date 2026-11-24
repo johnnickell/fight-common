@@ -180,9 +180,10 @@ these native Symfony/Laravel guarantees do not imply every safe adapter can alwa
 The listener preserves canonical negotiation: XHR (`X-Requested-With: XMLHttpRequest`) wins;
 otherwise `application/json` must be accepted ahead of `text/html` by Symfony quality ordering.
 No Accept, HTML preference or other content type delegates. It returns native `JSendResponse`
-(`JsonResponse`) through real `kernel.exception` dispatch and does not alter legacy controller,
-listener, validation subscriber or service IDs. Do **not** register a framework exception mapping
-that rewrites application failures or a competing legacy listener for the safe path. The controller
+(`JsonResponse`) through real `kernel.exception` dispatch. This does not change the independent
+validation subscriber. Remove references to retired exception services rather than aliasing their IDs.
+Do **not** register a framework exception mapping that rewrites application failures or another
+listener that competes with the safe path. The controller
 uses the same `SafeHttpErrorPolicy` and optional `SafeHttpProjector` as PSR-15; wire a trusted
 projector explicitly to publish safe field data or supply an application 401 challenge. A missing
 challenge or Allow returns generic 500, never a protocol-incomplete 401/405. For native failures,

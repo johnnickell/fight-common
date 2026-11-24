@@ -297,7 +297,7 @@ serializers on reads. Legacy associative text decoding/encoding collapses `{}` t
 and `1.0` to `1`. These limitations explain why snapshot reconstruction has its own factory; they are not repaired or
 silently replaced. Existing StrictJson/MCP semantics remain independent and unchanged.
 
-Both canonical and deprecated Doctrine `JsonObjectDataType` identities write a snapshot via its captured string.
+The canonical Doctrine `JsonObjectDataType` writes a snapshot via its captured string.
 Hydration from database text still calls legacy `fromString()`: it does **not** restore snapshot mode or faithfully
 round-trip all snapshot shapes/numeric representations. Applications needing snapshot restoration must explicitly
 use the snapshot-aware text boundary in their own composition; no automatic Doctrine opt-in, persisted-data rewrite
