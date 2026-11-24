@@ -141,6 +141,8 @@ class ResultSetTest extends UnitTestCase
             'total_records' => $totalRecords,
             'records'       => $records->toArray()
         ];
+        $constructed = new ResultSet(page: $page, perPage: $perPage, totalRecords: $totalRecords, records: $records);
+        self::assertSame($expected, $constructed->toArray());
         self::assertSame($expected, $result->toArray());
         self::assertSame($expected, $result->jsonSerialize());
         self::assertSame($expected, json_decode(json_encode($result, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR));
@@ -216,20 +218,31 @@ class ResultSetTest extends UnitTestCase
         }
     }
 
-    public function test_that_legacy_constructor_remains_permissive_for_inconsistent_metadata(): void
-    {
+    #[DataProvider('invalidStrictPages')]
+    public function test_that_constructor_rejects_invalid_local_bounds_and_counts(
+        int $page,
+        int $perPage,
+        int $totalRecords,
+        array $items
+    ): void {
         $records = ArrayList::of('string');
-        $records->add('a');
-        $records->add('b');
-        foreach ([[0, 0, 0], [-1, -1, -1], [1, 1, 1]] as [$page, $perPage, $totalRecords]) {
-            $result = new ResultSet(page: $page, perPage: $perPage, totalRecords: $totalRecords, records: $records);
-            self::assertSame($page, $result->page());
-            self::assertSame($perPage, $result->perPage());
-            self::assertSame($totalRecords, $result->totalRecords());
-            self::assertSame(1, $result->totalPages());
-            self::assertSame(2, $result->count());
-            self::assertSame($records, $result->records());
+        foreach ($items as $item) {
+            $records->add($item);
         }
+
+        $this->expectException(DomainException::class);
+        new ResultSet(page: $page, perPage: $perPage, totalRecords: $totalRecords, records: $records);
+    }
+
+    #[DataProvider('invalidNativeArguments')]
+    public function test_that_constructor_retains_native_type_errors(
+        mixed $page,
+        mixed $perPage,
+        mixed $totalRecords,
+        mixed $records
+    ): void {
+        $this->expectException(TypeError::class);
+        new ResultSet($page, $perPage, $totalRecords, $records);
     }
 
     // -------------------------------------------------------------------------
@@ -293,13 +306,6 @@ class ResultSetTest extends UnitTestCase
     public function test_that_total_pages_is_one_when_total_records_is_zero(): void
     {
         $resultSet = new ResultSet(1, 25, 0, ArrayList::of('string'));
-
-        self::assertSame(1, $resultSet->totalPages());
-    }
-
-    public function test_that_total_pages_is_one_when_per_page_is_zero(): void
-    {
-        $resultSet = new ResultSet(1, 0, 100, ArrayList::of('string'));
 
         self::assertSame(1, $resultSet->totalPages());
     }
