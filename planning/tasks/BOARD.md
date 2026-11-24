@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | ready-for-agent | — |
+| Ready Frontier | [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -40,7 +40,6 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 5 | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
 | 6 | [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
 | 7 | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
 | 8 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
@@ -53,7 +52,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | [TASK-00226](00226-TASK.md), [TASK-00227](00227-TASK.md) | — |
-| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | [TASK-00222](00222-TASK.md), [TASK-00223](00223-TASK.md), [TASK-00224](00224-TASK.md) | — |
+| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | [TASK-00223](00223-TASK.md), [TASK-00224](00224-TASK.md) | — |
 
 ## Needs Info
 
@@ -99,6 +98,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 4 | [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | done | — | [PR #327](https://github.com/johnnickell/fight-common/pull/327) |
 | 5 | [TASK-00108](00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | done | — | [PR #167](https://github.com/johnnickell/fight-common/pull/167) |
 | 5 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | — (standalone chore) | done | — | [PR #265](https://github.com/johnnickell/fight-common/pull/265) |
+| 5 | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | done | — | [PR #328](https://github.com/johnnickell/fight-common/pull/328) |
 | 6 | [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | done | — | [PR #168](https://github.com/johnnickell/fight-common/pull/168) |
 | 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | done | — | [PR #267](https://github.com/johnnickell/fight-common/pull/267) |
 | 7 | [TASK-00110](00110-TASK.md) | Qualify progressive MCP in every supported framework starter | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | wontfix | — | [PR #169](https://github.com/johnnickell/fight-common/pull/169) |

@@ -1,13 +1,19 @@
 # Python tooling inventory
 
-The quality runner moved from Bash to PHP; this migration does not remove any Python. The rows below hand off the remaining work. The follow-up owns a port, removal, or a concrete retention decision; the listed alternatives are evaluation targets, not decisions to change prerequisites.
+The quality runner moved from Bash to PHP without removing Python. This inventory records decisions for the remaining Python tooling and identifies alternatives to evaluate for open items. Those alternatives do not authorize new prerequisites.
 
 ## Offline planning — TASK-00222
 
 | Tracked file | Entry point or caller | Runtime and disposition |
 | --- | --- | --- |
-| `scripts/planning_portfolio.py` | `bin/planning-check` (read-only or `--write`); `bin/build` calls the read-only path before setup and again through `bin/.build-full`. Planning and role handoffs also call it directly. | Host Python 3 standard library, Git and local planning records. Evaluate a host replacement only if it adds no prerequisite and preserves clean-checkout, offline reads and generated views. Keep it out of Composer and Docker bootstrap. |
-| `scripts/archive_planning.py` | `bin/archive-planning` (dry run, explicitly requested apply); apply invokes `bin/planning-check --write` after moves and link rewrites. | Host Python 3 standard library, Git and local filesystem. Evaluate with the planner rather than introducing a second parser or a prepared image. |
+| `scripts/planning_portfolio.py` | `bin/planning-check` (read-only or `--write`); `bin/build` calls the read-only path before setup and again through `bin/.build-full`. Planning and role handoffs also call it directly. | **Retain.** The Python 3 standard library handles record validation, dependency cycles, parent rollup and deterministic Markdown rendering. Git checks the selected checkout's ignore rules. No image, Composer dependency or network access is needed. |
+| `scripts/archive_planning.py` | `bin/archive-planning` (dry run or explicit `--apply`); apply invokes `bin/planning-check --write` after moves and link rewrites. | **Retain.** The Python 3 standard library handles terminal-state checks, filesystem moves and relative Markdown links. Apply uses Git's NUL-separated file list to include tracked and unignored Markdown, preserves link anchors and delegates view refresh to the planner. Porting only archive would not remove Python from its apply path. |
+
+[Local tooling](LOCAL_TOOLING.md) already requires host Python 3 and Git. Host PHP CLI, Node, Ruby or a standalone Perl runtime could implement the logic, but none is a declared host prerequisite. Container PHP (even without Composer autoload) needs an image before either command can run; the current build validates planning before preparing images. A precomputed view cannot validate uncommitted records, and Git can list files but cannot apply planning rules or rewrite Markdown links.
+
+POSIX shell and standard text tools would avoid another interpreter, but this would not be a thin wrapper. The planner would need a replacement for the dependency graph and cycle walk, multi-block view replacement, and validation before writes. Archive would still need safe NUL-delimited path handling (not supported by POSIX `read`), normalized relative paths and link rebasing in both moved and unmoved documents. Replacing those standard-library operations with shell code would add parsing and portability work while the supported host already has Python. Keep both entry points unchanged.
+
+[The TASK record](../../planning/tasks/00222-TASK.md#completion-notes) summarizes the offline command comparisons, including refused writes, byte-equivalent generated views and archive apply on synthetic records only.
 
 ## Host build, runtime and databases — TASK-00223
 
