@@ -81,7 +81,7 @@ identities above are ADR 0019's 32-name worksheet; they are not 32 newly depreca
 
 | Deprecated contract | Replacement / migration | Authority |
 | --- | --- | --- |
-| Public `Domain\Repository\Pagination::__construct()` | Explicit `Pagination::strict()` after validating caller bounds/order fields; legacy permissive behavior remains functional without notices | [Source](https://github.com/johnnickell/fight-common/blob/develop/src/Domain/Repository/Pagination.php), [migration](../components/repositories/index.md#legacy-pagination-and-migration), [v1.4.0 notes](https://github.com/johnnickell/fight-common/blob/develop/CHANGELOG.md) |
+| Permissive behavior of public `Domain\Repository\Pagination::__construct()` | The constructor and `Pagination::strict()` both validate in v2.0; the constructor is not removed | [v1.5.1 source](https://github.com/johnnickell/fight-common/blob/v1.5.1/src/Domain/Repository/Pagination.php), [migration](../components/repositories/index.md#legacy-pagination-and-migration), [v1.4.0 notes](https://github.com/johnnickell/fight-common/blob/v1.4.0/CHANGELOG.md) |
 | Unsafe legacy HTTP arbitrary-exception-message behavior/defaults | Explicit safe PSR-15 middleware, Symfony listener/controller or Laravel exception handler with consumer projection, challenge and redaction-aware diagnostics | [Safe HTTP migration guide](../safe-http-errors.md), [legacy PSR-15 annotation](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php), [v1.4.0 notes](https://github.com/johnnickell/fight-common/blob/develop/CHANGELOG.md) |
 
 The HTTP behavior group includes old `JSendErrorMiddleware`, Symfony exception listener/controller paths and
@@ -91,8 +91,9 @@ validation status differences and native HTML delegation; do not silently replac
 
 ## Migration and removal decisions still owned separately
 
-- **ResultSet legacy construction is not deprecated.** `ResultSet::strict()` is opt-in validation, not removal
-  metadata. Domain serializer **interfaces** are likewise not deprecated by the concrete serializer migration.
+- **The ResultSet constructor was not deprecated in v1.5.1 and is not removed in v2.0.** Its validation changes
+  under TASK-00227; see [ResultSet migration](../components/repositories/index.md#legacy-result-construction-and-compatibility).
+  Domain serializer **interfaces** are not deprecated by the concrete serializer migration.
 - Namespace aspirations alone do not deprecate `Application\Service\Container`,
   `Application\HttpFoundation\HttpMethod` or `HttpStatus`. Any additional desired removal, platform floor,
   coding-standard tightening or replacement policy needs John's decision before release, not an inferred list.

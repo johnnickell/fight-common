@@ -94,9 +94,9 @@ failure. Do not infer database validation or cross-system atomicity from the por
 
 ## Validated result pages
 
-Repository implementations can explicitly opt into
-`ResultSet::strict(page: 2, perPage: 20, totalRecords: 150, records: $records)` without changing the existing
-return type. It checks positive page/size, nonnegative total and count no greater than size or total, rejecting
+Repository implementations can use the public constructor or
+`ResultSet::strict(page: 2, perPage: 20, totalRecords: 150, records: $records)` with the same return type and
+validation. Both check positive page/size, nonnegative total and count no greater than size or total, rejecting
 invalid tuples with DomainException. Page counts use exact integer arithmetic through native limits without
 computing offsets. Zero totals retain one page; empty, partial and out-of-range pages (including nonempty ones)
 remain valid under the local count bounds, without last-page remainder constraints.
@@ -106,8 +106,7 @@ Scalar, class/interface, object and mixed records remain legal; only JSend prese
 projection. The same mutable list and record objects are retained: caller/`records()` mutation stays visible and
 can invalidate initial bounds. Validation is not a snapshot, permanent element/cardinality guarantee or proof
 that count and rows were read atomically. Consumers own request/result agreement, safe projection, permissions,
-provider limits, query policy and consistency. The permissive public constructor and its float-based page-count
-limitations remain unchanged without new deprecation, runtime notices or automatic adapter adoption. See the
+provider limits, query policy and consistency. See the
 [strict result contract](#strict-result-construction), [record boundaries](#records-mutation-and-presentation) and
 [legacy compatibility](#legacy-result-construction-and-compatibility) below for the normative guarantees.
 

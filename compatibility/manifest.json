@@ -34697,7 +34697,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-construction",
-                        "rationale": "Pagination retains the functional legacy constructor with documentation-only deprecation and adds opt-in strict construction of the same immutable type under TASK-00128; no automatic migration, runtime warning or new extension promise.",
+                        "rationale": "Pagination remains publicly constructible with the same arguments; both the constructor and strict() now enforce the same bounds, offset and direction rules under TASK-00227.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Repository\\Pagination",
                             "source_locator": "working-tree:src/Domain/Repository/Pagination.php#Fight\\Common\\Domain\\Repository\\Pagination",
@@ -34763,7 +34763,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-construction",
-                        "rationale": "ResultSet retains its released permissive public constructor and parameter names without new deprecation or runtime notices; additive strict() provides opt-in validated construction, not consumer extension. TASK-00193, docs/repositories.md#legacy-result-construction-and-compatibility and tests/Domain/Repository/ResultSetTest.php bind both paths.",
+                        "rationale": "ResultSet retains its public constructor and parameter names; both constructor and strict() enforce the same local invariants and exact page counts under TASK-00227. docs/repositories.md#strict-result-construction and tests/Domain/Repository/ResultSetTest.php bind both paths.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Repository\\ResultSet",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Repository/ResultSet.php#Fight\\Common\\Domain\\Repository\\ResultSet",
@@ -38502,11 +38502,6 @@
             "fixture": {"path": "tests/Domain/Repository/PaginationTest.php"}
         },
         {
-            "id": "fight-common.behavior.pagination-legacy-construction",
-            "normative": {"path": "docs/repositories.md", "section": "Legacy pagination and migration"},
-            "fixture": {"path": "tests/Domain/Repository/PaginationTest.php"}
-        },
-        {
             "id": "fight-common.behavior.result-set-strict-construction",
             "normative": {"path": "docs/repositories.md", "section": "Strict result construction"},
             "fixture": {"path": "tests/Domain/Repository/ResultSetTest.php"}
@@ -38520,11 +38515,6 @@
             "id": "fight-common.behavior.result-set-jsend-presentation",
             "normative": {"path": "docs/repositories.md", "section": "Records, mutation and presentation"},
             "fixture": {"path": "tests/Application/Http/JSend/JSendEnvelopeTest.php"}
-        },
-        {
-            "id": "fight-common.behavior.result-set-legacy-construction",
-            "normative": {"path": "docs/repositories.md", "section": "Legacy result construction and compatibility"},
-            "fixture": {"path": "tests/Domain/Repository/ResultSetTest.php"}
         },
         {
             "id": "fight-common.behavior.validation-coordinator-reuse",
