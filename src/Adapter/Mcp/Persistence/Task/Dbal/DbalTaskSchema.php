@@ -17,14 +17,6 @@ use RuntimeException;
 final readonly class DbalTaskSchema
 {
     /**
-     * Default table names only, not the configured storage selection
-     *
-     * @deprecated Planned v1.5.0; targeted for v2.0.0 removal after the released-minor window
-     * Use DbalTaskTables accessors for selected names instead
-     */
-    public const array TABLES = ['fight_task_state', 'fight_tasks'];
-
-    /**
      * Constructs DbalTaskSchema
      */
     public function __construct(private DbalTaskTables $tables = new DbalTaskTables())

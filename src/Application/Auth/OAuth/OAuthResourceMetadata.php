@@ -18,26 +18,10 @@ final readonly class OAuthResourceMetadata
      * @phpstan-param non-empty-list<string> $authorizationServers
      */
     private function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use resource() instead
-         * Retained until a future major after at least one released minor
-         */
-        public string $resource,
-        /**
-         * @deprecated Planned v1.5.0; use metadataUrl() instead
-         * Retained until a future major after at least one released minor
-         */
-        public string $metadataUrl,
-        /**
-         * @deprecated Planned v1.5.0; use authorizationServers() instead
-         * Retained until a future major after at least one released minor
-         */
-        public array $authorizationServers,
-        /**
-         * @deprecated Planned v1.5.0; use scopesSupported() instead
-         * Retained until a future major after at least one released minor
-         */
-        public OAuthScopeSet $scopesSupported
+        private string $resource,
+        private string $metadataUrl,
+        private array $authorizationServers,
+        private OAuthScopeSet $scopesSupported
     ) {
     }
 

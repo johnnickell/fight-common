@@ -9,7 +9,7 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\Mcp\LifecycleTables;

@@ -17,21 +17,9 @@ final readonly class SafeHttpMetadata
      * Constructs SafeHttpMetadata
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use challenge() instead
-         * Retained until a future major after at least one released minor
-         */
-        public ?string $challenge = null,
-        /**
-         * @deprecated Planned v1.5.0; use allow() instead
-         * Retained until a future major after at least one released minor
-         */
-        public ?string $allow = null,
-        /**
-         * @deprecated Planned v1.5.0; use retryAfterSeconds() instead
-         * Retained until a future major after at least one released minor
-         */
-        public ?int $retryAfterSeconds = null
+        private ?string $challenge = null,
+        private ?string $allow = null,
+        private ?int $retryAfterSeconds = null
     ) {
         if ($challenge !== null && !$this->validChallenge($challenge)) {
             throw new InvalidArgumentException('Invalid authentication challenge.');

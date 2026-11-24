@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
@@ -25,7 +24,7 @@ use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
+#[CoversClass(McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 final class McpSkillCompositionTest extends UnitTestCase
 {

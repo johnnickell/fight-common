@@ -20,31 +20,11 @@ final readonly class OAuthValidatedClaims
      * Constructs OAuthValidatedClaims
      */
     private function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use claims() instead
-         * Retained until a future major after at least one released minor
-         */
-        public StrictJson $claims,
-        /**
-         * @deprecated Planned v1.5.0; use algorithm() instead
-         * Retained until a future major after at least one released minor
-         */
-        public string $algorithm,
-        /**
-         * @deprecated Planned v1.5.0; use keyId() instead
-         * Retained until a future major after at least one released minor
-         */
-        public string $keyId,
-        /**
-         * @deprecated Planned v1.5.0; use tokenType() instead
-         * Retained until a future major after at least one released minor
-         */
-        public string $tokenType,
-        /**
-         * @deprecated Planned v1.5.0; use grantedScopes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public OAuthScopeSet $grantedScopes
+        private StrictJson $claims,
+        private string $algorithm,
+        private string $keyId,
+        private string $tokenType,
+        private OAuthScopeSet $grantedScopes
     ) {
     }
 

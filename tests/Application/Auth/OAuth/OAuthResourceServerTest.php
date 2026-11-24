@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Auth\OAuth;
 
-use Error;
 use Fight\Common\Application\Auth\OAuth\OAuthClaimsHandoff;
 use Fight\Common\Application\Auth\OAuth\OAuthDiagnostics;
 use Fight\Common\Application\Auth\OAuth\OAuthFailure;
@@ -24,7 +23,7 @@ use RuntimeException;
 #[CoversClass(OAuthTokenRejected::class)]
 final class OAuthResourceServerTest extends UnitTestCase
 {
-    public function test_that_requirements_getter_preserves_the_legacy_identity_without_running_collaborators(): void
+    public function test_that_requirements_getter_returns_the_configured_value_without_running_collaborators(): void
     {
         $requirements = OAuthFixture::requirements();
         $validator = $this->createMock(OAuthTokenValidator::class);
@@ -34,12 +33,7 @@ final class OAuthResourceServerTest extends UnitTestCase
         $diagnostics = $this->createMock(OAuthDiagnostics::class);
         $diagnostics->expects(self::never())->method('record');
         $server = new OAuthResourceServer(requirements: $requirements, validator: $validator, handoff: $handoff, diagnostics: $diagnostics);
-        // Intentional legacy read; ordinary callers use requirements().
-        self::assertSame($requirements, $server->requirements);
         self::assertSame($requirements, $server->requirements());
-        self::assertSame($requirements, $server->requirements());
-        $this->expectException(Error::class);
-        $server->requirements = $requirements;
     }
 
     #[DataProvider('rejectedHeaders')]

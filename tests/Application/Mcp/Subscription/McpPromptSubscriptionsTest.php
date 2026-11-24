@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Subscription;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
 use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
@@ -23,7 +22,7 @@ use RuntimeException;
 
 #[CoversClass(McpSubscriptions::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
-#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
+#[CoversClass(McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 final class McpPromptSubscriptionsTest extends UnitTestCase
 {

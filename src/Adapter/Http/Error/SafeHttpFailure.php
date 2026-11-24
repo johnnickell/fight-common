@@ -20,16 +20,8 @@ final class SafeHttpFailure extends RuntimeException
      * Constructs SafeHttpFailure
      */
     private function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use status() instead
-         * Retained until a future major after at least one released minor
-         */
-        public readonly int $status,
-        /**
-         * @deprecated Planned v1.5.0; use metadata() instead
-         * Retained until a future major after at least one released minor
-         */
-        public readonly ?SafeHttpMetadata $metadata = null,
+        private readonly int $status,
+        private readonly ?SafeHttpMetadata $metadata = null,
         string $diagnostic = '',
         ?Throwable $previous = null
     ) {

@@ -18,16 +18,6 @@ use RuntimeException;
 final readonly class DbalNoticeSchema
 {
     /**
-     * Default table names only, not the configured storage selection
-     *
-     * @deprecated Planned v1.5.0; targeted for v2.0.0 removal after the released-minor window
-     * Use DbalNoticeTables accessors for selected names instead
-     */
-    public const array TABLES = [
-        'fight_notice_state', 'fight_notices', 'fight_notice_relationships', 'fight_notice_comparisons'
-    ];
-
-    /**
      * Constructs DbalNoticeSchema
      */
     public function __construct(private DbalNoticeTables $tables = new DbalNoticeTables())
@@ -163,7 +153,7 @@ final readonly class DbalNoticeSchema
      */
     private function indexName(string $defaultIndex): string
     {
-        if ($this->tables->noticeTable()->name() === self::TABLES[1]) {
+        if ($this->tables->noticeTable()->name() === 'fight_notices') {
             return $defaultIndex;
         }
 

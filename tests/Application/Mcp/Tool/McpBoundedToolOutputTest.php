@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
 use Fight\Common\Adapter\Mcp\Tool\Session\SummarizeExecutionsTool;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpResponder;
@@ -32,8 +31,8 @@ use Throwable;
 
 #[CoversClass(McpToolOutput::class)]
 #[CoversClass(McpToolInvoker::class)]
-#[CoversClass(ReleasedMcp\McpResult::class)]
-#[CoversClass(ReleasedMcp\McpJsonResponse::class)]
+#[CoversClass(McpResult::class)]
+#[CoversClass(McpJsonResponse::class)]
 final class McpBoundedToolOutputTest extends UnitTestCase
 {
     public function test_that_actual_encoded_response_bound_counts_text_escaping_identity_and_central_metadata(): void

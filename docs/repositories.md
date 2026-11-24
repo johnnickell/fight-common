@@ -6,8 +6,7 @@ Domain\Repository
 └── ResultSet     — output: records + pagination metadata
 
 Application\Repository
-├── TransactionalUnitOfWork (canonical interface)
-└── UnitOfWork (deprecated 1.x compatibility interface)
+└── TransactionalUnitOfWork
 
 Adapter\Persistence
 ├── Doctrine\DbalTransactionalUnitOfWork
@@ -15,9 +14,6 @@ Adapter\Persistence
 ├── Laravel\LaravelTransactionalUnitOfWork
 ├── CodeIgniter\CodeIgniterTransactionalUnitOfWork
 └── Yii\YiiTransactionalUnitOfWork
-
-Adapter\Repository
-└── DoctrineUnitOfWork (deprecated 1.x compatibility adapter)
 ```
 
 ---
@@ -387,16 +383,6 @@ class RegisterUserService
 
 ## Deprecated 1.x compatibility
 
-`Fight\Common\Application\Repository\UnitOfWork` and
-`Fight\Common\Adapter\Repository\DoctrineUnitOfWork` remain functional throughout 1.x without runtime
-deprecation notices. Their standalone `UnitOfWork::commit()` journey is deprecated 1.x compatibility, not the
-path for new consumers. Migrate new and existing transaction boundaries to `TransactionalUnitOfWork` and
-`DoctrineTransactionalUnitOfWork`:
-
-```php-inline
-use Fight\Common\Adapter\Repository\DoctrineUnitOfWork;
-
-// Deprecated 1.x compatibility only.
-$legacyUnitOfWork = new DoctrineUnitOfWork($entityManager);
-$legacyUnitOfWork->commit();
-```
+The old `UnitOfWork` interface, standalone `commit()` and `DoctrineUnitOfWork` adapter are removed.
+Use `TransactionalUnitOfWork` and `DoctrineTransactionalUnitOfWork`; run the operation inside the
+`commitTransactional()` callback so the mutation participates in the transaction.

@@ -5,13 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Messaging\Symfony;
 
 use DateTimeImmutable;
-use Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus as LegacyMessengerCommandBus;
-use Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher as LegacyMessengerEventDispatcher;
 use Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler;
 use Fight\Common\Adapter\Messaging\Handler\EventMessageHandler;
-use Fight\Common\Adapter\Messaging\Handler\SymfonyCommandMessageHandler;
-use Fight\Common\Adapter\Messaging\Handler\SymfonyEventMessageHandler;
-use Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer as LegacySymfonyMessageSerializer;
 use Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus;
 use Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher;
 use Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer;
@@ -38,7 +33,7 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 #[CoversNothing]
 final class CanonicalMessengerIntegrationTest extends UnitTestCase
 {
-    public function test_that_real_symfony_messenger_registration_keeps_neutral_and_legacy_handler_identities_distinct(): void
+    public function test_that_real_symfony_messenger_registration_wires_neutral_handlers_to_the_explicit_buses(): void
     {
         $commandBus = $this->mock(SynchronousCommandBus::class);
         $eventDispatcher = $this->mock(SynchronousEventDispatcher::class);
@@ -49,14 +44,8 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
         $container->register(EventMessageHandler::class, EventMessageHandler::class)
             ->setArguments([$eventDispatcher])
             ->addTag('messenger.message_handler', ['bus' => 'canonical.event']);
-        $container->register(SymfonyCommandMessageHandler::class, SymfonyCommandMessageHandler::class)
-            ->setArguments([$commandBus])
-            ->addTag('messenger.message_handler', ['bus' => 'legacy.command']);
-        $container->register(SymfonyEventMessageHandler::class, SymfonyEventMessageHandler::class)
-            ->setArguments([$eventDispatcher])
-            ->addTag('messenger.message_handler', ['bus' => 'legacy.event']);
 
-        foreach (['canonical.command', 'canonical.event', 'legacy.command', 'legacy.event'] as $busServiceId) {
+        foreach (['canonical.command', 'canonical.event'] as $busServiceId) {
             $container->register($busServiceId)->addTag('messenger.bus');
         }
 
@@ -65,8 +54,6 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
         foreach ([
             CommandMessageHandler::class,
             EventMessageHandler::class,
-            SymfonyCommandMessageHandler::class,
-            SymfonyEventMessageHandler::class,
         ] as $handler) {
             self::assertSame([], (new \ReflectionClass($handler))->getAttributes(AsMessageHandler::class));
             self::assertArrayHasKey('messenger.message_handler', $container->getDefinition($handler)->getTags());
@@ -80,22 +67,14 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
             [EventMessage::class],
             array_keys($this->registeredMessageTypes($container, 'canonical.event')),
         );
-        self::assertSame(
-            [CommandMessage::class],
-            array_keys($this->registeredMessageTypes($container, 'legacy.command')),
-        );
-        self::assertSame(
-            [EventMessage::class],
-            array_keys($this->registeredMessageTypes($container, 'legacy.event')),
-        );
     }
 
-    public function test_that_canonical_and_legacy_messenger_buses_preserve_complete_envelopes_for_the_same_transport(): void
+    public function test_that_canonical_messenger_buses_preserve_complete_envelopes_for_the_same_transport(): void
     {
         $command = $this->commandMessage();
         $event = $this->eventMessage();
         $sender = $this->mock(SenderInterface::class);
-        $sender->shouldReceive('send')->times(4)->andReturnUsing(
+        $sender->shouldReceive('send')->twice()->andReturnUsing(
             static function (Envelope $envelope) use ($command, $event): Envelope {
                 self::assertTrue($envelope->getMessage() === $command || $envelope->getMessage() === $event);
 
@@ -104,9 +83,7 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
         );
 
         (new MessengerCommandBus($sender))->dispatch($command);
-        (new LegacyMessengerCommandBus($sender))->dispatch($command);
         (new MessengerEventDispatcher($sender))->dispatch($event);
-        (new LegacyMessengerEventDispatcher($sender))->dispatch($event);
     }
 
     public function test_that_canonical_command_bus_execute_wraps_and_sends_the_command(): void
@@ -190,14 +167,13 @@ final class CanonicalMessengerIntegrationTest extends UnitTestCase
         SymfonyMessageSerializer::handleUnserializeCallback('NonExistentCanonicalClassAbc');
     }
 
-    public function test_that_canonical_and_legacy_serializers_round_trip_complete_command_and_event_envelopes(): void
+    public function test_that_canonical_serializers_round_trip_complete_command_and_event_envelopes(): void
     {
         $commandEnvelope = new Envelope($this->commandMessage(), [new BusNameStamp('commands')]);
         $eventEnvelope = new Envelope($this->eventMessage(), [new BusNameStamp('events')]);
 
         foreach ([
             new SymfonyMessageSerializer(new JsonSerializer()),
-            new LegacySymfonyMessageSerializer(new JsonSerializer()),
         ] as $serializer) {
             foreach ([$commandEnvelope, $eventEnvelope] as $envelope) {
                 $decoded = $serializer->decode($serializer->encode($envelope));

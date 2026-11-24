@@ -18,36 +18,12 @@ final readonly class McpResourceLimits
      * the complete result including central server identity, but not the outer JSON-RPC envelope.
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use maxUriBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxUriBytes = 4096,
-        /**
-         * @deprecated Planned v1.5.0; use maxDescriptorBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxDescriptorBytes = 16384,
-        /**
-         * @deprecated Planned v1.5.0; use pageSize() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $pageSize = 100,
-        /**
-         * @deprecated Planned v1.5.0; use maxDescriptors() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxDescriptors = 10000,
-        /**
-         * @deprecated Planned v1.5.0; use maxProviders() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxProviders = 32,
-        /**
-         * @deprecated Planned v1.5.0; use maxResultBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxResultBytes = 1048576
+        private int $maxUriBytes = 4096,
+        private int $maxDescriptorBytes = 16384,
+        private int $pageSize = 100,
+        private int $maxDescriptors = 10000,
+        private int $maxProviders = 32,
+        private int $maxResultBytes = 1048576
     ) {
         if (
             $maxUriBytes < 1 || $maxUriBytes > 1048576

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Scheduler;
 
-use Closure;
 use Cron\CronExpression;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -37,7 +36,6 @@ use Throwable;
  */
 final class Scheduler
 {
-    private ?ProcessRunner $processRunner = null;
     /**
      * @var list<JobConfig>
      */
@@ -50,13 +48,13 @@ final class Scheduler
     /**
      * Constructs Scheduler
      */
-    public function __construct(
+    private function __construct(
         private readonly Timezone $timezone,
         private readonly string $tempDirectory,
-        private readonly ?LoggerInterface $logger = null,
-        private readonly ?MailService $mailService = null,
-        private readonly string $fromEmail = '',
-        private readonly ?Closure $processFactory = null
+        private readonly ProcessRunner $processRunner,
+        private readonly ?LoggerInterface $logger,
+        private readonly ?MailService $mailService,
+        private readonly string $fromEmail
     ) {
     }
 
@@ -71,10 +69,7 @@ final class Scheduler
         ?MailService $mailService = null,
         string $fromEmail = ''
     ): self {
-        $scheduler = new self($timezone, $tempDirectory, $logger, $mailService, $fromEmail);
-        $scheduler->processRunner = $processRunner;
-
-        return $scheduler;
+        return new self($timezone, $tempDirectory, $processRunner, $logger, $mailService, $fromEmail);
     }
 
     /**
@@ -257,76 +252,17 @@ final class Scheduler
      * Runs a shell command job
      *
      * @phpstan-param JobConfig $job
-     *
-     * @throws SchedulerException When the command exits with a non-zero status
      */
     private function runCommand(array $job): void
     {
-        if ($this->processRunner instanceof ProcessRunner) {
-            $process = ProcessBuilder::create()
-                ->shellCommand($job['command'])
-                ->stdout(fn(string $outputChunk) => $this->writeLine($outputChunk, $job))
-                ->stderr(fn(string $outputChunk) => $this->writeLine($outputChunk, $job))
-                ->getProcess();
+        $process = ProcessBuilder::create()
+            ->shellCommand($job['command'])
+            ->stdout(fn(string $outputChunk) => $this->writeLine($outputChunk, $job))
+            ->stderr(fn(string $outputChunk) => $this->writeLine($outputChunk, $job))
+            ->getProcess();
 
-            $this->processRunner->attach($process);
-            $this->processRunner->run();
-
-            return;
-        }
-
-        $process = $this->createProcess($job['command']);
-
-        /**
-         * @var Closure(callable(string, string): void): int $run
-         */
-        $run = Closure::fromCallable([$process, 'run']);
-        $run(function (string $outputType, string $outputChunk) use ($job): void {
-            $this->writeLine($outputChunk, $job);
-        });
-
-        /**
-         * @var Closure(): bool $isSuccessful
-         */
-        $isSuccessful = Closure::fromCallable([$process, 'isSuccessful']);
-        if ($isSuccessful()) {
-            return;
-        }
-
-        /**
-         * @var Closure(): (int|null) $getExitCode
-         */
-        $getExitCode = Closure::fromCallable([$process, 'getExitCode']);
-        throw new SchedulerException(sprintf(
-            'Command exited with non-zero status %d',
-            $getExitCode()
-        ));
-    }
-
-    /**
-     * Creates the legacy process without making Symfony Process a required package dependency
-     */
-    private function createProcess(string $command): object
-    {
-        if ($this->processFactory instanceof Closure) {
-            /**
-             * @var object $process
-             */
-            $process = ($this->processFactory)($command);
-        } else {
-            $processClass = 'Symfony\\Component\\Process\\Process';
-            if (!class_exists($processClass)) {
-                throw new SchedulerException('Command jobs require symfony/process or a custom processFactory');
-            }
-
-            /**
-             * @var Closure(string): object $processFactory
-             */
-            $processFactory = Closure::fromCallable([$processClass, 'fromShellCommandline']);
-            $process = $processFactory($command);
-        }
-
-        return $process;
+        $this->processRunner->attach($process);
+        $this->processRunner->run();
     }
 
     /**

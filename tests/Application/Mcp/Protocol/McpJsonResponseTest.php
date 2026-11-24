@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
 use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
 use Fight\Common\Application\Mcp\Protocol\McpResult;
@@ -12,7 +11,7 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use JsonException;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(ReleasedMcp\McpJsonResponse::class)]
+#[CoversClass(McpJsonResponse::class)]
 final class McpJsonResponseTest extends UnitTestCase
 {
     public function test_that_success_and_error_responses_encode_their_semantic_envelopes(): void

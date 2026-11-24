@@ -22,6 +22,14 @@ use RuntimeException;
 #[CoversClass(DbalObservationSchema::class)]
 final class DbalObservationSchemaTest extends UnitTestCase
 {
+    private const array DEFAULT_OBSERVATION_TABLE_NAMES = [
+        'fight_execution_schema',
+        'fight_execution_sessions',
+        'fight_execution_phases',
+        'fight_execution_observations',
+        'fight_execution_contents'
+    ];
+
     private const array CONFIGURED_NAMES = ['Order', 'Group', 'Phase', 'Observation', 'Content'];
 
     #[DataProvider('platforms')]
@@ -40,7 +48,7 @@ final class DbalObservationSchemaTest extends UnitTestCase
         self::assertSame($consumerOptions, $consumerTable->getOptions());
         foreach (self::CONFIGURED_NAMES as $position => $name) {
             $table = $schema->getTable($name);
-            $defaultTable = $schema->getTable(DbalObservationSchema::TABLES[$position]);
+            $defaultTable = $schema->getTable(self::DEFAULT_OBSERVATION_TABLE_NAMES[$position]);
             self::assertTrue($table->isQuoted());
             self::assertSame($platform->quoteSingleIdentifier($name), $table->getQuotedName($platform));
             self::assertSame($defaultTable->getPrimaryKey()->getColumns(), $table->getPrimaryKey()->getColumns());
@@ -102,7 +110,7 @@ final class DbalObservationSchemaTest extends UnitTestCase
         $existingNames = ['consumer_owned'];
         if (count($overrides) === 5) {
             (new DbalObservationSchema())->addTo($schema, new PostgreSQLPlatform());
-            $existingNames = [...$existingNames, ...DbalObservationSchema::TABLES];
+            $existingNames = [...$existingNames, ...self::DEFAULT_OBSERVATION_TABLE_NAMES];
         }
         $manager = $this->mock(AbstractSchemaManager::class);
         $manager->shouldReceive('listTableNames')->once()->andReturn($existingNames);
@@ -163,7 +171,7 @@ final class DbalObservationSchemaTest extends UnitTestCase
     public function test_that_partial_selected_schema_rejects_without_version_query_or_default_fallback(): void
     {
         $manager = $this->mock(AbstractSchemaManager::class);
-        $manager->shouldReceive('listTableNames')->once()->andReturn([...DbalObservationSchema::TABLES, 'Order']);
+        $manager->shouldReceive('listTableNames')->once()->andReturn([...self::DEFAULT_OBSERVATION_TABLE_NAMES, 'Order']);
         $manager->shouldNotReceive('createTable');
         $manager->shouldNotReceive('introspectTable');
         $connection = $this->mock(Connection::class);
@@ -227,7 +235,7 @@ final class DbalObservationSchemaTest extends UnitTestCase
 
     public static function selections(): iterable
     {
-        yield 'defaults' => [[], DbalObservationSchema::TABLES];
+        yield 'defaults' => [[], self::DEFAULT_OBSERVATION_TABLE_NAMES];
         yield 'configured' => [self::CONFIGURED_NAMES, self::CONFIGURED_NAMES];
         yield 'partial' => [
             ['schemaTable' => 'Order', 'observationTable' => 'Observation'],

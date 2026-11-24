@@ -28,6 +28,8 @@ use Throwable;
 #[CoversNothing]
 final class DbalConfiguredSubscriptionIntegrationTest extends UnitTestCase
 {
+    private const array DEFAULT_SUBSCRIPTION_TABLE_NAMES = ['fight_mcp_subscription_state', 'fight_mcp_subscriptions'];
+
     private array $connections = [];
     private array $databases = [];
     private array $sqlitePaths = [];
@@ -631,7 +633,7 @@ final class DbalConfiguredSubscriptionIntegrationTest extends UnitTestCase
     {
         // These are the exact fixture tables; never enumerate/drop unrelated Task, Notice or execution storage.
         $platform = $connection->getDatabasePlatform();
-        foreach (['Union', 'Join', ...array_reverse(DbalSubscriptionSchema::TABLES)] as $name) {
+        foreach (['Union', 'Join', ...array_reverse(self::DEFAULT_SUBSCRIPTION_TABLE_NAMES)] as $name) {
             $connection->executeStatement('DROP TABLE IF EXISTS '.$platform->quoteSingleIdentifier($name));
         }
     }

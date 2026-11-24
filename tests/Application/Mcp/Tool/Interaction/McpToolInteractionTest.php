@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Tool\Interaction;
 
 use Fight\Common\Adapter\Mcp\Sodium\SodiumMcpStateProtector;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpResponder;
@@ -54,8 +53,8 @@ use RuntimeException;
 #[CoversClass(McpToolInvocation::class)]
 #[CoversClass(McpToolRegistry::class)]
 #[CoversClass(McpToolInfo::class)]
-#[CoversClass(ReleasedMcp\McpResult::class)]
-#[CoversClass(ReleasedMcp\McpProtocolError::class)]
+#[CoversClass(McpResult::class)]
+#[CoversClass(McpProtocolError::class)]
 final class McpToolInteractionTest extends UnitTestCase
 {
     public function test_that_a_fresh_instance_resumes_protected_query_input_without_initial_validation_or_handle(): void

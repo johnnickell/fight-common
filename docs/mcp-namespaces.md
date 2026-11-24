@@ -58,10 +58,8 @@ moves are included in that correction.
 Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 implements Task
 identity/value classification and inheritance; TASK-00190 implements the other identity/value corrections. TASK-00192 owns
 the remaining codebase-wide descriptive-variable-name correction. MCP engine,
-protocol semantics and ports remain Application-owned. Required released bridges remain functional; these canonical
-aggregate imports are available now. Aggregate alignment does not undo TASK-00181's foundation canonical names or their
-identity-preserving released aliases described below. Those canonical imports are available now; retained root
-runtime declarations remain compatibility owners, not competing aggregate homes.
+protocol semantics and ports remain Application-owned. Aggregate alignment is separate from the v2 migration
+of the foundation and HTTP adapters. Use the canonical imports described below.
 
 ## Complete capability relocation map
 
@@ -145,24 +143,15 @@ in `Adapter\Mcp\Persistence\Task\Dbal`. No old Store alias or transaction-bearin
 The untagged `McpTraceContextGrammar` and `McpImplementationInfoGrammar` implementation details live directly in
 `Application\Mcp\Protocol`. Their short names and grammar behavior are unchanged; no old root aliases,
 deprecations or public validator promises are added. Public metadata uses the canonical
-`Application\Mcp\Protocol\McpRequestMetadata` name; its released root spelling remains functional.
+`Application\Mcp\Protocol\McpRequestMetadata` name; the deprecated root spelling was removed.
 
 ## Foundation canonical names and released identity
 
-The [complete foundation migration map](maintenance/mcp-foundation-namespaces.md) inventories all 19 released
-root declarations and their public operations. Seventeen gain preferred names under `Application\Mcp\Capability`,
-`Protocol`, `Protocol\Exception`, `Http` and the valid PHP `Tool` namespace, retaining their short names.
-`McpResponder` and `McpDiagnostics` stay at root without new deprecation. All 17 relocated root spellings remain
-functional with documentation-only deprecation first shipped in released v1.5.0. Future-major
-removal requires separate authorization after the actually released-minor window.
-
-Canonical class/interface aliases deliberately retain the released runtime declarations rather than introduce
-one-way subtypes or duplicate immutable values. Old/new imports have identical parameter/return relationships,
-final factory identities, catches, reflection and native saved-value scopes. Root implementation files are retained
-compatibility owners; canonical names are the preferred consumer imports. Composer registers the aliases eagerly
-so catches and type checks need no prior canonical construction. Canonical spellings are not deprecated, and
-no consumer inheritance promise is introduced. Internal grammar and composition helpers retain their direct
-internal homes; no development-snapshot bridge is added.
+Seventeen canonical names under `Application\Mcp\Capability`, `Protocol`, `Protocol\Exception`, `Http` and
+`Tool` now own the actual declarations. The corresponding root spellings were deprecated in v1.5.0 and are removed. `McpResponder` and `McpDiagnostics` stay at root. Update imports, literal container IDs,
+reflected types and trusted saved objects using the
+[removal inventory](maintenance/v2-removal-inventory.md#mcp-foundation-declaration-moves). The old PHP native
+identity can be present even in data written through the v1.5 canonical alias. Explicit wire projections are unchanged.
 
 ## Internal composition owner
 
@@ -175,25 +164,13 @@ name or signature moves, and no compatibility alias or deprecation is introduced
 
 ## Released names and legacy AI operations
 
-The [nine released HTTP adapter names](components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)
-remain functional compatibility entry points throughout 1.x; their first deprecation shipped in released
-v1.5.0. Internal HTTP helpers have no public old-name compatibility promise.
+The [nine old HTTP adapter names](components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)
+were deprecated in v1.5.0 and are removed. Use `Adapter\Mcp` HTTP and framework homes.
 
-Three older AI APIs also receive canonical MCP homes while their released names remain functional:
-
-| Released deprecated name | Canonical legacy name |
-| --- | --- |
-| `Domain\Auth\AiOperation` | `Domain\Mcp\Operation\AiOperation` |
-| `Application\Auth\WebhookDispatcher` | `Application\Mcp\Operation\WebhookDispatcher` |
-| `Adapter\Auth\Hmac\HmacWebhookDispatcher` | `Adapter\Mcp\Operation\Hmac\HmacWebhookDispatcher` |
-
-These APIs were already deprecated in 1.2; the relocation does **not** revive them, postpone their existing
-2.0 removal, register an MCP Tool or authorize `deploy`, migrations or another action. Both old and
-canonical legacy declarations remain deprecated. Existing old-interface implementations still satisfy the new
-parent port. The final old HMAC class remains an implementation of its released old port and delegates behavior
-to the canonical compatibility parent; that parent's non-finality is not a consumer extension promise. The old
-AI payload factories keep their old concrete return, validation, array/JSON and private serialized state.
-No runtime deprecation notices are emitted. Consumers own endpoint selection, signing configuration and authority.
+The legacy `AiOperation`, `WebhookDispatcher` and `HmacWebhookDispatcher` paths are removed in both their
+original homes and their deprecated `Mcp\Operation` homes. There is no drop-in replacement. Retire old request
+and worker payloads and remove dispatcher wiring before upgrading. MCP Tools are separately composed and do not
+revive the webhook feature.
 
 ## General-purpose dependencies
 

@@ -1,10 +1,8 @@
 # Opt-in safe HTTP error presentation
 
-`SafeJSendErrorMiddleware` is the **explicit opt-in** PSR-15 path for application failures. It does not
-replace `JSendErrorMiddleware`, native framework handlers, or MCP/OAuth endpoints. The old PSR-15
-middleware still publishes arbitrary `getMessage()` and raw validation errors; keep it operational for
-1.x compatibility but do not treat it as a redaction boundary. Migrating legacy defaults requires a
-separately approved following-major change after a released-minor deprecation period.
+`SafeJSendErrorMiddleware` is the explicit PSR-15 path for application failures. Wire it in your stack;
+the library does not install it globally or change native framework or MCP/OAuth handlers. The old
+`JSendErrorMiddleware`, which could expose arbitrary exception messages and validation errors, has been removed.
 
 ## Wire a request boundary
 
@@ -66,10 +64,9 @@ new sanitized `RuntimeException` without a cause; a broken response factory cann
 
 Read `SafeHttpFailure`, `SafeHttpMetadata` and `SafeHttpPresentation` through typed property-name getters:
 `status()`, `metadata()`, `challenge()`, `allow()`, `retryAfterSeconds()`, `message()` and `data()` as applicable.
-The original public readonly fields remain supported; documentation-only deprecation first shipped
-in released v1.5.0. See the
-[complete getter migration and release window](maintenance/public-property-getters.md). This does not expand
-public data or change status/header policy.
+The old public property reads were deprecated in v1.5.0 and are no longer supported. See the
+[getter migration and saved-data guidance](maintenance/v2-removal-inventory.md#readonly-property-reads).
+The getters do not expand public data or change status/header policy.
 
 ## Mapping and public data
 
@@ -132,18 +129,14 @@ This package path proves PSR request/response behavior, not installed framework 
 route selection, diagnostics-sink redaction, rollback, a live application, or a secured deployment.
 The [Symfony](#symfony-native-exception-lifecycle) and [Laravel](#laravel-native-report-and-render-lifecycle)
 native exception integrations are separate explicit compositions. These new classes/interfaces are additive callable public
-API under ADRs 0009–0011; the final concrete classes are constructible but not extensible, the two interfaces
-are consumer-implementable, and no legacy constructor, JSend semantic shape or behavior is changed. Security
-behavior and header validation are part of the new opt-in contract; legacy arbitrary-message output remains
-unsafe but compatible during the minor migration window.
+API under ADRs 0009–0011; the final concrete classes are constructible but not extensible, and the two
+interfaces are consumer-implementable. Security behavior and header validation are part of the safe contract.
 
 ## Symfony native exception lifecycle
 
-Select this **instead of**, not alongside, either canonical
-`Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber` or deprecated
-`EventSubscriber\SymfonyExceptionSubscriber`. The safe listener is deliberately not an
-autoconfigured subscriber or attribute listener. Register only this explicit service and event tag;
-exclude legacy exception listeners from application-wide resource scans. Keep the independent
+Replace old Common exception listener and controller registrations with the safe services. The safe listener
+is deliberately not an autoconfigured subscriber or attribute listener. Register this explicit service and event
+tag, and remove the old listener and controller IDs from application configuration. Keep the independent
 `SymfonyValidationSubscriber` if using attribute validation. Do not also wrap the same path in the
 PSR-15 error middleware. For example, in `config/services.yaml` (with default autowiring enabled):
 
@@ -214,12 +207,9 @@ unsupported statuses fall back to generic 500 without leaking the native excepti
 The consumer owns authentication schemes and retry policy. Symfony framework/kernel listeners may
 still alter responses after this listener; test the installed composition, not just direct calls.
 
-These are additive constructible, non-extensible safe types under ADR 0009. Status, JSend shape,
-headers, reporting/fallback and negotiation are the new callable behavior under ADRs 0010–0011;
-existing unsafe constructors, native response types and disclosures remain compatible during the
-minor. Deprecated namespace aliases are still supported but are **not** safe. Default replacement
-or removal is reserved for the following major after a released-minor deprecation period. Package
-HttpKernel tests prove Common's component-level conformance, **not** a booted installed-package
+These are constructible, non-extensible safe types under ADR 0009. Status, JSend shape, headers,
+reporting/fallback and negotiation are the callable behavior under ADRs 0010–0011. Package HttpKernel
+tests prove Common's component-level conformance, **not** a booted installed-package
 starter journey or any consumer runtime/security qualification; those remain missing before a new
 framework-support claim under ADR 0024.
 
@@ -320,10 +310,8 @@ This is containment of the handler's owned rendering boundary, not recovery from
 exhausted memory or arbitrary consumer middleware/observer failures. It does not sanitize delegated
 HTML or qualify an installed consumer's runtime. Test final processing in the consumer's own stack.
 
-These additive final classes expose new callable composition/translation behavior under ADRs
-0009–0011. Legacy `Adapter\Http\Laravel\Controller\ErrorController` and `HttpServiceProvider` keep their
-constructors, response type and **unsafe** raw-message/field-error behavior in this minor;
-do not present the old path as safe. Changing legacy defaults requires a separately approved
-following-major transition after a released-minor deprecation period. Package booted-Laravel
-fixtures prove this native HTTP integration only; downstream installed-package starters,
+These final classes expose callable composition and translation behavior under ADRs 0009–0011. The old
+`Adapter\Http\Laravel\Controller\ErrorController` is removed. `HttpServiceProvider` remains for the
+`JSendResponse` singleton; it does not install any exception handler. Package booted-Laravel fixtures
+prove this native HTTP integration only; downstream installed-package starters,
 consumer sink behavior, auth policy, routes and production operations are not qualified by it.

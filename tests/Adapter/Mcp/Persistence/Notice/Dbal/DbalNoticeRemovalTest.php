@@ -43,6 +43,13 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(NoticeRemovalRejected::class)]
 final class DbalNoticeRemovalTest extends UnitTestCase
 {
+    private const array DEFAULT_NOTICE_TABLE_NAMES = [
+        'fight_notice_state',
+        'fight_notices',
+        'fight_notice_relationships',
+        'fight_notice_comparisons'
+    ];
+
     public function test_that_subset_removal_cascades_and_preserves_survivors_then_empty_feed_loss_and_high_water(): void
     {
         $connection = $this->database(); $fixture = new NoticeRemovalFixture($connection);
@@ -63,7 +70,7 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         self::assertSame($survivor->notice()->comparison(), $window->notices()[0]->notice()->comparison());
         self::assertSame($survivor->recordedAt(), $window->notices()[0]->recordedAt());
         self::assertSame(2, $window->notices()[0]->position());
-        foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame([2], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
+        foreach (array_slice(self::DEFAULT_NOTICE_TABLE_NAMES, 1) as $table) { self::assertSame([2], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
         $fixture->remove($fixture->selection([NoticeRemovalFixture::target(2, 'notice-2')]));
         $empty = (new DbalNoticeRecoveryReader($connection))->readWindow('scope', 0, 100);
         self::assertSame([], $empty->notices()); self::assertSame(2, $empty->lostThrough()); self::assertSame(2, $empty->highWater());
@@ -209,7 +216,7 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         $oldSelection = $fixture->selection([NoticeRemovalFixture::target()]);
         $connection->update('fight_notice_state', ['namespace' => str_repeat('0', 32), 'lost_through' => 1], ['singleton' => 1]);
         $this->assertRemovalRejected(fn () => $fixture->remove($oldSelection));
-        foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame([1], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
+        foreach (array_slice(self::DEFAULT_NOTICE_TABLE_NAMES, 1) as $table) { self::assertSame([1], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
         $window = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         self::assertSame(1, $window->highWater()); self::assertSame(1, $window->lostThrough());
         self::assertFalse($window->hasUnbrokenHistoryAfter($oldSelection->namespace(), 1));

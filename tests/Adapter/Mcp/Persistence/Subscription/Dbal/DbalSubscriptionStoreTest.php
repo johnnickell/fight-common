@@ -24,6 +24,8 @@ use Throwable;
 #[CoversClass(DbalSubscriptionSchema::class)]
 final class DbalSubscriptionStoreTest extends UnitTestCase
 {
+    private const array DEFAULT_SUBSCRIPTION_TABLE_NAMES = ['fight_mcp_subscription_state', 'fight_mcp_subscriptions'];
+
     private const string ID = '11111111111111111111111111111111';
     private const string OWNER = '22222222222222222222222222222222';
 
@@ -107,7 +109,7 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
         $db->executeStatement('DROP TABLE fight_mcp_subscriptions');
         try { $schema->install($db); self::fail('Partial'); } catch (RuntimeException) { self::assertTrue(true); }
         $schemaManager = $this->database()->createSchemaManager(); $model = $schemaManager->introspectSchema();
-        foreach (DbalSubscriptionSchema::TABLES as $table) { $model->dropTable($table); }
+        foreach (self::DEFAULT_SUBSCRIPTION_TABLE_NAMES as $table) { $model->dropTable($table); }
         $schema->addTo($model, new MySQL84Platform());
         self::assertSame('InnoDB', $model->getTable('fight_mcp_subscriptions')->getOption('engine'));
     }

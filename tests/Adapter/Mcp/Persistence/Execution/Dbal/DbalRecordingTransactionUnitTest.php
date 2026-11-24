@@ -42,6 +42,14 @@ use RuntimeException;
 #[CoversClass(DbalObservationSchema::class)]
 final class DbalRecordingTransactionUnitTest extends UnitTestCase
 {
+    private const array DEFAULT_OBSERVATION_TABLE_NAMES = [
+        'fight_execution_schema',
+        'fight_execution_sessions',
+        'fight_execution_phases',
+        'fight_execution_observations',
+        'fight_execution_contents'
+    ];
+
     public function test_that_owned_transactions_persist_complete_references_and_precise_evidence(): void
     {
         $connection = $this->database();
@@ -291,10 +299,10 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $schema->install($connection);
         self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM consumer_owned'));
         self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
-        self::assertTrue($connection->createSchemaManager()->tablesExist(DbalObservationSchema::TABLES));
+        self::assertTrue($connection->createSchemaManager()->tablesExist(self::DEFAULT_OBSERVATION_TABLE_NAMES));
         $definition = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true])->createSchemaManager()->introspectSchema();
         $schema->addTo($definition, new MySQLPlatform());
-        foreach (DbalObservationSchema::TABLES as $table) {
+        foreach (self::DEFAULT_OBSERVATION_TABLE_NAMES as $table) {
             self::assertSame('utf8mb4_bin', $definition->getTable($table)->getOption('collation'));
         }
         self::assertCount(3, $definition->getTable('fight_execution_observations')->getForeignKeys());

@@ -83,10 +83,9 @@ data; prefer JSON for interoperable payloads.
 ## 1.x serializer compatibility
 
 `Fight\Common\Domain\Serialization\JsonSerializer` and
-`Fight\Common\Domain\Serialization\PhpSerializer` remain deprecated compatibility classes in 1.x
-and are scheduled for removal in 2.0. New code must import the equivalent
-`Fight\Common\Application\Serialization` class; the Domain `Serializable` and `Serializer`
-interfaces remain the stable contract.
+`Fight\Common\Domain\Serialization\PhpSerializer` are removed. Import their equivalents under
+`Fight\Common\Application\Serialization`; the Domain `Serializable` and `Serializer` interfaces remain.
+Drain or convert trusted saved objects and queue payloads if they still carry a retired concrete class name.
 
 ## Reference
 

@@ -4,8 +4,20 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Http;
 
-use Fight\Common\Application\Mcp\McpRequestMirrors as ReleasedMcpRequestMirrors;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 
-// Preserve both directions of the consumer request parameter contract.
-$alias = __NAMESPACE__.'\\McpRequestMirrors';
-interface_exists($alias, false) || class_alias(ReleasedMcpRequestMirrors::class, $alias);
+/**
+ * Interface McpRequestMirrors
+ */
+interface McpRequestMirrors
+{
+    /**
+     * Returns declarations for the available named operation before HTTP argument validation
+     *
+     * Implementations conceal unavailable operations exactly like absent ones, validate declarations
+     * during composition, and never invoke an operation. HTTP adapters own header comparison.
+     *
+     * @return list<McpMirrorDeclaration>
+     */
+    public function mirrorsFor(McpRequest $request): array;
+}

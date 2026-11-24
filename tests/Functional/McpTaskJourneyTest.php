@@ -20,6 +20,8 @@ use Symfony\Component\Process\Process;
 #[CoversNothing]
 final class McpTaskJourneyTest extends UnitTestCase
 {
+    private const array DEFAULT_TASK_TABLE_NAMES = ['fight_task_state', 'fight_tasks'];
+
     #[DataProvider('compositions')]
     public function test_that_real_http_start_disconnect_independent_input_continuation_and_reconnect_use_actual_suppliers(string $backend, string $composition, DbalTaskTables $tables): void
     {
@@ -171,7 +173,7 @@ final class McpTaskJourneyTest extends UnitTestCase
         if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'path' => $directory.'/task.sqlite']; }
         else { $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN'); self::assertIsString($dsn, 'Real disposable database required'); $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn); }
         $connection = DriverManager::getConnection($params);
-        foreach (array_unique([...array_reverse(DbalTaskSchema::TABLES), $tables->taskTable()->name(), $tables->stateTable()->name()]) as $table) {
+        foreach (array_unique([...array_reverse(self::DEFAULT_TASK_TABLE_NAMES), $tables->taskTable()->name(), $tables->stateTable()->name()]) as $table) {
             $connection->executeStatement('DROP TABLE IF EXISTS '.$connection->getDatabasePlatform()->quoteSingleIdentifier($table));
         }
         (new DbalTaskSchema($tables))->install($connection); return $connection;

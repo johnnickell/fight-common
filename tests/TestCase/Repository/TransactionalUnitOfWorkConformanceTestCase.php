@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Repository;
 
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
-use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
 use RuntimeException;
@@ -20,7 +19,6 @@ abstract class TransactionalUnitOfWorkConformanceTestCase extends UnitTestCase
         $unitOfWork = $this->createTransactionalUnitOfWork();
 
         self::assertInstanceOf(TransactionalUnitOfWork::class, $unitOfWork);
-        self::assertNotInstanceOf(UnitOfWork::class, $unitOfWork);
         self::assertFalse(method_exists($unitOfWork, 'commit'));
     }
 

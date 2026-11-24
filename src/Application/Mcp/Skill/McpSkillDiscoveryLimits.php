@@ -18,31 +18,11 @@ final readonly class McpSkillDiscoveryLimits
      * Actual entries must fit both list and get wrappers, including the responder's central metadata.
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use pageSize() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $pageSize = 100,
-        /**
-         * @deprecated Planned v1.5.0; use maxEntries() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxEntries = 10000,
-        /**
-         * @deprecated Planned v1.5.0; use maxEntryBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxEntryBytes = 4194304,
-        /**
-         * @deprecated Planned v1.5.0; use maxResultBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxResultBytes = 8388608,
-        /**
-         * @deprecated Planned v1.5.0; use maxUriBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxUriBytes = 8192
+        private int $pageSize = 100,
+        private int $maxEntries = 10000,
+        private int $maxEntryBytes = 4194304,
+        private int $maxResultBytes = 8388608,
+        private int $maxUriBytes = 8192
     ) {
         if (
             $pageSize < 1 || $pageSize > 1000

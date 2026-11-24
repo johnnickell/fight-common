@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Adapter\Doctrine;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Fight\Common\Adapter\Doctrine\JsonObjectDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\JsonObjectDataType;
 use Fight\Common\Domain\Value\Basic\JsonObject;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;

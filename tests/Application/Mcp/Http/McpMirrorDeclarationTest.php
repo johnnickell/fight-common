@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Http;
 
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(ReleasedMcp\McpMirrorDeclaration::class)]
+#[CoversClass(McpMirrorDeclaration::class)]
 final class McpMirrorDeclarationTest extends UnitTestCase
 {
     public function test_that_mirror_declaration_rejects_empty_methods_and_invalid_headers(): void

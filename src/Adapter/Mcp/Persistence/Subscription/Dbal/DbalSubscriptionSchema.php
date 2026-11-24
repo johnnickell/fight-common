@@ -17,14 +17,6 @@ use RuntimeException;
 final readonly class DbalSubscriptionSchema
 {
     /**
-     * Default table names only, not the configured storage selection
-     *
-     * @deprecated Planned v1.5.0; targeted for v2.0.0 removal after the released-minor window
-     * Use DbalSubscriptionTables accessors for selected names instead
-     */
-    public const array TABLES = ['fight_mcp_subscription_state', 'fight_mcp_subscriptions'];
-
-    /**
      * Constructs DbalSubscriptionSchema
      */
     public function __construct(private DbalSubscriptionTables $tables = new DbalSubscriptionTables())
@@ -124,7 +116,7 @@ final readonly class DbalSubscriptionSchema
     private function expiryIndex(): string
     {
         $tableName = $this->tables->subscriptionTable()->name();
-        if ($tableName === self::TABLES[1]) {
+        if ($tableName === 'fight_mcp_subscriptions') {
             return 'fight_mcp_subscription_expiry';
         }
 

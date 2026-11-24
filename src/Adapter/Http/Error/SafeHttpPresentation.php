@@ -16,11 +16,8 @@ final readonly class SafeHttpPresentation
 {
     /**
      * @var array<array-key, mixed>|null
-     *
-     * @deprecated Planned v1.5.0; use data() instead
-     * Retained until a future major after at least one released minor
      */
-    public ?array $data;
+    private ?array $data;
 
     /**
      * Constructs SafeHttpPresentation
@@ -30,17 +27,9 @@ final readonly class SafeHttpPresentation
      * @param SafeHttpMetadata|null        $metadata Explicit protocol metadata.
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use message() instead
-         * Retained until a future major after at least one released minor
-         */
-        public ?string $message = null,
+        private ?string $message = null,
         ?array $data = null,
-        /**
-         * @deprecated Planned v1.5.0; use metadata() instead
-         * Retained until a future major after at least one released minor
-         */
-        public ?SafeHttpMetadata $metadata = null
+        private ?SafeHttpMetadata $metadata = null
     ) {
         if ($message !== null && preg_match('//u', $message) !== 1) {
             throw new InvalidArgumentException('Invalid public message.');

@@ -27,10 +27,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(DbalSubscriptionTables::class)]
 final class DbalSubscriptionTablesTest extends UnitTestCase
 {
+    private const array DEFAULT_SUBSCRIPTION_TABLE_NAMES = ['fight_mcp_subscription_state', 'fight_mcp_subscriptions'];
+
     public function test_that_defaults_and_independent_named_overrides_share_the_identifier_contract(): void
     {
         $defaults = new DbalSubscriptionTables();
-        self::assertSame(DbalSubscriptionSchema::TABLES, [
+        self::assertSame(self::DEFAULT_SUBSCRIPTION_TABLE_NAMES, [
             $defaults->stateTable()->name(), $defaults->subscriptionTable()->name()
         ]);
         $stateOnly = new DbalSubscriptionTables(stateTable: 'Order');
@@ -124,7 +126,7 @@ final class DbalSubscriptionTablesTest extends UnitTestCase
             (new DbalSubscriptionStore($connection))->open($registrationId, $ownerId, $context, 100, 105);
             $defaultPayload = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
             $connection->update('fight_mcp_subscription_state', ['version' => 77], ['singleton' => 1]);
-            foreach (DbalSubscriptionSchema::TABLES as $table) {
+            foreach (self::DEFAULT_SUBSCRIPTION_TABLE_NAMES as $table) {
                 foreach (['INSERT', 'UPDATE', 'DELETE'] as $operation) {
                     $connection->executeStatement(
                         'CREATE TRIGGER forbid_'.$table.'_'.$operation.' BEFORE '.$operation.' ON '.$table

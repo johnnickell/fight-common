@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 use Fight\Common\Domain\Exception\DomainException;
@@ -16,9 +16,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 
-#[CoversClass(ReleasedMcp\McpRequest::class)]
-#[CoversClass(ReleasedMcp\McpRequestDecoder::class)]
-#[CoversClass(ReleasedMcp\McpRequestLimits::class)]
+#[CoversClass(McpRequest::class)]
+#[CoversClass(McpRequestDecoder::class)]
+#[CoversClass(McpRequestLimits::class)]
 final class McpRequestDecoderTest extends UnitTestCase
 {
     public function test_that_default_and_explicit_limits_preserve_existing_decoder_calls(): void

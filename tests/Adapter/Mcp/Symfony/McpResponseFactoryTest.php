@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Mcp\Symfony;
 
-use Fight\Common\Adapter\Http\Symfony\McpResponseFactory as LegacyMcpResponseFactory;
 use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
 use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
@@ -20,7 +19,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 require_once dirname(__DIR__, 3).'/Fixture/Mcp/SapiDouble.php';
 
 #[CoversClass(McpResponseFactory::class)]
-#[CoversClass(LegacyMcpResponseFactory::class)]
 final class McpResponseFactoryTest extends UnitTestCase
 {
     protected function setUp(): void { parent::setUp(); SapiDouble::reset(); }
@@ -29,7 +27,6 @@ final class McpResponseFactoryTest extends UnitTestCase
     public static function factoryClasses(): iterable
     {
         yield 'canonical' => [McpResponseFactory::class];
-        yield 'legacy' => [LegacyMcpResponseFactory::class];
     }
 
     #[DataProvider('factoryClasses')]

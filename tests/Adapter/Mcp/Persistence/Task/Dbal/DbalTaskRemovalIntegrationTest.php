@@ -20,6 +20,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversNothing]
 final class DbalTaskRemovalIntegrationTest extends UnitTestCase
 {
+    private const array DEFAULT_TASK_TABLE_NAMES = ['fight_task_state', 'fight_tasks'];
+
     private ?Connection $connection = null;
 
     #[DataProvider('databases')]
@@ -100,7 +102,7 @@ final class DbalTaskRemovalIntegrationTest extends UnitTestCase
             $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
         }
         $connection = DriverManager::getConnection($params); $this->connection = $connection;
-        foreach (array_reverse(DbalTaskSchema::TABLES) as $table) { $connection->executeStatement('DROP TABLE IF EXISTS '.$table); }
+        foreach (array_reverse(self::DEFAULT_TASK_TABLE_NAMES) as $table) { $connection->executeStatement('DROP TABLE IF EXISTS '.$table); }
         (new DbalTaskSchema())->install($connection);
         return $connection;
     }

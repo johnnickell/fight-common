@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Adapter\Doctrine;
 
 use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\DBAL\Types\Exception\TypeAlreadyRegistered;
-use Fight\Common\Adapter\Doctrine\UuidDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\UuidDataType;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 

@@ -1,5 +1,8 @@
 # Migrate public table-name constants to explicit selections
 
+> **Historical 1.x guidance.** The examples and compatibility statements on this page describe the
+> v1.5 line, not current 2.0 work. See the [v2.0 removal inventory](v2-removal-inventory.md) before upgrading.
+
 The four public schema `TABLES` constants below are **deprecated in PHPDoc** and targeted for removal in
 **v2.0.0**. They remain readable with exactly the same array values, order and visibility; this change emits
 no runtime deprecation warning and performs no database operation. The constants describe fixed defaults,

@@ -27,10 +27,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(DbalTaskRepository::class)]
 final class DbalTaskTablesTest extends UnitTestCase
 {
+    private const array DEFAULT_TASK_TABLE_NAMES = ['fight_task_state', 'fight_tasks'];
+
     public function test_that_defaults_and_independent_named_overrides_share_the_real_identifier_mechanism(): void
     {
         $defaults = new DbalTaskTables();
-        self::assertSame(DbalTaskSchema::TABLES, [$defaults->stateTable()->name(), $defaults->taskTable()->name()]);
+        self::assertSame(self::DEFAULT_TASK_TABLE_NAMES, [$defaults->stateTable()->name(), $defaults->taskTable()->name()]);
         $stateOnly = new DbalTaskTables(stateTable: 'Order');
         self::assertSame('Order', $stateOnly->stateTable()->name());
         self::assertSame('fight_tasks', $stateOnly->taskTable()->name());

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
-use Error;
-use ErrorException;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
@@ -17,7 +14,7 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(ReleasedMcp\McpRequestLimits::class)]
+#[CoversClass(McpRequestLimits::class)]
 #[CoversClass(McpResourceLimits::class)]
 #[CoversClass(McpResourceReadLimits::class)]
 #[CoversClass(McpSkillDiscoveryLimits::class)]
@@ -26,36 +23,13 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class McpGetterCompatibilityTest extends UnitTestCase
 {
     #[DataProvider('values')]
-    public function test_that_getters_preserve_legacy_state_readonly_enforcement_and_serialization(object $value, array $expected): void
+    public function test_that_getters_preserve_configured_state_after_round_trip(object $value, array $expected): void
     {
-        $serialized = serialize($value);
-        $json = json_encode($value, JSON_THROW_ON_ERROR);
-        set_error_handler(static function (int $severity, string $message): never {
-            throw new ErrorException($message, 0, $severity);
-        });
-        try {
-            self::assertSame($expected, get_object_vars($value));
-            self::assertSame(json_encode($expected, JSON_THROW_ON_ERROR), $json);
-            foreach ($expected as $property => $state) {
-                // Deliberate compatibility reads cover all released public fields, not ordinary callers.
-                self::assertSame($state, $value->$property);
-                self::assertSame($state, $value->$property());
-                try {
-                    $value->$property = $state;
-                    self::fail('Legacy MCP state must remain readonly.');
-                } catch (Error $error) {
-                    self::assertStringContainsString('readonly property', $error->getMessage());
-                }
-            }
-            self::assertSame($serialized, serialize($value));
-            $restored = unserialize($serialized);
-            self::assertSame($expected, get_object_vars($restored));
-            self::assertSame($json, json_encode($restored, JSON_THROW_ON_ERROR));
-            foreach ($expected as $property => $state) {
-                self::assertSame($state, $restored->$property());
-            }
-        } finally {
-            restore_error_handler();
+        $restored = unserialize(serialize($value));
+
+        foreach ($expected as $property => $state) {
+            self::assertSame($state, $value->$property());
+            self::assertEquals($state, $restored->$property());
         }
     }
 

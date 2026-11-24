@@ -34,6 +34,13 @@ use RuntimeException;
 #[CoversNothing]
 final class DbalNoticeTableSelectionIntegrationTest extends UnitTestCase
 {
+    private const array DEFAULT_NOTICE_TABLE_NAMES = [
+        'fight_notice_state',
+        'fight_notices',
+        'fight_notice_relationships',
+        'fight_notice_comparisons'
+    ];
+
     private const RECORDED_AT = '2026-10-25T01:02:04.000000Z';
 
     #[DataProvider('databases')]
@@ -286,7 +293,7 @@ final class DbalNoticeTableSelectionIntegrationTest extends UnitTestCase
     private static function selectedNames(Connection $connection, array $expected): array
     {
         $actual = array_map(static fn ($name) => trim($name, '`"'), $connection->createSchemaManager()->listTableNames());
-        $selected = array_values(array_intersect($actual, [...$expected, ...DbalNoticeSchema::TABLES]));
+        $selected = array_values(array_intersect($actual, [...$expected, ...self::DEFAULT_NOTICE_TABLE_NAMES]));
         sort($selected);
 
         return $selected;

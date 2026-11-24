@@ -17,11 +17,7 @@ final readonly class OAuthScopeSet
      * @phpstan-param list<string> $values
      */
     private function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use values() instead
-         * Retained until a future major after at least one released minor
-         */
-        public array $values
+        private array $values
     ) {
     }
 

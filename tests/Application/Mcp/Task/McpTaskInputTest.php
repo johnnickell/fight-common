@@ -6,7 +6,6 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
 use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
 use Fight\Common\Application\Mcp\Protocol\McpRequest;
@@ -22,7 +21,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 
 #[CoversClass(McpTaskInput::class)]
-#[CoversClass(ReleasedMcp\McpProtocolError::class)]
+#[CoversClass(McpProtocolError::class)]
 final class McpTaskInputTest extends UnitTestCase
 {
     public function test_that_real_method_delegates_to_durable_command_and_returns_only_complete_ack(): void

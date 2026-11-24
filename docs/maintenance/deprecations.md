@@ -1,5 +1,8 @@
 # Deprecation and migration inventory
 
+> **Historical 1.x guidance.** The examples and compatibility statements on this page describe the
+> v1.5 line, not current 2.0 work. See the [v2.0 removal inventory](v2-removal-inventory.md) before upgrading.
+
 This is the current consolidated inventory of **already-deprecated contracts**, not a removal plan or release
 approval. Paths below omit `Fight\Common\`. Earlier first-deprecating minors are preserved; the four newer
 groups first shipped in [released v1.5.0](https://github.com/johnnickell/fight-common/releases/tag/v1.5.0)
@@ -45,7 +48,7 @@ and linked source own this history. These are **not** new v1.5.0 deprecations.
 | 13 `Adapter\Doctrine` data types | Same short names under `Adapter\Persistence\Doctrine\Type`; retain registered database type names and existing stored encodings | [Old sources](https://github.com/johnnickell/fight-common/tree/develop/src/Adapter/Doctrine), [value migration map](../components/values/index.md) |
 | Concrete `Domain\Serialization\JsonSerializer` and `PhpSerializer` | Application counterparts; retain old concrete identities while native saved objects/queues still need them | [JSON source](https://github.com/johnnickell/fight-common/blob/develop/src/Domain/Serialization/JsonSerializer.php), [PHP source](https://github.com/johnnickell/fight-common/blob/develop/src/Domain/Serialization/PhpSerializer.php), [serialization](../components/serialization/index.md) |
 | `Domain\Auth\AiOperation`, `Application\Auth\WebhookDispatcher`, `Adapter\Auth\Hmac\HmacWebhookDispatcher` | No revived feature: their equally deprecated `Mcp\Operation` homes preserve the original v1.2.0 deprecation/v2.0.0 target | [Exact old/new map and caveats](../mcp-namespaces.md#released-names-and-legacy-ai-operations) |
-| Legacy `Scheduler` constructor, optional `processFactory` seam and conditional Symfony Process command bridge | `Scheduler::withProcessRunner()` with an Application `ProcessRunner`; preserve exact old positional/named construction during 1.x | [Scheduler guide](../components/scheduler/index.md#legacy-command-compatibility-bridge), [ADR 0017](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0017-scheduler-1x-construction-compatibility.md) |
+| Legacy `Scheduler` constructor, optional `processFactory` seam and conditional Symfony Process command bridge | `Scheduler::withProcessRunner()` with an Application `ProcessRunner`; preserve exact old positional/named construction during 1.x | [v1.5.0 Scheduler guide](https://github.com/johnnickell/fight-common/blob/v1.5.0/docs/scheduler.md#legacy-command-compatibility-bridge), [ADR 0017](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0017-scheduler-1x-construction-compatibility.md) |
 
 The five Messenger identities, relative to `Adapter\Messaging`, are:
 
