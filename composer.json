@@ -128,6 +128,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Fight\\Common\\Tooling\\": "scripts/",
             "Fight\\Release\\": "release/src",
             "Fight\\Test\\Common\\": "tests"
         }
