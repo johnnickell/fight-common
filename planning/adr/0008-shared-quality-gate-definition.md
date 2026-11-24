@@ -11,7 +11,12 @@
   must-pass delivery interpretation below; hosted results are advisory unless an accepted TASK or actual host rule
   explicitly requires them. Preserve the historical decision chronology without treating failed jobs as passed.
 
-## Decision
+- Current develop path (TASK-00221): the host `bin/build` validates planning before preparation. On a
+  cache miss, `bin/.build-full` calls the host `bin/quality` wrapper, which runs `scripts/quality.php`
+  in the selected PHP service. That script owns the ordered PHP checks and uses Composer dev autoload.
+  Docs and the final offline planning check follow it. The receipt and `--force` remain host-owned.
+
+## Original decision
 
 Fight Common defines two authoritative component gates, each with a clear execution boundary and fail-fast
 failure contract:

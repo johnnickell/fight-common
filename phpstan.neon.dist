@@ -8,6 +8,7 @@ parameters:
         - release/src
         - release/scripts
         - release/consumer
+        - scripts
     bootstrapFiles:
         - vendor/squizlabs/php_codesniffer/autoload.php
         - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php

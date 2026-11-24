@@ -6,6 +6,7 @@
     <file>release/src</file>
     <file>release/scripts</file>
     <file>release/consumer</file>
+    <file>scripts</file>
     <rule ref="./src/Standards/Phpcs/ruleset.xml">
     </rule>
     <rule ref="Generic.Commenting.DocComment.ContentAfterOpen">

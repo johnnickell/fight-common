@@ -36,7 +36,10 @@ From the selected isolated checkout prepare dependencies/runtime with:
 ```
 
 `bin/up --worktree PATH --build-only` builds images without starting the stack. This repository's tooling
-service is `php`. Composer/quality commands retain the local project's dependency and coverage policy.
+service is `php`. On a cache miss, `./bin/build` runs `./bin/quality`, a host wrapper for
+`php scripts/quality.php` in that service. The runner uses Composer dev autoload and stops at the first
+failing PHP check. Docs, offline planning and receipt verification still run on their existing paths.
+See the [Python tooling inventory](PYTHON_INVENTORY.md) for the remaining host and docs helpers.
 Main and worktrees have separate images, networks, source mounts and generated output. The native Git common
 directory is mounted read-only so linked-worktree locators function without a metadata copy.
 
