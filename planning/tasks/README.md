@@ -122,7 +122,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00220](00220-TASK.md) | Cut over to GLOSSARY.md and delete CONTEXT.md | done | [TICKET-00058](../tickets/00058-TICKET.md) |
 | [TASK-00221](00221-TASK.md) | Inventory Python and move the quality runner to container PHP | done | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | done | [TICKET-00059](../tickets/00059-TICKET.md) |
-| [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | done | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
