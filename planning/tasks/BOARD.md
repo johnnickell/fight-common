@@ -40,8 +40,6 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 8 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
-| 11 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
 | 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
@@ -102,6 +100,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 7 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | — (standalone chore) | done | — | [PR #268](https://github.com/johnnickell/fight-common/pull/268) |
 | 8 | [TASK-00111](00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | done | — | [PR #171](https://github.com/johnnickell/fight-common/pull/171) |
 | 8 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | — (standalone chore) | done | — | [PR #269](https://github.com/johnnickell/fight-common/pull/269) |
+| 8 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | done | — | [PR #332](https://github.com/johnnickell/fight-common/pull/332) |
 | 9 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | done | — | [PR #172](https://github.com/johnnickell/fight-common/pull/172) |
 | 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | done | — | [PR #270](https://github.com/johnnickell/fight-common/pull/270) |
 | 9 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #330](https://github.com/johnnickell/fight-common/pull/330) |
@@ -110,6 +109,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 10 | [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #329](https://github.com/johnnickell/fight-common/pull/329) |
 | 11 | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #181](https://github.com/johnnickell/fight-common/pull/181) |
 | 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | done | — | [PR #273](https://github.com/johnnickell/fight-common/pull/273) |
+| 11 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #333](https://github.com/johnnickell/fight-common/pull/333) |
 | 12 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #182](https://github.com/johnnickell/fight-common/pull/182) |
 | 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | done | — | [PR #275](https://github.com/johnnickell/fight-common/pull/275) |
 | 13 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | — (standalone chore) | done | — | [PR #186](https://github.com/johnnickell/fight-common/pull/186) |

@@ -55,6 +55,29 @@ function json_data(mixed $data): JsonObject
 }
 
 /**
+ * Encodes bytes as unpadded RFC 4648 Base64URL
+ */
+function base64_url_encode(string $bytes): string
+{
+    return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
+}
+
+/**
+ * Decodes canonical Base64URL with optional correct padding, or returns false
+ */
+function base64_url_decode(string $encoded): string|false
+{
+    $bytes = base64_decode(strtr($encoded, '-_', '+/'), true);
+    if ($bytes === false) {
+        return false;
+    }
+
+    $padded = strtr(base64_encode($bytes), '+/', '-_');
+
+    return $encoded === $padded || $encoded === rtrim($padded, '=') ? $bytes : false;
+}
+
+/**
  * Creates a COMB UUID instance
  */
 function uuid(?bool $msb = true): Uuid

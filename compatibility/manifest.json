@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "96487f11baef52657108dbb6dba958034dda02b49a5e52a91648c3db4647813a",
+    "operation_shapes_sha256": "4b4d8490db6b79c202f63be965e8b7b172d13bbabbae118681b80bcb772fe46c",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -10,7 +10,7 @@
     "inventory_expectations": {
         "Domain": {
             "declarations": 229,
-            "functions": 13
+            "functions": 15
         },
         "Application": {
             "declarations": 392,
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00228-addition": {
+            "path": "docs/values.md",
+            "locator": "Base64URL helpers; additive public functions for canonical URL-safe byte encoding and decoding"
+        },
         "fight-common.classification.task-00207-tables": {
             "path": "docs/table-names.md",
             "locator": "Complete defaults and configuration routes; Compose DBAL schema and runtime together; seven public final immutable name/selection declarations"
@@ -33861,6 +33865,8 @@
         {"name":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","source":"src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","source_locator":"working-tree:src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php#Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","source_locator":"working-tree:src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php#Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","source_locator":"working-tree:src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php#Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","source_locator":"working-tree:src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php#Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","source_locator":"working-tree:src/Adapter/Socket/Laravel/LaravelPrivatePublisher.php#Fight\\Common\\Adapter\\Socket\\Laravel\\LaravelPrivatePublisher","operation":"implementable"}}}}}
     ],
     "functions": [
+        {"name":"Fight\\Common\\Domain\\base64_url_decode","source":"src/Domain/functions.php","layer":"Domain","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Domain\\base64_url_decode","source_locator":"working-tree:src/Domain/functions.php#Fight\\Common\\Domain\\base64_url_decode"},"classification_evidence":{"authority":"fight-common.classification.task-00228-addition","rationale":"Public decoder for canonical Base64URL with optional correct padding."},"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Returns decoded bytes or false."}},"constructible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Function only."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Function only."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Function only."}}}},
+        {"name":"Fight\\Common\\Domain\\base64_url_encode","source":"src/Domain/functions.php","layer":"Domain","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Domain\\base64_url_encode","source_locator":"working-tree:src/Domain/functions.php#Fight\\Common\\Domain\\base64_url_encode"},"classification_evidence":{"authority":"fight-common.classification.task-00228-addition","rationale":"Public encoder for unpadded Base64URL."},"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Returns the unpadded URL-safe encoding of arbitrary bytes."}},"constructible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Function only."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Function only."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Function only."}}}},
         {
             "name": "Fight\\Common\\Domain\\array_list",
             "source": "src/Domain/functions.php",
