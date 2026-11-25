@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00232](00232-TASK.md) | Remove obsolete Rector flags | in-progress | — |
+| Ready Frontier | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -34,7 +34,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 14 | [TASK-00232](00232-TASK.md) | Remove obsolete Rector flags | — (standalone bug) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
@@ -118,6 +118,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 14 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | — (standalone chore) | done | — | [PR #187](https://github.com/johnnickell/fight-common/pull/187) |
 | 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | done | — | [PR #278](https://github.com/johnnickell/fight-common/pull/278) |
 | 14 | [TASK-00231](00231-TASK.md) | Reduce the Functional suite to at most 99 expanded cases | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | [PR #325](https://github.com/johnnickell/fight-common/pull/325) |
+| 14 | [TASK-00232](00232-TASK.md) | Remove obsolete Rector flags | — (standalone bug) | done | — | — |
 | 15 | [TASK-00125](00125-TASK.md) | Reconcile v1.3 MCP documentation and prepare release qualification | — (standalone chore) | done | — | [PR #188](https://github.com/johnnickell/fight-common/pull/188) |
 | 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | done | — | [PR #288](https://github.com/johnnickell/fight-common/pull/288) |
 | — | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | — (standalone chore) | done | — | [PR #159](https://github.com/johnnickell/fight-common/pull/159) |
