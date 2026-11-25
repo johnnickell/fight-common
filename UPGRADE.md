@@ -26,6 +26,8 @@ The canonical MCP foundation types now own their declarations; the old root name
 
 For example, change `use Fight\Common\Application\Mcp\McpCapabilityRegistry;` to `use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;`. Update parameter and return types in your capability, mirror and progress implementations and update exception catches. `Application\Mcp\McpResponder` and `Application\Mcp\McpDiagnostics` stay at the root. The canonical 1.x imports already worked, but PHP could still record the **old** declaration name in native frames. Inspect saved identities even if your source already uses the new imports. The namespace change does not rename MCP methods or JSON-RPC fields.
 
+Composer no longer loads these foundation types at bootstrap, even if you already use the canonical names. Normal PSR-4 autoloading still works: PHP loads the canonical declaration when needed. For feature detection, use the canonical name and allow autoloading: replace `class_exists($type, false)` with `class_exists($type)`, or `interface_exists($type, false)` with `interface_exists($type)` for interfaces. If the check is intentionally limited to already loaded types, load the canonical declaration first where your integration is initialized, then keep the `false` check where you need to inspect that state.
+
 | Removed adapter namespace | Replacement namespace | Classes (same basenames) |
 | --- | --- | --- |
 | `Adapter\Http\Mcp\` | `Adapter\Mcp\Http\` | `DenyAllMcpOriginPolicy`, `ExactMcpOriginPolicy`, `McpHeaderValidator`, `McpOrigin`, `McpRequestHandler`, `McpResponseEmitter`, `McpResponseFactory` |
