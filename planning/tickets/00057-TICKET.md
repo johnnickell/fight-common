@@ -2,7 +2,7 @@
 id: TICKET-00057
 epic: EPIC-00014
 title: Shorten the full hosted CI gate
-status: ready-for-agent
+status: done
 ---
 
 # Shorten the full hosted CI gate
@@ -41,7 +41,7 @@ For the suite-size target, show the complete Functional count and comparable sui
 |---|---|---|
 | [TASK-00218](../tasks/00218-TASK.md) | Lock the hosted timing baseline | done |
 | [TASK-00219](../tasks/00219-TASK.md) | Reduce subscription capacity-lock test cost | done |
-| [TASK-00230](../tasks/00230-TASK.md) | Shorten the remaining gate and measure the combined result | ready-for-agent |
+| [TASK-00230](../tasks/00230-TASK.md) | Shorten the remaining gate and measure the combined result | done |
 | [TASK-00231](../tasks/00231-TASK.md) | Reduce the Functional suite to at most 99 expanded cases | done |
 <!-- /planning:children -->
 
