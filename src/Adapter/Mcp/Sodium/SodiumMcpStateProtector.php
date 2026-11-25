@@ -8,6 +8,9 @@ use Fight\Common\Application\Mcp\Tool\Interaction\McpStateProtector;
 use Fight\Common\Domain\Exception\DomainException;
 use SensitiveParameter;
 
+use function Fight\Common\Domain\base64_url_decode;
+use function Fight\Common\Domain\base64_url_encode;
+
 /**
  * Class SodiumMcpStateProtector
  */
@@ -54,7 +57,7 @@ final readonly class SodiumMcpStateProtector implements McpStateProtector
             $this->keys[$this->activeVersion]
         );
 
-        return $prefix.rtrim(strtr(base64_encode($nonce.$ciphertext), '+/', '-_'), '=');
+        return $prefix.base64_url_encode($nonce.$ciphertext);
     }
 
     /**
@@ -70,11 +73,8 @@ final readonly class SodiumMcpStateProtector implements McpStateProtector
             throw new DomainException('Invalid interaction state.');
         }
 
-        $bytes = base64_decode(strtr($parts[3], '-_', '+/'), true);
-        if (
-            $bytes === false || strlen($bytes) < 40
-            || rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=') !== $parts[3]
-        ) {
+        $bytes = base64_url_decode($parts[3]);
+        if ($bytes === false || strlen($bytes) < 40) {
             throw new DomainException('Invalid interaction state.');
         }
 

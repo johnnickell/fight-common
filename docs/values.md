@@ -21,6 +21,19 @@ The recommended way to construct value objects is via the helper functions in `F
 Sections show helpers where available and named factories; the IP, phone, calendar/local-time and Duration values have no helpers.
 WeekDay is a native enum, not a ValueObject.
 
+### Base64URL helpers
+
+`Fight\Common\Domain\base64_url_encode($bytes)` encodes arbitrary bytes using the RFC 4648 URL-safe
+alphabet (`-` and `_` instead of `+` and `/`) and omits padding. `base64_url_decode($encoded)` returns the original
+bytes, including an empty string for empty input. It accepts canonical text with no padding or exactly the padding
+needed by the final group. It returns `false` for malformed input, including whitespace, standard Base64 alphabet
+substitutions, partial or extra padding, impossible lengths, and nonzero unused bits in the final character. Check
+for `false` explicitly so a valid empty result is not treated as an error.
+
+For example, `f` encodes as `Zg` and `fo` as `Zm8`; `Zg==` and `Zm8=` also decode successfully. The bytes
+`"\xfb\xff\0\x80"` encode as `-_8AgA`. Do not substitute these helpers for standard Base64 or for a protocol's
+own grammar, size, or integrity checks. Base64URL is an encoding, not encryption or authentication.
+
 ---
 
 ## Table of Contents

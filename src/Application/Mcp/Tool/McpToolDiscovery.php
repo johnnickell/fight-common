@@ -11,6 +11,8 @@ use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Domain\Exception\DomainException;
 
+use function Fight\Common\Domain\base64_url_encode;
+
 /**
  * Class McpToolDiscovery
  */
@@ -106,11 +108,7 @@ final readonly class McpToolDiscovery implements McpCapability
         ];
         $next = $offset + $this->pageSize;
         if ($next < count($definitions)) {
-            $result['nextCursor'] = strtr(
-                base64_encode(pack('N', $next).$this->signature($next, $snapshot)),
-                '+/',
-                '-_'
-            );
+            $result['nextCursor'] = base64_url_encode(pack('N', $next).$this->signature($next, $snapshot));
         }
 
         return McpResult::complete($result);

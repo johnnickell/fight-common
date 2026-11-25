@@ -25,6 +25,8 @@ use function Fight\Common\Domain\mb_string;
 use function Fight\Common\Domain\json_string;
 use function Fight\Common\Domain\json_data;
 use function Fight\Common\Domain\email;
+use function Fight\Common\Domain\base64_url_decode;
+use function Fight\Common\Domain\base64_url_encode;
 use function Fight\Common\Domain\array_list;
 use function Fight\Common\Domain\hash_set;
 use function Fight\Common\Domain\hash_table;
@@ -39,6 +41,8 @@ use function Fight\Common\Domain\uuid;
 #[CoversFunction('Fight\Common\Domain\json_string')]
 #[CoversFunction('Fight\Common\Domain\json_data')]
 #[CoversFunction('Fight\Common\Domain\email')]
+#[CoversFunction('Fight\Common\Domain\base64_url_encode')]
+#[CoversFunction('Fight\Common\Domain\base64_url_decode')]
 #[CoversFunction('Fight\Common\Domain\array_list')]
 #[CoversFunction('Fight\Common\Domain\hash_set')]
 #[CoversFunction('Fight\Common\Domain\hash_table')]
@@ -49,6 +53,35 @@ use function Fight\Common\Domain\uuid;
 #[CoversFunction('Fight\Common\Domain\uuid')]
 class FunctionsTest extends UnitTestCase
 {
+    public function test_that_base64_url_round_trips_canonical_vectors(): void
+    {
+        foreach ([
+            ['', '', ''],
+            ['f', 'Zg', 'Zg=='],
+            ['fo', 'Zm8', 'Zm8='],
+            ['foo', 'Zm9v', 'Zm9v'],
+            ['foob', 'Zm9vYg', 'Zm9vYg=='],
+            ['fooba', 'Zm9vYmE', 'Zm9vYmE='],
+            ['foobar', 'Zm9vYmFy', 'Zm9vYmFy'],
+            ["\xfb\xff\0\x80", '-_8AgA', '-_8AgA=='],
+        ] as [$bytes, $unpadded, $padded]) {
+            self::assertSame($unpadded, base64_url_encode($bytes));
+            self::assertSame($bytes, base64_url_decode($unpadded));
+            self::assertSame($bytes, base64_url_decode($padded));
+        }
+    }
+
+    public function test_that_base64_url_decode_rejects_malformed_encodings(): void
+    {
+        foreach ([
+            'A', 'AAAAA', '=', 'Zg=', 'Zg===', 'Zm8==', 'Zm9v=', 'Z=g=', 'Zg==A',
+            " Zg", "Zg\n", "Z\tg==", "Zg\0", '+_8AgA', '-/8AgA', 'Zg*',
+            'Zh', 'Zh==', 'Zm9', 'Zm9=',
+        ] as $invalid) {
+            self::assertFalse(base64_url_decode($invalid), bin2hex($invalid));
+        }
+    }
+
     public function test_that_string_returns_string_object_instance(): void
     {
         $result = string('hello');

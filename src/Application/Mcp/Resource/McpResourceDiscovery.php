@@ -13,6 +13,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Generator;
 use Uri\Rfc3986\Uri;
 
+use function Fight\Common\Domain\base64_url_encode;
+
 /**
  * Class McpResourceDiscovery
  */
@@ -254,11 +256,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
         $result = ['resources' => $page, 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope];
         $next = $offset + count($page);
         if ($next < $visible) {
-            $result['nextCursor'] = strtr(
-                base64_encode(pack('N', $next).$this->signature($next, $snapshot)),
-                '+/',
-                '-_'
-            );
+            $result['nextCursor'] = base64_url_encode(pack('N', $next).$this->signature($next, $snapshot));
         }
 
         return McpResult::boundedComplete($result, $this->limits->maxResultBytes());
