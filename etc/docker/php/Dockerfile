@@ -18,8 +18,6 @@ RUN apt-get update \
 
 FROM php:8.5-cli
 
-COPY --from=git-build /opt/git/usr/local/ /usr/local/
-
 # Fail closed if an upstream tag or local override supplies an affected interpreter.
 RUN php -r 'exit(PHP_MAJOR_VERSION === 8 && PHP_MINOR_VERSION === 5 && version_compare(PHP_VERSION, "8.5.12", ">=") ? 0 : 1);'
 
@@ -49,18 +47,8 @@ RUN apt-get update \
     && dpkg-reconfigure --frontend=noninteractive locales \
     && php /usr/local/share/fight-common/check-ca-bundle.php
 
-# Install extensions
-RUN docker-php-ext-configure intl \
-    && docker-php-ext-install intl \
-    && docker-php-ext-install pcntl \
-    && docker-php-ext-install pdo \
-    && docker-php-ext-install pdo_mysql \
-    && docker-php-ext-install pdo_pgsql \
-    && docker-php-ext-install simplexml \
-    && docker-php-ext-install zip \
-    && docker-php-ext-install bcmath \
-    && docker-php-ext-install sockets \
-    && docker-php-ext-install posix \
+# The installer configures and builds each extension in order. Bound make to two jobs.
+RUN docker-php-ext-install -j2 intl pcntl pdo pdo_mysql pdo_pgsql simplexml zip bcmath sockets posix \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug
 
@@ -77,6 +65,9 @@ RUN install -d -o root -g root -m 0755 /usr/local/share/fight-common \
         > /usr/local/share/fight-common/release-runtime-v1 \
     && chown root:root /usr/local/share/fight-common/release-runtime-v1 \
     && chmod 0444 /usr/local/share/fight-common/release-runtime-v1
+
+# Git is only needed in the finished image. This lets BuildKit compile Git and PHP extensions independently.
+COPY --from=git-build /opt/git/usr/local/ /usr/local/
 
 # Preserve the distro executable path without retaining its affected Git package.
 # A package that reintroduces /usr/bin/git makes this layer fail closed.
