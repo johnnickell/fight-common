@@ -72,7 +72,7 @@ folders. Framework service-container extension points retain their separate
 `Adapter/ServiceContainer/{Framework}` owner under [ADR 0023](../../../planning/adr/0023-service-container-and-framework-adapter-namespaces.md).
 
 These are approved placement requirements, not a claim that the current source already conforms. The
-[TASK-00183 sequence](../../../planning/tasks/00183-TASK.md#coordination) owns the bounded follow-up refactors;
+[TASK-00183 sequence](../../../planning/tasks/archive/00183-TASK.md#coordination) owns the bounded follow-up refactors;
 namespace moves must retain the released bridges described below.
 
 ## Package and consumer ownership
@@ -128,7 +128,7 @@ Adapters may share a connection/serialization lock while persistence and transac
 
 DBAL work requires a DBAL-backed transaction boundary, not substitution with an ORM EntityManager/flush boundary.
 `Adapter/Persistence/Doctrine/DbalTransactionalUnitOfWork` implements the generic mechanism under
-[TASK-00184](../../../planning/tasks/00184-TASK.md); capability-specific locks, schemas and failure translation
+[TASK-00184](../../../planning/tasks/archive/00184-TASK.md); capability-specific locks, schemas and failure translation
 remain adapter-owned composition, not additions to the inward transaction contract.
 Preserve actual commit/rollback, caller-transaction rejection, closure/uncertainty and recovery guarantees when
 separating existing stores. Reconcile released consumer compatibility explicitly. Avoid a blanket rule that all

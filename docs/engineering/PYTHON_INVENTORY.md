@@ -13,7 +13,7 @@ The quality runner moved from Bash to PHP without removing Python. This inventor
 
 POSIX shell and standard text tools would avoid another interpreter, but this would not be a thin wrapper. The planner would need a replacement for the dependency graph and cycle walk, multi-block view replacement, and validation before writes. Archive would still need safe NUL-delimited path handling (not supported by POSIX `read`), normalized relative paths and link rebasing in both moved and unmoved documents. Replacing those standard-library operations with shell code would add parsing and portability work while the supported host already has Python. Keep both entry points unchanged.
 
-[The TASK record](../../planning/tasks/00222-TASK.md#completion-notes) summarizes the offline command comparisons, including refused writes, byte-equivalent generated views and archive apply on synthetic records only.
+[The TASK record](../../planning/tasks/archive/00222-TASK.md#completion-notes) summarizes the offline command comparisons, including refused writes, byte-equivalent generated views and archive apply on synthetic records only.
 
 ## Host build, runtime and databases — TASK-00223
 
@@ -35,7 +35,7 @@ These paths operate where checkout bytes, native Docker/Compose, Git registratio
 | `bin/database-runtime` | One-off locator `check` and `down` on 1.4. | **Remove from develop only.** No develop wrapper calls it. The same executable remains in `v1.4.2` and `origin/1.4`, where the one-off wrapper calls both actions. [Maintenance tooling](../maintenance-tooling.md) names the correct checkout. Develop's receipt recovery is unchanged. |
 | `scripts/qualify_phpcs_enforcement.py` | Standalone command in [coding standard](../coding-standard.md), not a default build or release stage. | **Retain.** It checks native Docker status, JSON diagnostic identifiers and byte-exact fixer output through a read-only checkout mount with per-call timeouts. A shell rewrite needs JSON and timeout tools; container PHP would require a new assertion/process harness and no longer exercise the same host-to-Docker boundary. |
 
-[The TASK record](../../planning/tasks/00223-TASK.md#completion-notes) links wrapper, runtime and receipt evidence. Removal and receipt policy are unchanged.
+[The TASK record](../../planning/tasks/archive/00223-TASK.md#completion-notes) links wrapper, runtime and receipt evidence. Removal and receipt policy are unchanged.
 
 ## Docs, identity and image trust — TASK-00224
 
@@ -53,7 +53,7 @@ The docs image (`etc/docker/python/Dockerfile`, `requirements.txt`) supplies pin
 | `etc/docker/php/Dockerfile` | `bin/up`, build preparation and release certifier image preparation. | **Replace.** Use the base PHP CLI's OpenSSL support to parse certificate subjects in the same default OS bundle. No Composer packages, extension build or Python install is needed. The helper rejects unreadable, empty and malformed bundles as well as the affected common name. |
 | `docs/contributing.md` image audit | Manual network-disabled checks of the PHP and docs images. | **Split.** Use the PHP image's own bundle helper and Debian package metadata for that image. Retain Python only in the docs image, where actual import paths distinguish installed certifi from pip-vendored certifi and `ssl` loads each bundle independently. `openssl` and `sha256sum` could report bundle contents and hashes but cannot identify those modules or their bundle paths without Python. Missing certifi imports now fail the docs-image audit instead of silently omitting a store. |
 
-[The TASK record](../../planning/tasks/00224-TASK.md#completion-notes) records generated-byte, controlled-failure and image evidence.
+[The TASK record](../../planning/tasks/archive/00224-TASK.md#completion-notes) records generated-byte, controlled-failure and image evidence.
 
 ## Release — TASK-00225
 
@@ -62,7 +62,7 @@ The docs image (`etc/docker/python/Dockerfile`, `requirements.txt`) supplies pin
 | `bin/release` lane setup heredoc | `bin/release certify`, before running default/latest/lowest dependency lanes; documented in `release/README.md`. | **Retain.** Before a certifier image is prepared, the host resolves each exported lane's physical path, reads and writes its JSON without changing other settings, and emits the path and project as a tab-separated locator. The project is `fight-common-release-` plus the first 16 SHA-256 hex digits of that physical path. Shell and a host hash tool can produce the suffix but cannot safely rewrite structured JSON without a parser. `jq` or host PHP could do the JSON work but neither is a supported host prerequisite. Container PHP would require moving image preparation before lane identity is recorded or depending on another image. |
 | `bin/release` lane cleanup heredoc | Release cleanup, after the lane's guarded `bin/down`; imports the lane's own `local_tooling`. | **Retain.** The lane is a standalone exported repository, so `bin/down` treats it as canonical and does not retire its named volumes and image tags as it would for a registered worktree. The host snippet rechecks the hash-derived identity, runs the candidate's ownership/consumer guard before the sweep and before each removal, and confirms native absence before allowing source deletion. Compose alone does not provide those checks; a shell or PHP port would have to duplicate them or call back into the same candidate-owned Python modules retained in TASK-00223. A container would also need host Docker access and the original checkout identity. |
 
-Both snippets use the host Python 3 already required by `bin/up`, `bin/build` and `bin/down`; moving just the snippets would not remove that prerequisite. Moving the cleanup into a new shared command would relocate release-specific policy without removing Python. Keep both snippets together with their caller and leave the candidate, archive and installed-consumer steps unchanged. See the [TASK evidence](../../planning/tasks/00225-TASK.md#completion-notes) for the bounded checks and their limits.
+Both snippets use the host Python 3 already required by `bin/up`, `bin/build` and `bin/down`; moving just the snippets would not remove that prerequisite. Moving the cleanup into a new shared command would relocate release-specific policy without removing Python. Keep both snippets together with their caller and leave the candidate, archive and installed-consumer steps unchanged. See the [TASK evidence](../../planning/tasks/archive/00225-TASK.md#completion-notes) for the bounded checks and their limits.
 
 ## Inventory boundary
 

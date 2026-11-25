@@ -1,9 +1,9 @@
 # Fight Common MCP-over-HTTP Grill Handoff
 
-**Source map:** [Fight Common MCP over HTTP Support](../fight-common-mcp-http-support-map.md)
+**Source map:** [Fight Common MCP over HTTP Support](../archive/maps/fight-common-mcp-http-support-map.md)
 **Status:** EPIC drafted; Wayfinder resolved
 
-**EPIC:** [EPIC-00006: Reusable MCP Streamable HTTP Tool Support](../../epics/00006-EPIC.md)
+**EPIC:** [EPIC-00006: Reusable MCP Streamable HTTP Tool Support](../../epics/archive/00006-EPIC.md)
 
 ## Destination and representative consumer experience
 
@@ -26,10 +26,10 @@ package.
 
 | Accepted decision | Evidence | Consequence |
 |---|---|---|
-| Target MCP `2026-07-28` Streamable HTTP only | [WF-037](../tickets/WF-037-target-the-stateless-mcp-http-profile.md); [official transport specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http) | Consumer-selected MCP routes use stateless POST; legacy HTTP+SSE and session compatibility are excluded. |
-| OAuth/Bearer is interoperable; HMAC remains available for provisioned machine-to-machine use | [WF-038](../tickets/WF-038-set-the-authentication-interoperability-posture.md); [official authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization) | A consumer may offer either or both on separate routes; Fight Common does not choose routes or Agent policy. |
-| Fight Common stays policy-free | [WF-039](../tickets/WF-039-define-fight-common-and-consumer-ownership-boundary.md) | Consumers own routes, principals, permissions, authorization-server operation, and selection of exposed tools. Access Control owns Agent/current-authority and permissions. |
-| OAuth support is resource-server support, not an authorization server | [WF-043](../tickets/WF-043-define-reusable-oauth-resource-server-support.md) | Shared work may support protected-resource metadata, Bearer extraction/challenges, and validation ports, but not token issuance, client registration, login, consent, or permission policy. |
+| Target MCP `2026-07-28` Streamable HTTP only | [WF-037](../tickets/archive/WF-037-target-the-stateless-mcp-http-profile.md); [official transport specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http) | Consumer-selected MCP routes use stateless POST; legacy HTTP+SSE and session compatibility are excluded. |
+| OAuth/Bearer is interoperable; HMAC remains available for provisioned machine-to-machine use | [WF-038](../tickets/archive/WF-038-set-the-authentication-interoperability-posture.md); [official authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization) | A consumer may offer either or both on separate routes; Fight Common does not choose routes or Agent policy. |
+| Fight Common stays policy-free | [WF-039](../tickets/archive/WF-039-define-fight-common-and-consumer-ownership-boundary.md) | Consumers own routes, principals, permissions, authorization-server operation, and selection of exposed tools. Access Control owns Agent/current-authority and permissions. |
+| OAuth support is resource-server support, not an authorization server | [WF-043](../tickets/archive/WF-043-define-reusable-oauth-resource-server-support.md) | Shared work may support protected-resource metadata, Bearer extraction/challenges, and validation ports, but not token issuance, client registration, login, consent, or permission policy. |
 
 ## Accepted design and implementation evidence
 

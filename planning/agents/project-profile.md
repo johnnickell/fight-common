@@ -23,7 +23,7 @@ transaction contracts; no application-only namespace or blanket external-effect 
 For aggregate placement, value classification/inheritance, handler/repository/transaction ownership and the finite
 package exceptions, follow [Architecture](../../docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces).
 [Descriptive naming](../../docs/engineering/standards/Naming.md#variables-properties-and-parameters) applies throughout
-project-owned code while protecting released named parameters. [TASK-00183](../tasks/00183-TASK.md#coordination) records the correction and its implementation sequence. Use the
+project-owned code while protecting released named parameters. [TASK-00183](../tasks/archive/00183-TASK.md#coordination) records the correction and its implementation sequence. Use the
 [MCP namespace guide](../../docs/mcp-namespaces.md) and the [domain-value inventory](../../docs/maintenance/evidence-domain-values.md)
 for current placement and classification; neither grants an exception to the approved rules.
 
@@ -33,7 +33,7 @@ Compatibility is against tagged releases, not earlier development commits. Never
 provisional until first tagged: revise their APIs, payloads and schemas directly without backward-compatibility
 code, aliases, deprecations or migrations for prior development snapshots. Keep current validation/integrity checks
 and actually released API guarantees intact. John explicitly confirmed this rule in
-[TASK-00148's correction](../tasks/00148-TASK.md#current-correction--user-amendment-after-publication).
+[TASK-00148's correction](../tasks/archive/00148-TASK.md#current-correction--user-amendment-after-publication).
 
 CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::trigger()`. Follow the [message identity, metadata and timestamp contracts](../../docs/messaging.md#message-metadata-isolation). Deprecated public APIs remain supported for at least one released minor before removal in the next major. Preserve intentional extensibility of public base classes; final-by-default does not make a reusable abstract/base contract final. Retain framework-required entity mutability/proxy compatibility.
 
@@ -42,7 +42,7 @@ CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::tr
 ### Local-first acceptance and publication
 
 The current workflow is **work → local verification → independent Review → independent QA → authorized Land →
-human merge**. [TASK-00172](../tasks/00172-TASK.md) adopts Agent OS QA and the later completion checkpoint;
+human merge**. [TASK-00172](../tasks/archive/00172-TASK.md) adopts Agent OS QA and the later completion checkpoint;
 the 2026-09-28 local-first decision remains intact.
 Fight Common is public, but visibility does not add a pre-publication acceptance gate. A valid local build receipt
 and sufficient behavior evidence permit independent acceptance without a hosted run or PR. Work and review do
@@ -123,7 +123,7 @@ This inventory is not authority to expand packaging/release tests under another 
 
 ### Approved DBAL schema compatibility exception
 
-[TASK-00116](../tasks/00116-TASK.md) records the maintainer's approval to retain DBAL 4.4 support before 2.0
+[TASK-00116](../tasks/archive/00116-TASK.md) records the maintainer's approval to retain DBAL 4.4 support before 2.0
 and permit four exact PHPStan `method.internal` diagnostics for `Doctrine\DBAL\Schema\Schema::__construct()`.
 That constructor remains runtime-compatible in 4.5, but its new public editor replacement does not exist in 4.4.
 The exception is limited to one occurrence in each of the four existing Event Sourcing DBAL schema builders,

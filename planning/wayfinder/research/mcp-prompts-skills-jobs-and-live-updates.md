@@ -19,7 +19,7 @@ This is evidence and recommended composition, not approval of additional package
 The initial blanket-deferral recommendation in WF-048 has not been accepted; John has identified candidate uses.
 
 **Subsequent decision:** John accepted these distinctions and selected generic Prompts, Subscriptions and Tasks as
-the leading implementation-planning candidates in [WF-048](../tickets/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md).
+the leading implementation-planning candidates in [WF-048](../tickets/archive/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md).
 John subsequently approved deferring Apps, URL-mode input, Resource templates and Completion from the initial
 scope. The research questions below are the investigation record; WF-048 owns the current selection and remaining
 scope decisions.
@@ -119,7 +119,7 @@ TTL is duration from creation in integer milliseconds or null, not a sliding ina
 isolated prose referring to an embedded task, establishes the flat creation shape.
 
 John approved lifecycle-first implementation with input/cancel suppliers and then complete protocol activation; see
-[TICKET-00049](../../tickets/00049-TICKET.md#decisions-and-progress). That sequencing is a project decision drawn from
+[TICKET-00049](../../tickets/archive/00049-TICKET.md#decisions-and-progress). That sequencing is a project decision drawn from
 these protocol obligations, not a claim that Common or deployed clients already implement them.
 
 ### 5. Apps require a host that can display them
