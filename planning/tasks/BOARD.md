@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent | — |
+| Active Work | [TASK-00232](00232-TASK.md) | Remove obsolete Rector flags | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -34,7 +34,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 14 | [TASK-00232](00232-TASK.md) | Remove obsolete Rector flags | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 

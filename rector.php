@@ -45,7 +45,5 @@ return RectorConfig::configure()
     ->withCodeQualityLevel(8)
     ->withPreparedSets(
         codingStyle: true,
-        privatization: true,
-        instanceOf: true,
-        earlyReturn: true
+        privatization: true
     );
