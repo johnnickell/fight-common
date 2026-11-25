@@ -41,7 +41,7 @@ Provide a complete inventory and disposition for each item. For exceptions, iden
 | [TASK-00221](../tasks/00221-TASK.md) | Inventory Python and move the quality runner to container PHP | done |
 | [TASK-00222](../tasks/00222-TASK.md) | Retire or justify Python in offline planning and archive commands | done |
 | [TASK-00223](../tasks/00223-TASK.md) | Retire or justify Python in host runtime and database tooling | done |
-| [TASK-00224](../tasks/00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent |
+| [TASK-00224](../tasks/00224-TASK.md) | Retire or justify Python in docs and identity tooling | in-progress |
 | [TASK-00225](../tasks/00225-TASK.md) | Retire or justify Python in release helpers | ready-for-agent |
 <!-- /planning:children -->
 

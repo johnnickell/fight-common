@@ -92,7 +92,7 @@ final class QualityRunner
     private function phpPaths(): array
     {
         $paths = $this->files(new FilesystemIterator('.'));
-        foreach (['src', 'tests', 'release', 'scripts'] as $directory) {
+        foreach (['src', 'tests', 'release', 'scripts', 'etc/docker/php'] as $directory) {
             $paths = array_merge($paths, $this->files(new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
             )));

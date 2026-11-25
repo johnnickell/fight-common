@@ -17,7 +17,8 @@ return RectorConfig::configure()
         __DIR__.'/release/src',
         __DIR__.'/release/scripts',
         __DIR__.'/release/consumer',
-        __DIR__.'/scripts'
+        __DIR__.'/scripts',
+        __DIR__.'/etc/docker/php'
     ])
     ->withPhpSets(php84: true)
     ->withConfiguredRule(ClassPropertyAssignToConstructorPromotionRector::class, [

@@ -28,7 +28,8 @@ COPY --from=composer:2.8.12 /usr/bin/composer /usr/local/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Install dependencies
+# Install dependencies and check the actual OS trust bundle before fetching extensions.
+COPY --chmod=0644 ./check-ca-bundle.php /usr/local/share/fight-common/check-ca-bundle.php
 RUN apt-get update \
     && apt-get install -y --allow-downgrades \
         --allow-remove-essential --allow-change-held-packages \
@@ -36,7 +37,6 @@ RUN apt-get update \
         wget \
         curl \
         ca-certificates curl libexpat1 libpcre2-8-0 openssh-client perl zlib1g \
-        python3 \
         unzip \
         locales \
         libxml2-dev \
@@ -47,7 +47,7 @@ RUN apt-get update \
     && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
     && locale-gen en_US.UTF-8 \
     && dpkg-reconfigure --frontend=noninteractive locales \
-    && python3 -c 'import ssl; assert not any(v == "emSign ECC Root CA - G3" for cert in ssl.create_default_context().get_ca_certs() for rdn in cert["subject"] for k, v in rdn if k == "commonName")'
+    && php /usr/local/share/fight-common/check-ca-bundle.php
 
 # Install extensions
 RUN docker-php-ext-configure intl \

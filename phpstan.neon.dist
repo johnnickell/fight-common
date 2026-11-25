@@ -9,6 +9,7 @@ parameters:
         - release/scripts
         - release/consumer
         - scripts
+        - etc/docker/php
     bootstrapFiles:
         - vendor/squizlabs/php_codesniffer/autoload.php
         - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
