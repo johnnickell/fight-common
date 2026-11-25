@@ -194,7 +194,7 @@ def down(root, selector=None):
 
 def main(root):
     os.umask(0o077)
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='runtime.py', description=__doc__)
     parser.add_argument('action', choices=('up', 'down', 'docker', 'inspect', 'finish', 'image-name'))
     parser.add_argument('--worktree')
     parser.add_argument('--build-only', action='store_true')

@@ -39,7 +39,7 @@ Provide a tag-linked removal inventory, updated compatibility evidence, direct U
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00226](../tasks/00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | done |
-| [TASK-00227](../tasks/00227-TASK.md) | Enforce strict ResultSet and Pagination construction | ready-for-agent |
+| [TASK-00227](../tasks/00227-TASK.md) | Enforce strict ResultSet and Pagination construction | done |
 | [TASK-00228](../tasks/00228-TASK.md) | Add and adopt the Base64URL helpers | ready-for-agent |
 | [TASK-00229](../tasks/00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | ready-for-agent |
 <!-- /planning:children -->

@@ -37,9 +37,13 @@ final class McpSubscriptionJourneyTest extends TestCase
     public function test_that_real_shared_database_live_streams_reused_ids_revocation_failure_and_polling_are_isolated(string $backend, bool $configured): void
     {
         $this->setupDatabase($backend, $configured);
+        $writer = new NoticeFixture($this->connection, $this->tables->notice);
         $leftServer = $this->server('scope'); $rightServer = $this->server('scope-2');
-        $left = $this->open($leftServer, ['toolsListChanged' => true]);
-        $right = $this->open($rightServer, ['toolsListChanged' => true, 'resourceSubscriptions' => ['file:///allowed']]);
+        // Send both requests before waiting for either server to bootstrap and flush its headers.
+        $left = $this->sendOpenRequest($leftServer, ['toolsListChanged' => true], 'psr', 7);
+        $right = $this->sendOpenRequest($rightServer, ['toolsListChanged' => true, 'resourceSubscriptions' => ['file:///allowed']], 'psr', 7);
+        $this->assertOpenHeaders($left, 'psr');
+        $this->assertOpenHeaders($right, 'psr');
         $ackA = $this->nextFrame($left); $ackB = $this->nextFrame($right);
         self::assertSame('notifications/subscriptions/acknowledged', $ackA['method']);
         self::assertSame('notifications/subscriptions/acknowledged', $ackB['method']);
@@ -48,12 +52,13 @@ final class McpSubscriptionJourneyTest extends TestCase
         $rows = $this->connection->fetchAllAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions'));
         self::assertCount(2, $rows); self::assertNotSame($rows[0]['registration_id'], $rows[1]['registration_id']);
         self::assertNotSame($rows[0]['owner'], $rows[1]['owner']);
-        $this->worker(['operation' => 'record', 'notices' => [
+        // Use the already prepared writer while both independent HTTP reader processes are live.
+        foreach ([
             ['id' => 'a', 'scope' => 'scope', 'type' => 'mcp.tools.list_changed', 'metadata' => ['app/hidden' => 'CONCEALED-A']],
             ['id' => 'b-tool', 'scope' => 'scope-2', 'type' => 'mcp.tools.list_changed'],
             ['id' => 'b', 'scope' => 'scope-2', 'type' => 'mcp.resources.updated', 'metadata' => ['mcp/uri' => 'file:///allowed', 'app/hidden' => 'CONCEALED-B']],
             ['id' => 'hidden-resource', 'scope' => 'scope-2', 'type' => 'mcp.resources.updated', 'metadata' => ['mcp/uri' => 'file:///hidden']]
-        ]]);
+        ] as $notice) { $writer->record($notice); }
         $updateA = $this->nextFrame($left); $toolB = $this->nextFrame($right); $updateB = $this->nextFrame($right);
         self::assertSame('notifications/tools/list_changed', $updateA['method']);
         self::assertSame('notifications/tools/list_changed', $toolB['method']);
@@ -61,7 +66,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertSame('file:///allowed', $updateB['params']['uri']);
         self::assertSame(2, (int) $this->connection->fetchOne($this->sql('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0')));
         touch($this->directory.'/revoke-scope');
-        $this->worker(['operation' => 'record', 'notices' => [['id' => 'after-revoke', 'type' => 'mcp.tools.list_changed']]]);
+        $writer->record(['id' => 'after-revoke', 'type' => 'mcp.tools.list_changed']);
         // A deliberately paused reader resumes without conferring a permission lease on queued source rows.
         usleep(150000);
         $tailA = $this->drain($left); $tailB = $this->drain($right);
@@ -74,7 +79,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         unlink($this->directory.'/revoke-scope');
         $failed = $this->open($leftServer, ['toolsListChanged' => true]); self::assertSame('notifications/subscriptions/acknowledged', $this->nextFrame($failed)['method']);
         touch($this->directory.'/source-failure');
-        $this->worker(['operation' => 'record', 'notices' => [['id' => 'retained-after-failure', 'type' => 'mcp.tools.list_changed']]]);
+        $writer->record(['id' => 'retained-after-failure', 'type' => 'mcp.tools.list_changed']);
         self::assertSame([], $this->drain($failed), 'Source failure must not masquerade as graceful completion');
         unlink($this->directory.'/source-failure');
         $poll = new NoticeRecoveryFixture($this->connection, tables: $this->tables->notice);
@@ -600,16 +605,28 @@ final class McpSubscriptionJourneyTest extends TestCase
 
     private function open(string $address, array $filter, string $composition = 'psr', int|string $id = 7)
     {
+        $socket = $this->sendOpenRequest($address, $filter, $composition, $id);
+        $this->assertOpenHeaders($socket, $composition);
+        return $socket;
+    }
+
+    private function sendOpenRequest(string $address, array $filter, string $composition, int|string $id)
+    {
         $socket = stream_socket_client('tcp://'.$address, $errno, $error, 5); self::assertIsResource($socket, $error); stream_set_timeout($socket, 5);
         $request = SubscriptionFixture::request($filter, $id); $body = (string) $request->getBody();
         $wire = "POST /mcp?composition=$composition HTTP/1.1\r\nHost: $address\r\nConnection: close\r\nContent-Length: ".strlen($body)."\r\n";
         foreach ($request->getHeaders() as $name => $values) { foreach ($values as $value) { $wire .= "$name: $value\r\n"; } }
-        fwrite($socket, $wire."\r\n".$body); $headers = '';
+        fwrite($socket, $wire."\r\n".$body);
+        return $socket;
+    }
+
+    private function assertOpenHeaders($socket, string $composition): void
+    {
+        $headers = '';
         while (($line = fgets($socket)) !== false && $line !== "\r\n") { $headers .= $line; }
         $this->evidence['headers'][] = $headers;
         self::assertStringContainsString(str_contains($composition, 'buffered') ? '500' : '200 OK', $headers);
         if (!str_contains($composition, 'buffered')) { self::assertStringContainsString('text/event-stream', $headers); }
-        return $socket;
     }
 
     private function rpc(string $address, string $method, array $params, string $composition = ''): array

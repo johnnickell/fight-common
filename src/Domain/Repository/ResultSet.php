@@ -27,12 +27,12 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     /**
      * Constructs ResultSet
      *
-     * @param integer   $page
-     * @param integer   $perPage
-     * @param integer   $totalRecords
-     * @param ArrayList $records
+     * Validation applies only at construction; the supplied mutable list is shared.
+     * Page position and request/result agreement remain consumer responsibilities.
      *
      * @phpstan-param ArrayList<TRecord> $records
+     *
+     * @throws DomainException When bounds, total or record count are invalid
      */
     public function __construct(
         private int $page,
@@ -40,11 +40,20 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
         private int $totalRecords,
         private ArrayList $records
     ) {
-        $this->setItemType($this->records->itemType());
-        $this->totalPages = $this->countPages(
-            $this->totalRecords,
-            $this->perPage
-        );
+        if ($page < 1 || $perPage < 1 || $totalRecords < 0) {
+            throw new DomainException('Result set bounds must be positive and total nonnegative.');
+        }
+
+        $count = $records->count();
+        if ($count > $perPage || $count > $totalRecords) {
+            throw new DomainException('Result set record count exceeds page size or total.');
+        }
+
+        $this->setItemType($records->itemType());
+        $this->totalPages = 1;
+        if ($totalRecords > 0) {
+            $this->totalPages = intdiv($totalRecords - 1, $perPage) + 1;
+        }
     }
 
     /**
@@ -61,24 +70,7 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
      */
     public static function strict(int $page, int $perPage, int $totalRecords, ArrayList $records): self
     {
-        if ($page < 1 || $perPage < 1 || $totalRecords < 0) {
-            throw new DomainException('Result set bounds must be positive and total nonnegative.');
-        }
-
-        $count = $records->count();
-        if ($count > $perPage || $count > $totalRecords) {
-            throw new DomainException('Result set record count exceeds page size or total.');
-        }
-
-        // A zero-total staging instance bypasses legacy floating-point arithmetic entirely.
-        $result = new self($page, $perPage, 0, $records);
-        $result->totalRecords = $totalRecords;
-        $result->totalPages = 1;
-        if ($totalRecords > 0) {
-            $result->totalPages = intdiv($totalRecords - 1, $perPage) + 1;
-        }
-
-        return $result;
+        return new self($page, $perPage, $totalRecords, $records);
     }
 
     /**
@@ -185,17 +177,5 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     public function jsonSerialize(): array
     {
         return $this->toArray();
-    }
-
-    /**
-     * Calculates the number of pages
-     */
-    private function countPages(int $totalRecords, int $perPage): int
-    {
-        if ($totalRecords < 1 || $perPage < 1) {
-            return 1;
-        }
-
-        return intval((($totalRecords - 1) / $perPage) + 1);
     }
 }
