@@ -2,7 +2,7 @@
 id: TICKET-00059
 epic: EPIC-00014
 title: Retire Python wherever practical
-status: ready-for-agent
+status: done
 ---
 
 # Retire Python wherever practical
@@ -41,10 +41,10 @@ Provide a complete inventory and disposition for each item. For exceptions, iden
 | [TASK-00221](../tasks/00221-TASK.md) | Inventory Python and move the quality runner to container PHP | done |
 | [TASK-00222](../tasks/00222-TASK.md) | Retire or justify Python in offline planning and archive commands | done |
 | [TASK-00223](../tasks/00223-TASK.md) | Retire or justify Python in host runtime and database tooling | done |
-| [TASK-00224](../tasks/00224-TASK.md) | Retire or justify Python in docs and identity tooling | in-progress |
+| [TASK-00224](../tasks/00224-TASK.md) | Retire or justify Python in docs and identity tooling | done |
 | [TASK-00225](../tasks/00225-TASK.md) | Retire or justify Python in release helpers | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
-[WF-051](../wayfinder/tickets/WF-051-draw-the-tooling-runtime-boundary.md) records runtime boundaries. The approved EPIC amendment expands retirement beyond the quality runner. Requirements and TASK decomposition are approved. TASK-00221 completed the inventory and quality runner migration. TASK-00222 documented why the offline planning and archive helpers remain in Python. TASK-00223 through TASK-00225 track the remaining dispositions.
+[WF-051](../wayfinder/tickets/WF-051-draw-the-tooling-runtime-boundary.md) records runtime boundaries. The approved EPIC amendment expands retirement beyond the quality runner. Requirements and TASK decomposition are approved. TASK-00221 completed the inventory and quality runner migration. TASK-00222 documented why the offline planning and archive helpers remain in Python. TASK-00223 documented the retained host runtime helpers. TASK-00224 replaced the PHP image’s Python trust check and documented the retained docs and identity helpers. TASK-00225 documented the retained release helpers. The [Python inventory](../../docs/engineering/PYTHON_INVENTORY.md) records the dispositions and alternatives.
