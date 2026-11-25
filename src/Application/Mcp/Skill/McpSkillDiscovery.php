@@ -14,6 +14,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Uri\Rfc3986\Uri;
 
+use function Fight\Common\Domain\base64_url_encode;
+
 /**
  * Class McpSkillDiscovery
  */
@@ -274,11 +276,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
         $result = ['skills' => $page];
         $next = $offset + count($page);
         if ($next < $visible) {
-            $result['nextCursor'] = strtr(
-                base64_encode(pack('N', $next).$this->signature($next, $snapshot)),
-                '+/',
-                '-_'
-            );
+            $result['nextCursor'] = base64_url_encode(pack('N', $next).$this->signature($next, $snapshot));
         }
 
         return $this->result($result);

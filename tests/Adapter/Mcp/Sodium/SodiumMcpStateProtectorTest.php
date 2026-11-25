@@ -33,6 +33,27 @@ final class SodiumMcpStateProtectorTest extends UnitTestCase
         }
     }
 
+    public function test_that_legacy_unpadded_state_opens_but_correct_padding_is_still_rejected(): void
+    {
+        $key = str_repeat('k', 32);
+        $nonce = str_repeat('n', 24);
+        $ciphertext = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+            '',
+            'fight.common.mcp.ordinary/1.1.',
+            $nonce,
+            $key
+        );
+        $padded = '1.1.'.strtr(base64_encode($nonce.$ciphertext), '+/', '-_');
+        $protector = new SodiumMcpStateProtector(1, [1 => $key]);
+
+        self::assertStringEndsWith('==', $padded);
+        self::assertSame('', $protector->open(rtrim($padded, '=')));
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid interaction state.');
+
+        $protector->open($padded);
+    }
+
     public function test_that_rotation_reads_old_tokens_but_emits_only_the_active_version(): void
     {
         $old = random_bytes(32);

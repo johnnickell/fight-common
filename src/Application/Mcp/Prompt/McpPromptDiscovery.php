@@ -12,6 +12,8 @@ use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
+use function Fight\Common\Domain\base64_url_encode;
+
 /**
  * Class McpPromptDiscovery
  */
@@ -154,11 +156,7 @@ final readonly class McpPromptDiscovery implements McpMetadataAwareCapability
         ];
         $next = $offset + $this->limits->pageSize;
         if ($next < count($definitions)) {
-            $result['nextCursor'] = strtr(
-                base64_encode(pack('N', $next).$this->signature($next, $snapshot)),
-                '+/',
-                '-_'
-            );
+            $result['nextCursor'] = base64_url_encode(pack('N', $next).$this->signature($next, $snapshot));
         }
 
         return $this->result($result, $metadata);
