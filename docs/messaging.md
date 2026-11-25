@@ -22,7 +22,7 @@ Application\Messaging
 Adapter\Messaging
 ├── Command\Sync\RoutingCommandBus + CommandPipeline
 │            Sync\Routing\{CommandRouter, InMemory*, ServiceAware*}
-│   Symfony\MessengerCommandBus (legacy: Command\Async\MessengerCommandBus)
+│   Symfony\MessengerCommandBus
 ├── Query\RoutingQueryBus + QueryPipeline
 │       Query\Routing\{QueryRouter, InMemory*, ServiceAware*}
 └── Event\Sync\{SimpleEventDispatcher, ServiceAwareEventDispatcher}
@@ -767,9 +767,8 @@ the sync bus/dispatcher.
 
 ### 1.x Compatibility Names
 
-The following superseded public FQCNs remain independently functional through `1.x`. Each is
-deprecated in source only: it emits no runtime deprecation notice. New integrations should use
-the canonical replacement.
+The superseded public names below were supported in 1.x and are removed in 2.0. Update imports,
+service registrations and any stored class names to the canonical replacements.
 
 | Superseded FQCN | Canonical replacement |
 |---|---|
@@ -830,9 +829,8 @@ dead-letter, and outbox policy remain application concerns rather than Fight Com
 
 **`Symfony\Serializer\SymfonyMessageSerializer`** — implements Messenger's `SerializerInterface`. Uses the
 Domain `Serializer` contract to serialize/deserialize messages, and encodes Messenger stamps in
-`X-Message-Stamp-*` headers. New configuration should inject the canonical
-`Fight\Common\Application\Serialization\JsonSerializer` (or `PhpSerializer`); the concrete
-`Domain\Serialization` serializers are deprecated 1.x compatibility classes.
+`X-Message-Stamp-*` headers. Inject the canonical `Fight\Common\Application\Serialization\JsonSerializer`
+(or `PhpSerializer`); the concrete `Domain\Serialization` names were removed in 2.0.
 
 ```php-inline
 final readonly class SymfonyMessageSerializer implements SerializerInterface

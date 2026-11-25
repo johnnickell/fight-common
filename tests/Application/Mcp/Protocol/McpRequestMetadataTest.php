@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
@@ -23,7 +22,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
 #[CoversClass(McpImplementationInfoGrammar::class)]
-#[CoversClass(ReleasedMcp\McpRequestMetadata::class)]
+#[CoversClass(McpRequestMetadata::class)]
 #[CoversClass(McpTraceContextGrammar::class)]
 final class McpRequestMetadataTest extends UnitTestCase
 {

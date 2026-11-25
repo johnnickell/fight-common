@@ -20,16 +20,8 @@ final readonly class McpResourceReadLimits
      * McpResult retains an independent final encoded-result guard.
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use maxContentBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxContentBytes = 1048576,
-        /**
-         * @deprecated Planned v1.5.0; use maxResultBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxResultBytes = 8388608
+        private int $maxContentBytes = 1048576,
+        private int $maxResultBytes = 8388608
     ) {
         if (
             $maxContentBytes < 1 || $maxContentBytes > 8388608

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\EventSubscriber;
 
-use Fight\Common\Adapter\EventSubscriber\SymfonyValidationSubscriber;
+use Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber;
 use Fight\Common\Application\Attribute\Validation;
 use Fight\Common\Application\Validation\ValidationService;
 use Fight\Test\Common\TestCase\UnitTestCase;

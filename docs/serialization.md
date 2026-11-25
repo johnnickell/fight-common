@@ -1,7 +1,7 @@
 Two cooperating layers keep serialization boundaries explicit: the Domain `Serializable` interface
 lets objects supply and restore their state, while canonical Application `Serializer`
-implementations convert that state to and from string formats. The legacy concrete serializers in
-`Domain\Serialization` are deprecated 1.x compatibility classes, not the recommended API.
+implementations convert that state to and from string formats. The 1.x concrete serializers in
+`Domain\Serialization` were removed in 2.0; the Domain interfaces remain supported.
 
 ```
 Serializable (interface)

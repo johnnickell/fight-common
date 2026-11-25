@@ -17,20 +17,6 @@ use RuntimeException;
 final readonly class DbalObservationSchema
 {
     /**
-     * Default table names only, not the configured storage selection
-     *
-     * @deprecated Planned v1.5.0; targeted for v2.0.0 removal after the released-minor window
-     * Use DbalObservationTables accessors for selected names instead
-     */
-    public const array TABLES = [
-        'fight_execution_schema',
-        'fight_execution_sessions',
-        'fight_execution_phases',
-        'fight_execution_observations',
-        'fight_execution_contents'
-    ];
-
-    /**
      * Constructs DbalObservationSchema
      */
     public function __construct(private DbalObservationTables $tables = new DbalObservationTables())
@@ -64,7 +50,7 @@ final readonly class DbalObservationSchema
         $phaseTable->setPrimaryKey(['project_id', 'phase_id']);
         $phaseTable->addUniqueIndex(
             ['project_id', 'session_id', 'phase_id'],
-            $this->indexName($this->tables->phaseTable(), self::TABLES[2], 'fight_execution_phase_session')
+            $this->indexName($this->tables->phaseTable(), 'fight_execution_phases', 'fight_execution_phase_session')
         );
         $phaseTable->addForeignKeyConstraint(
             $this->tables->sessionTable()->schemaName(),
@@ -90,7 +76,11 @@ final readonly class DbalObservationSchema
         $observationTable->setPrimaryKey(['producer_id', 'observation_id']);
         $observationTable->addIndex(
             ['recorded_at', 'observation_id'],
-            $this->indexName($this->tables->observationTable(), self::TABLES[3], 'fight_execution_recording_order')
+            $this->indexName(
+                $this->tables->observationTable(),
+                'fight_execution_observations',
+                'fight_execution_recording_order'
+            )
         );
         $observationTable->addForeignKeyConstraint(
             $this->tables->sessionTable()->schemaName(),
@@ -166,7 +156,7 @@ final readonly class DbalObservationSchema
             $observationTable = $schemaManager->introspectTable($this->tables->observationTable()->schemaName());
             $indexName = $this->indexName(
                 $this->tables->observationTable(),
-                self::TABLES[3],
+                'fight_execution_observations',
                 'fight_execution_recording_order'
             );
             if (!$observationTable->hasIndex($indexName) || !$observationTable->hasColumn('activity_id')) {

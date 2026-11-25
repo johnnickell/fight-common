@@ -13,8 +13,7 @@ Adapter\Cache
 ├── Psr6\Psr6Cache          — canonical Cache → PSR-6 CacheItemPoolInterface adapter
 ├── Psr16\Psr16Cache        — MutableCache → PSR-16 CacheInterface adapter
 ├── Laravel\LaravelCache    — MutableCache → Laravel cache repository adapter
-├── CodeIgniter\CodeIgniterCache — MutableCache → CodeIgniter cache adapter
-└── PsrCache                — deprecated 1.x compatibility path
+└── CodeIgniter\CodeIgniterCache — MutableCache → CodeIgniter cache adapter
 ```
 
 ---
@@ -94,9 +93,8 @@ All exceptions are caught and wrapped in `CacheException`.
 
 ## Deprecated PsrCache Compatibility
 
-`Fight\Common\Adapter\Cache\PsrCache` remains a silent compatibility path throughout 1.x and delegates to
-`Psr6Cache`. New integrations should use `Fight\Common\Adapter\Cache\Psr6\Psr6Cache`. The legacy class will be
-removed in 2.0.
+Replace `Fight\Common\Adapter\Cache\PsrCache` with `Fight\Common\Adapter\Cache\Psr6\Psr6Cache`. Update
+both imports and service registration IDs; the same PSR-6 pool and logger are used.
 
 ### Mutable and framework adapters
 

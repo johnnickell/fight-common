@@ -24,36 +24,12 @@ final readonly class OAuthTokenRequirements
      * @phpstan-param non-empty-array<string, 'string'|'integer'|'boolean'|'number'|'object'|'list'> $requiredClaimTypes
      */
     private function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use metadata() instead
-         * Retained until a future major after at least one released minor
-         */
-        public OAuthResourceMetadata $metadata,
-        /**
-         * @deprecated Planned v1.5.0; use tokenType() instead
-         * Retained until a future major after at least one released minor
-         */
-        public string $tokenType,
-        /**
-         * @deprecated Planned v1.5.0; use allowedAlgorithms() instead
-         * Retained until a future major after at least one released minor
-         */
-        public array $allowedAlgorithms,
-        /**
-         * @deprecated Planned v1.5.0; use activeKeyIds() instead
-         * Retained until a future major after at least one released minor
-         */
-        public array $activeKeyIds,
-        /**
-         * @deprecated Planned v1.5.0; use requiredClaimTypes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public array $requiredClaimTypes,
-        /**
-         * @deprecated Planned v1.5.0; use clockSkewSeconds() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $clockSkewSeconds
+        private OAuthResourceMetadata $metadata,
+        private string $tokenType,
+        private array $allowedAlgorithms,
+        private array $activeKeyIds,
+        private array $requiredClaimTypes,
+        private int $clockSkewSeconds
     ) {
     }
 

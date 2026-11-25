@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpResponder;
@@ -48,7 +47,7 @@ use Throwable;
 #[CoversClass(McpToolInvoker::class)]
 #[CoversClass(McpToolInvocation::class)]
 #[CoversClass(McpToolFailureMap::class)]
-#[CoversClass(ReleasedMcp\McpProtocolError::class)]
+#[CoversClass(McpProtocolError::class)]
 #[CoversClass(McpResponder::class)]
 final class McpToolInvokerTest extends UnitTestCase
 {

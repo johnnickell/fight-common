@@ -45,6 +45,8 @@ use Symfony\Component\Process\Process;
 #[CoversNothing]
 final class DbalConfiguredTaskIntegrationTest extends UnitTestCase
 {
+    private const array DEFAULT_TASK_TABLE_NAMES = ['fight_task_state', 'fight_tasks'];
+
     private array $connections = [];
     private array $sqlitePaths = [];
 
@@ -800,7 +802,7 @@ final class DbalConfiguredTaskIntegrationTest extends UnitTestCase
     {
         $connection = $this->disposableConnection($backend);
         $platform = $connection->getDatabasePlatform();
-        foreach (['Group', 'Order', ...array_reverse(DbalTaskSchema::TABLES)] as $table) {
+        foreach (['Group', 'Order', ...array_reverse(self::DEFAULT_TASK_TABLE_NAMES)] as $table) {
             $connection->executeStatement('DROP TABLE IF EXISTS '.$platform->quoteSingleIdentifier($table));
         }
 

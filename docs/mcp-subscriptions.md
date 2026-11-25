@@ -203,9 +203,8 @@ $subscriberReader = new DbalSubscriberReader($inspectionConnection, 'production-
 
 All four classes are in the Subscription DBAL namespace above. Existing no-argument schema and `connection`,
 `maxActive`, `storageScope`, `clock` construction/named parameters remain; `tables` is optional and trailing.
-`DbalSubscriptionSchema::TABLES` stays the default inventory; deprecation first shipped in **released v1.5.0**, targeting separately authorized v2.0.0 removal after the released-minor window;
-use `$subscriptionTables->stateTable()->name()` / `$subscriptionTables->subscriptionTable()->name()` instead.
-See the [complete constant migration map and release-window limits](maintenance/table-name-constants.md).
+In place of the removed `DbalSubscriptionSchema::TABLES`, use
+`$subscriptionTables->stateTable()->name()` and `$subscriptionTables->subscriptionTable()->name()`.
 Shared `DbalTableName` validates ordinary ASCII names
 `[A-Za-z_][A-Za-z0-9_]{0,62}`, rejects qualification/prequoting/unsafe inputs and quotes selected names per platform;
 the pair also rejects case-insensitive collisions. Default expiry index naming stays unchanged; renamed registration
@@ -321,8 +320,7 @@ classifies six additive public declarations: `McpSubscriptions`, immutable `McpS
 `fromRequest()` factory), consumer-implementable `McpSubscriptionAdmission` and `McpSubscriptionStore`, and final
 `DbalSubscriptionSchema`/`DbalSubscriptionStore`. Public classes are callable/constructible but not extensible;
 interfaces are callable/implementable, not class-construction or inheritance promises. `McpSubscriptionExecution`
-is internal with no consumer-operation promise. Deprecated schema `TABLES` retains only the two default names
-until its targeted v2.0.0 removal; it does not describe a configured selection.
+is internal with no consumer-operation promise. Read the selected names through `DbalSubscriptionTables`.
 The DBAL schema/store and the third optional registry argument are additive opt-in APIs. Existing handler constructor
 arguments and default behavior remain; the response factory/event stream gain an optional execution argument.
 `McpEventStream` and subscription execution are internal, not a new consumer PSR buffering contract. Reserved

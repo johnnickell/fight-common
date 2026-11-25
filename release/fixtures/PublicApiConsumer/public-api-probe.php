@@ -83,6 +83,8 @@ try {
                 return true;
             }
         };
+    }
+    if (isset($entityManager) && class_exists(DoctrineUnitOfWork::class)) {
         // Deprecated 1.x compatibility journey.
         $legacyUnitOfWork = new DoctrineUnitOfWork($entityManager);
         $legacyUnitOfWork->commit();
@@ -92,7 +94,7 @@ try {
             'standalone_commit_exposed' => method_exists($legacyUnitOfWork, 'commit'),
             'commit_calls'              => $entityManager->flushCalls
         ];
-    } else {
+    } elseif (interface_exists(UnitOfWork::class)) {
         // Deprecated 1.x compatibility journey.
         $legacyUnitOfWork = new class implements UnitOfWork {
             public int $commitCalls = 0;
@@ -127,6 +129,13 @@ try {
             'unit_of_work'              => true,
             'standalone_commit_exposed' => true,
             'commit_calls'              => $legacyUnitOfWork->commitCalls
+        ];
+    } else {
+        $legacyAdapter = [
+            'available'                 => false,
+            'unit_of_work'              => false,
+            'standalone_commit_exposed' => false,
+            'commit_calls'              => 0
         ];
     }
     // Canonical transaction-only journey.

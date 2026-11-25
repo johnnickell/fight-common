@@ -7,7 +7,6 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
@@ -37,10 +36,10 @@ use RuntimeException;
 
 #[CoversClass(McpTasks::class)]
 #[CoversClass(McpTaskHandle::class)]
-#[CoversClass(ReleasedMcp\McpResult::class)]
+#[CoversClass(McpResult::class)]
 #[CoversClass(McpToolInvoker::class)]
 #[CoversClass(McpToolInvocation::class)]
-#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
+#[CoversClass(McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpHeaderValidator::class)]
 #[CoversClass(McpResponder::class)]

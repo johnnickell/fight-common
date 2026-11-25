@@ -8,7 +8,6 @@ use Fight\Common\Adapter\Mcp\Http\DenyAllMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
@@ -34,8 +33,8 @@ use TypeError;
 
 #[CoversClass(McpRequestHandler::class)]
 #[CoversClass(McpResponseFactory::class)]
-#[CoversClass(ReleasedMcp\McpJsonResponse::class)]
-#[CoversClass(ReleasedMcp\McpProtocolError::class)]
+#[CoversClass(McpJsonResponse::class)]
+#[CoversClass(McpProtocolError::class)]
 final class McpRequestHandlerTest extends UnitTestCase
 {
     public function test_that_missing_required_policies_fail_at_composition(): void

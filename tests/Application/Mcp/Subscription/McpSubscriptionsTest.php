@@ -7,7 +7,6 @@ namespace Fight\Test\Common\Application\Mcp\Subscription;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpEventStream;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
-use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
@@ -34,7 +33,7 @@ use RuntimeException;
 #[CoversClass(McpSubscriptions::class)]
 #[CoversClass(McpSubscriptionFilter::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
-#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
+#[CoversClass(McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpEventStream::class)]
 #[CoversClass(McpRequestHandler::class)]

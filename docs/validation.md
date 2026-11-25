@@ -14,7 +14,8 @@ authorize input; it only establishes that the declared rules passed.
 4. [Defining Rules](#defining-rules)
 5. [Custom Error Messages](#custom-error-messages)
 6. [Handling Validation Errors](#handling-validation-errors)
-    - [Global Exception Subscriber](#global-exception-subscriber)
+    - [Symfony exception presentation](#symfony-exception-presentation)
+    - [Laravel exception presentation](#laravel-exception-presentation)
 7. [Complete Example](#complete-example)
 
 ---
@@ -354,64 +355,24 @@ subtypes of the opt-in Application failure vocabulary (`docs/application-failure
 consumer deliberately reports generic unusable input without a field map; use `RuleViolation` for an explicit
 business-rule rejection. Neither replaces field validation or makes diagnostic errors public-safe.
 
-The existing global exception subscriber converts exceptions into a `JSendResponse`. This keeps the controller action free of try/catch boilerplate, but the legacy subscriber can expose arbitrary diagnostic messages and validation context. It is **not** a production-safe redaction boundary. For JSON requests, select the explicit [safe Symfony exception composition](https://johnnickell.github.io/fight-common/safe-http-errors/#symfony-native-exception-lifecycle) **instead of** the legacy exception subscriber: the validation subscriber remains unchanged, but the thrown exception yields a fixed safe 400 unless a consumer deliberately projects public field data. The opt-in safe PSR-15 path is separate. In Laravel, the [explicit safe native handler](https://johnnickell.github.io/fight-common/safe-http-errors/#laravel-native-report-and-render-lifecycle) also fixes Common structured validation at 400 without raw fields; native Laravel validation retains its own 422 and requires deliberate public field projection. The legacy Laravel `ErrorController` still returns raw validation errors and must not be mistaken for that safe path. The next section describes existing *unsafe* Symfony wiring, not the new safe path.
+### Symfony exception presentation
 
-### Global Exception Subscriber
+Keep `SymfonyValidationSubscriber` for `#[Validation]`. It runs on `kernel.controller` before the action;
+exception presentation is a separate step. Follow the [Symfony exception wiring](../../safe-http-errors.md#symfony-native-exception-lifecycle)
+to register `SafeSymfonyExceptionSubscriber` explicitly on `kernel.exception` with `SafeErrorController` and
+an application-owned redacting diagnostics service. Remove the old exception listener and controller registrations;
+do not install both listeners. Do not also wrap this path in the PSR-15 error middleware.
 
-`SymfonyExceptionSubscriber` listens for `KernelEvents::EXCEPTION` and delegates to `ErrorController`, which produces a `JSendResponse`:
+For a request that selects JSON, Common's `ValidationException` normally produces an HTTP 400 JSend failure
+without the raw field map. If clients need field errors, supply a trusted projector that publishes only data
+safe for those clients. HTML requests go to Symfony's own error handling, for which Common makes no redaction guarantee.
 
-```
-Request
-  └─► controller action
-        └─► ValidationException thrown
-              └─► kernel.exception event
-                    └─► SymfonyExceptionSubscriber::onKernelException()
-                          └─► ErrorController::handle()
-                                ├─► ValidationException  →  JSendResponse::fail()  (400)
-                                ├─► HttpExceptionInterface →  JSendResponse::error() (with status code)
-                                └─► generic Throwable    →  JSendResponse::error()  (500)
-```
+### Laravel exception presentation
 
-#### Exception-to-Response Mapping
-
-| Exception | Response | Status Code |
-|---|---|---|
-| `ValidationException` | `JSendResponse::fail($errors)` | 400 |
-| `NotFoundHttpException` | `JSendResponse::error($message)` | 404 |
-| `AccessDeniedHttpException` | `JSendResponse::error($message)` | 403 |
-| Any other `HttpExceptionInterface` | `JSendResponse::error($message)` | As reported |
-| Generic `Throwable` | `JSendResponse::error($message)` | 500 |
-
-#### Wiring Up the Subscriber
-
-With autowiring and autoconfigure enabled:
-
-```yaml
-# config/services.yaml
-services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-
-Fight\Common\Adapter\Http\Symfony\Controller\ErrorController: ~
-
-Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber: ~
-```
-
-If you are not using autoconfigure, tag the subscriber manually:
-
-```yaml
-services:
-Fight\Common\Adapter\Http\Symfony\Controller\ErrorController: ~
-
-Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber:
-        arguments:
-- '@Fight\Common\Adapter\Http\Symfony\Controller\ErrorController'
-        tags:
-            - { name: kernel.event_subscriber }
-```
-
-Once wired, any `ValidationException` thrown during a request (including from `SymfonyValidationSubscriber`) produces a raw structured JSON fail response; validator text may contain private data. This legacy behavior remains compatible for the minor, not safe for production exposure. Use the safe composition above for new JSON error handling; HTML is delegated to the framework and has no Common redaction guarantee.
+Wire the [safe native Laravel handler](../../safe-http-errors.md#laravel-native-report-and-render-lifecycle) instead of
+binding the removed error controller. For JSON, Common structured validation produces HTTP 400; native Laravel
+validation retains HTTP 422. Raw field errors are private by default in both cases. A trusted projector may
+publish safe fields. Non-JSON requests go to Laravel's own error handling.
 
 ---
 

@@ -18,31 +18,11 @@ final readonly class McpSkillLimits
      * Resource limits independently constrain individual files and their complete encoded read results.
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use maxFiles() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxFiles = 512,
-        /**
-         * @deprecated Planned v1.5.0; use maxTotalBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxTotalBytes = 16777216,
-        /**
-         * @deprecated Planned v1.5.0; use maxFrontmatterBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxFrontmatterBytes = 65536,
-        /**
-         * @deprecated Planned v1.5.0; use maxDepth() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxDepth = 32,
-        /**
-         * @deprecated Planned v1.5.0; use maxEntryBytes() instead
-         * Retained until a future major after at least one released minor
-         */
-        public int $maxEntryBytes = 4194304
+        private int $maxFiles = 512,
+        private int $maxTotalBytes = 16777216,
+        private int $maxFrontmatterBytes = 65536,
+        private int $maxDepth = 32,
+        private int $maxEntryBytes = 4194304
     ) {
         if (
             $maxFiles < 1 || $maxFiles > 512

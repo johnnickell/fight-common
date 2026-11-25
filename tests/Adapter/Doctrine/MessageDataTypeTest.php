@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Adapter\Doctrine;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Fight\Common\Adapter\Doctrine\MessageDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\MessageDataType;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Message;
 use Fight\Common\Application\Serialization\JsonSerializer;

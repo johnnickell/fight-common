@@ -7,17 +7,14 @@ namespace Fight\Test\Common\Adapter\Doctrine;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Fight\Common\Adapter\Doctrine\EmailAddressDataType;
-use Fight\Common\Adapter\Persistence\Doctrine\Type\EmailAddressDataType as CanonicalEmailAddressDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\EmailAddressDataType;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(EmailAddressDataType::class)]
-#[CoversClass(CanonicalEmailAddressDataType::class)]
 class EmailAddressDataTypeTest extends UnitTestCase
 {
     private EmailAddressDataType $type;
@@ -97,10 +94,9 @@ class EmailAddressDataTypeTest extends UnitTestCase
         self::assertSame('test@example.com', $result->toString());
     }
 
-    #[DataProvider('emailTypes')]
-    public function test_that_email_conversion_preserves_quoted_text_and_existing_empty_and_instance_contracts(
-        CanonicalEmailAddressDataType $type
-    ): void {
+    public function test_that_email_conversion_preserves_quoted_text_and_existing_empty_and_instance_contracts(): void
+    {
+        $type = $this->type;
         self::assertSame('common_email_address', $type->getName());
         self::assertSame('common_email_address', $type::TYPE_NAME);
         foreach ([null, ''] as $empty) {
@@ -126,34 +122,21 @@ class EmailAddressDataTypeTest extends UnitTestCase
         }
     }
 
-    #[DataProvider('emailTypes')]
-    public function test_that_email_conversion_keeps_rejecting_raw_database_write_strings(
-        CanonicalEmailAddressDataType $type
-    ): void {
+    public function test_that_email_conversion_keeps_rejecting_raw_database_write_strings(): void
+    {
         $this->expectException(InvalidType::class);
 
-        $type->convertToDatabaseValue('"a@b"@example.com', $this->platform);
+        $this->type->convertToDatabaseValue('"a@b"@example.com', $this->platform);
     }
 
-    #[DataProvider('emailTypes')]
-    public function test_that_email_conversion_keeps_wrapping_invalid_stored_addresses(
-        CanonicalEmailAddressDataType $type
-    ): void {
+    public function test_that_email_conversion_keeps_wrapping_invalid_stored_addresses(): void
+    {
         try {
-            $type->convertToPHPValue('a@b@example.com', $this->platform);
+            $this->type->convertToPHPValue('a@b@example.com', $this->platform);
             self::fail('Invalid stored email must be rejected');
         } catch (ValueNotConvertible $exception) {
             self::assertInstanceOf(DomainException::class, $exception->getPrevious());
         }
-    }
-
-    /**
-     * @return iterable<string, array{CanonicalEmailAddressDataType}>
-     */
-    public static function emailTypes(): iterable
-    {
-        yield 'legacy' => [new EmailAddressDataType()];
-        yield 'canonical' => [new CanonicalEmailAddressDataType()];
     }
 
     public function test_that_convert_to_php_value_throws_for_non_string_value(): void

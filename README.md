@@ -33,17 +33,18 @@ runs use cases. The domain holds the business rules and does not depend on the o
 
 ## JSend response compatibility
 
-The published `1.x` JSend response format still works, with or without Symfony. See the
-[Validation guide](https://johnnickell.github.io/fight-common/components/validation/) for the framework-neutral
-response envelope and Symfony response behavior.
+The framework-neutral JSend response format is unchanged. Use the typed response API; the old raw Symfony
+response and unsafe exception presenters have been removed. See the
+[Validation guide](https://johnnickell.github.io/fight-common/components/validation/) for response behavior.
 
 ## MCP foundation imports
 
 If you use the Model Context Protocol (MCP), start with the
-[foundation migration map](docs/maintenance/mcp-foundation-namespaces.md) for the recommended imports and
-supported old names. `McpResponder` and `McpDiagnostics` stay in the root MCP namespace and are not deprecated.
-The [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target) covers moved code
-that was never released and the aliases kept for released code.
+[removal inventory](docs/maintenance/v2-removal-inventory.md#mcp-foundation-declaration-moves) for canonical
+imports and what to do before upgrading saved PHP objects or changing container registrations. `McpResponder`
+and `McpDiagnostics` stay in the root MCP namespace. The [v1.5 foundation map](docs/maintenance/mcp-foundation-namespaces.md)
+records the old aliases, and the [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target)
+covers the separate aggregate alignment.
 
 See [execution observations](docs/execution-observations.md#typed-activity-execution-facts) for optional activity
 records and their limits, and [durable Tasks](docs/durable-tasks.md#explicit-composition) for the separate

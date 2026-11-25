@@ -4,8 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Http;
 
-use Fight\Common\Application\Mcp\McpInvocationGuard as ReleasedMcpInvocationGuard;
-
-// Preserve consumer guard implementations in both old and canonical compositions.
-$alias = __NAMESPACE__.'\\McpInvocationGuard';
-interface_exists($alias, false) || class_alias(ReleasedMcpInvocationGuard::class, $alias);
+/**
+ * Interface McpInvocationGuard
+ */
+interface McpInvocationGuard
+{
+    /**
+     * Returns whether one invocation is allowed before capability selection
+     *
+     * The consumer owns caller identity, limits, exemptions and storage. Only the
+     * validated method and optional standard operation name cross this boundary.
+     */
+    public function allows(string $method, ?string $name): bool;
+}

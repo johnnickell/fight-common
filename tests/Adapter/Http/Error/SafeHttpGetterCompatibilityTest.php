@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Http\Error;
 
-use Error;
-use ErrorException;
 use Fight\Common\Adapter\Http\Error\SafeHttpFailure;
 use Fight\Common\Adapter\Http\Error\SafeHttpMetadata;
 use Fight\Common\Adapter\Http\Error\SafeHttpPresentation;
@@ -19,33 +17,13 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class SafeHttpGetterCompatibilityTest extends UnitTestCase
 {
     #[DataProvider('values')]
-    public function test_that_getters_preserve_legacy_reads_readonly_state_and_serialization(object $value, array $expected): void
+    public function test_that_getters_preserve_configured_state_after_round_trip(object $value, array $expected): void
     {
-        $serialized = serialize($value);
-        set_error_handler(static function (int $severity, string $message): never {
-            throw new ErrorException($message, 0, $severity);
-        });
-        try {
-            self::assertSame($expected, get_object_vars($value));
-            foreach ($expected as $property => $state) {
-                // Intentional legacy reads: these public interfaces remain supported without runtime notices.
-                self::assertSame($state, $value->$property);
-                self::assertSame($state, $value->$property());
-                try {
-                    $value->$property = $state;
-                    self::fail('Legacy state must remain readonly.');
-                } catch (Error $error) {
-                    self::assertStringContainsString('readonly property', $error->getMessage());
-                }
-            }
-            self::assertSame($serialized, serialize($value));
-            $restored = unserialize($serialized);
-            self::assertEquals($expected, get_object_vars($restored));
-            foreach ($expected as $property => $state) {
-                self::assertEquals($state, $restored->$property());
-            }
-        } finally {
-            restore_error_handler();
+        $restored = unserialize(serialize($value));
+
+        foreach ($expected as $property => $state) {
+            self::assertSame($state, $value->$property());
+            self::assertEquals($state, $restored->$property());
         }
     }
 

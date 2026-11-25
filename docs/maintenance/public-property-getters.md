@@ -1,5 +1,8 @@
 # Migrate released public-property reads to getters
 
+> **Historical 1.x guidance.** The examples and compatibility statements on this page describe the
+> v1.5 line, not current 2.0 work. See the [v2.0 removal inventory](v2-removal-inventory.md) before upgrading.
+
 The v1.5.0 getter migration adds **50 typed, side-effect-free methods in 14 runtime classes**. Every method
 has the same name as its corresponding property: change `$value->maxBytes` to `$value->maxBytes()`, for example.
 There are no `get...` aliases or setters. Constructors, named arguments, factories, defaults and validation are

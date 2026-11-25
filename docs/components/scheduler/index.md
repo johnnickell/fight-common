@@ -35,8 +35,6 @@ atlas_next_steps:
 atlas_local_contents:
   - label: Portable composition
     href: "#portable-processrunner-composition"
-  - label: Compatibility paths
-    href: "#legacy-1x-construction-compatibility"
   - label: Registering jobs
     href: "#registering-jobs"
   - label: Schedule formats
@@ -51,7 +49,7 @@ atlas_local_contents:
     href: "#timezone"
 ---
 
-Scheduler coordinates recurring command and callable work. New consumers should construct it with
+Scheduler coordinates recurring command and callable work. Construct it with
 `Scheduler::withProcessRunner()` so command execution stays behind the Application-owned
 `ProcessRunner` port and framework selection remains in the composition root.
 

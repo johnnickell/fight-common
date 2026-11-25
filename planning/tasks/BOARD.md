@@ -42,14 +42,13 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 |---|---|---|---|---|---|---|
 | 7 | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
 | 8 | [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | [TICKET-00059 — Retire Python wherever practical](../tickets/00059-TICKET.md) | ready-for-agent | — | — |
-| 9 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
 | 11 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
+| 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | [TASK-00226](00226-TASK.md) | — |
 | 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | ready-for-agent | [TASK-00224](00224-TASK.md) | — |
 
 ## Needs Info
@@ -106,6 +105,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 8 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | — (standalone chore) | done | — | [PR #269](https://github.com/johnnickell/fight-common/pull/269) |
 | 9 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | done | — | [PR #172](https://github.com/johnnickell/fight-common/pull/172) |
 | 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | done | — | [PR #270](https://github.com/johnnickell/fight-common/pull/270) |
+| 9 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #330](https://github.com/johnnickell/fight-common/pull/330) |
 | 10 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | [TICKET-00027 — Protect MCP Endpoints with Reusable OAuth Resource-Server Support](../tickets/00027-TICKET.md) | done | — | [PR #174](https://github.com/johnnickell/fight-common/pull/174) |
 | 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | done | — | [PR #271](https://github.com/johnnickell/fight-common/pull/271) |
 | 10 | [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #329](https://github.com/johnnickell/fight-common/pull/329) |

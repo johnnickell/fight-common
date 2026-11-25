@@ -53,6 +53,13 @@ use RuntimeException;
 #[CoversClass(CommittedNoticeDispatchFailed::class)]
 final class DbalNoticeRepositoryTest extends UnitTestCase
 {
+    private const array DEFAULT_NOTICE_TABLE_NAMES = [
+        'fight_notice_state',
+        'fight_notices',
+        'fight_notice_relationships',
+        'fight_notice_comparisons'
+    ];
+
     public function test_that_routed_recording_commits_related_evidence_and_deduplicates_immutable_receipts(): void
     {
         $connection = $this->database(); $fixture = new NoticeFixture($connection);
@@ -117,7 +124,7 @@ final class DbalNoticeRepositoryTest extends UnitTestCase
             self::assertFalse($failure->outcomeUncertain()); self::assertInstanceOf(Exception::class, $failure->getPrevious()); self::assertSame('Notice storage failed.', $failure->getMessage());
         }
         self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
-        foreach (DbalNoticeSchema::TABLES as $table) { if ($table !== 'fight_notice_state') { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); } }
+        foreach (self::DEFAULT_NOTICE_TABLE_NAMES as $table) { if ($table !== 'fight_notice_state') { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); } }
         self::assertSame(0, (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state'));
         $connection->executeStatement('DROP TRIGGER fail_comparison'); $fixture->record(); self::assertSame(1, $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0]->position());
     }

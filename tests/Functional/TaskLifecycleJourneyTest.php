@@ -23,6 +23,8 @@ use Symfony\Component\Process\Process;
 #[CoversNothing]
 final class TaskLifecycleJourneyTest extends UnitTestCase
 {
+    private const array DEFAULT_TASK_TABLE_NAMES = ['fight_task_state', 'fight_tasks'];
+
     private array $connections = [];
     private array $directories = [];
 
@@ -162,7 +164,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
             $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
         }
         $connection = $this->connect($params);
-        foreach (array_unique([...array_reverse(DbalTaskSchema::TABLES), $tables->taskTable()->name(), $tables->stateTable()->name()]) as $table) {
+        foreach (array_unique([...array_reverse(self::DEFAULT_TASK_TABLE_NAMES), $tables->taskTable()->name(), $tables->stateTable()->name()]) as $table) {
             $connection->executeStatement('DROP TABLE IF EXISTS '.$connection->getDatabasePlatform()->quoteSingleIdentifier($table));
         }
         (new DbalTaskSchema($tables))->install($connection); return $connection;

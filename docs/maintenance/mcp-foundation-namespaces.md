@@ -1,5 +1,8 @@
 # MCP foundation namespace migration
 
+> **Historical 1.x guidance.** The examples and compatibility statements on this page describe the
+> v1.5 line, not current 2.0 work. See the [v2.0 removal inventory](v2-removal-inventory.md) before upgrading.
+
 ## Released-operation inventory
 
 TASK-00181 inspected every root declaration against local tags before selecting bridges. All 19 appear in

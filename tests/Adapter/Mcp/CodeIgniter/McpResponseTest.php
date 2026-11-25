@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Mcp\CodeIgniter;
 
-use Fight\Common\Adapter\Http\CodeIgniter\McpResponse as LegacyMcpResponse;
 use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
@@ -18,13 +17,11 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 #[CoversClass(McpResponse::class)]
-#[CoversClass(LegacyMcpResponse::class)]
 final class McpResponseTest extends UnitTestCase
 {
     public static function responseClasses(): iterable
     {
         yield 'canonical' => [McpResponse::class];
-        yield 'legacy' => [LegacyMcpResponse::class];
     }
 
     #[DataProvider('responseClasses')]

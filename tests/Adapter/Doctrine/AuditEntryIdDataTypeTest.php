@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Adapter\Doctrine;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Fight\Common\Adapter\Doctrine\AuditEntryIdDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\AuditEntryIdDataType;
 use Fight\Common\Domain\Observability\AuditEntryId;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;

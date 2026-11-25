@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Auth\OAuth;
 
-use Error;
-use ErrorException;
 use Fight\Common\Application\Auth\OAuth\OAuthResourceMetadata;
 use Fight\Common\Application\Auth\OAuth\OAuthScopeSet;
 use Fight\Common\Application\Auth\OAuth\OAuthTokenRequirements;
@@ -174,7 +172,7 @@ final class OAuthConfigurationTest extends UnitTestCase
         self::assertFalse($requirements->accepts(OAuthFixture::claims(keyId: 'attacker-key'), time()));
     }
 
-    public function test_that_getters_preserve_every_legacy_value_identity_and_serialized_state(): void
+    public function test_that_getters_preserve_configuration_and_serialized_state(): void
     {
         $scopes = OAuthScopeSet::fromArray(['write', 'read']);
         $metadata = OAuthResourceMetadata::fromConfiguration(resource: OAuthFixture::RESOURCE, authorizationServers: [OAuthFixture::ISSUER], scopesSupported: $scopes, metadataUrl: 'https://metadata.test/custom');
@@ -187,34 +185,12 @@ final class OAuthConfigurationTest extends UnitTestCase
             [$requirements, ['metadata' => $metadata, 'tokenType' => 'at+jwt', 'allowedAlgorithms' => ['RS256'], 'activeKeyIds' => [OAuthFixture::ISSUER => ['current']], 'requiredClaimTypes' => ['sub' => 'string'], 'clockSkewSeconds' => 10]],
             [$claims, ['claims' => $snapshot, 'algorithm' => 'RS256', 'keyId' => 'current', 'tokenType' => 'at+jwt', 'grantedScopes' => $scopes]]
         ];
-        set_error_handler(static function (int $severity, string $message): never {
-            throw new ErrorException($message, 0, $severity);
-        });
-        try {
-            foreach ($cases as [$value, $expected]) {
-                $serialized = serialize($value);
-                $json = json_encode($value, JSON_THROW_ON_ERROR);
-                self::assertSame($expected, get_object_vars($value));
-                foreach ($expected as $property => $state) {
-                    // Deliberate legacy-contract probes, not ordinary OAuth callers.
-                    self::assertSame($state, $value->$property);
-                    self::assertSame($state, $value->$property());
-                    try {
-                        $value->$property = $state;
-                        self::fail('Legacy OAuth state must remain readonly.');
-                    } catch (Error $error) {
-                        self::assertStringContainsString('readonly property', $error->getMessage());
-                    }
-                }
-                self::assertSame($serialized, serialize($value));
-                self::assertSame($json, json_encode(unserialize($serialized), JSON_THROW_ON_ERROR));
-                $restored = unserialize($serialized);
-                foreach ($expected as $property => $state) {
-                    self::assertEquals($state, $restored->$property());
-                }
+        foreach ($cases as [$value, $expected]) {
+            $restored = unserialize(serialize($value));
+            foreach ($expected as $property => $state) {
+                self::assertSame($state, $value->$property());
+                self::assertEquals($state, $restored->$property());
             }
-        } finally {
-            restore_error_handler();
         }
         $issuers = $metadata->authorizationServers();
         $issuers[0] = 'https://attacker.test';

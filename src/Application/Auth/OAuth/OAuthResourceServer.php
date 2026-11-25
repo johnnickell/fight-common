@@ -19,11 +19,7 @@ final readonly class OAuthResourceServer
      * Constructs OAuthResourceServer
      */
     public function __construct(
-        /**
-         * @deprecated Planned v1.5.0; use requirements() instead
-         * Retained until a future major after at least one released minor
-         */
-        public OAuthTokenRequirements $requirements,
+        private OAuthTokenRequirements $requirements,
         OAuthTokenValidator $validator,
         OAuthClaimsHandoff $handoff,
         private OAuthDiagnostics $diagnostics

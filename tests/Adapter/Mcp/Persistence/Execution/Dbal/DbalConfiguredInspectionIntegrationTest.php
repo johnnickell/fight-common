@@ -36,6 +36,14 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversNothing]
 final class DbalConfiguredInspectionIntegrationTest extends UnitTestCase
 {
+    private const array DEFAULT_OBSERVATION_TABLE_NAMES = [
+        'fight_execution_schema',
+        'fight_execution_sessions',
+        'fight_execution_phases',
+        'fight_execution_observations',
+        'fight_execution_contents'
+    ];
+
     private array $connections = [];
     private array $directories = [];
 
@@ -47,7 +55,7 @@ final class DbalConfiguredInspectionIntegrationTest extends UnitTestCase
         (new DbalObservationSchema(tables: $tables))->install($connection);
         $sentinels = [];
         foreach ($this->names($tables) as $index => $name) {
-            $default = DbalObservationSchema::TABLES[$index];
+            $default = self::DEFAULT_OBSERVATION_TABLE_NAMES[$index];
             if ($name !== $default) {
                 $connection->executeStatement('CREATE TABLE '.$default.' (marker INTEGER)');
                 $connection->insert($default, ['marker' => 42]);
@@ -259,7 +267,7 @@ final class DbalConfiguredInspectionIntegrationTest extends UnitTestCase
             $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
         }
         $connection = $this->connect($params);
-        foreach (array_reverse(array_map(null, DbalObservationSchema::TABLES, array_values(self::overrides()))) as $counterparts) {
+        foreach (array_reverse(array_map(null, self::DEFAULT_OBSERVATION_TABLE_NAMES, array_values(self::overrides()))) as $counterparts) {
             foreach ($counterparts as $table) {
                 $connection->executeStatement('DROP TABLE IF EXISTS '.$connection->getDatabasePlatform()->quoteSingleIdentifier($table));
             }

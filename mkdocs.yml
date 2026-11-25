@@ -167,7 +167,8 @@ nav:
     - Slim: frameworks/slim/index.md
   - Architecture: architecture/index.md
   - Maintenance:
-    - Deprecation Inventory: maintenance/deprecations.md
+    - v2.0 Removal Inventory: maintenance/v2-removal-inventory.md
+    - Historical Deprecation Inventory: maintenance/deprecations.md
     - v1.5.0 Change Reconciliation: maintenance/v1.5.0-reconciliation.md
     - MCP Foundation Namespaces: maintenance/mcp-foundation-namespaces.md
     - Execution and Notice Domain Values: maintenance/evidence-domain-values.md

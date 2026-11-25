@@ -59,18 +59,16 @@ atlas_local_contents:
 
 Read released MCP limit values through typed property-name getters such as `maxBytes()`, `maxDepth()`,
 `pageSize()` and `maxResultBytes()`. Skill members likewise expose `path()`, `bytes()`, `mimeType()`, `text()`
-and `digest()`. Their old public readonly properties remain supported; documentation-only deprecation is
-first shipped in released v1.5.0;
-see the [complete getter migration and release window](../../maintenance/public-property-getters.md).
-No budget, validation or wire representation changes with getter adoption.
+and `digest()`. The [getter migration map](../../maintenance/v2-removal-inventory.md#readonly-property-reads)
+lists the removed reads and saved-data checks. Budgets, validation and explicit wire projections are unchanged.
 
 ## Ownership
 
 Concrete shared-Query inspection Tools are presentation adapters under `Adapter\Mcp\Tool\{Aggregate}`;
 aggregate handlers and ports remain directly under `Application\Mcp\{Aggregate}`. MCP persistence uses
 `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with genuinely cross-aggregate execution support under
-`Persistence\Execution\Dbal`. These direct never-released moves do not move the generic protocol engine,
-HTTP integrations or released foundation compatibility owners. See the
+`Persistence\Execution\Dbal`. This aggregate alignment is separate from the foundation and HTTP
+adapter moves. See the
 [complete aggregate migration map](../../mcp-namespaces.md#approved-aggregate-alignment-target).
 
 `Application\Mcp` implements framework-neutral MCP `2026-07-28` semantics. It decodes a JSON-RPC request,
@@ -84,10 +82,9 @@ principal, or make an authorization decision.
 percent-encoding and Base64 rules. Both live under `Fight\Common\Application\Mcp\Protocol` and move directly
 as untagged internals, without root aliases or deprecations. Public foundation imports now use `Capability`,
 `Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root.
-The 17 relocated root spellings remain functional; documentation-only deprecation first shipped in
-released v1.5.0. Canonical aliases preserve
-released runtime identities, both consumer type directions and saved values; see the
-[complete foundation migration map](../../maintenance/mcp-foundation-namespaces.md).
+The 17 old root spellings are removed. The canonical names now own the actual declarations. See the
+[foundation migration map](../../maintenance/v2-removal-inventory.md#mcp-foundation-declaration-moves)
+for old imports, literal container IDs and saved PHP objects that need pre-upgrade work.
 Neither collaborator is a consumer validator API or an additional composition step. This extraction preserves
 accepted/rejected inputs, open objects and schema-permitted empty strings;
 metadata remains neither credentials nor authorization. Decoder byte/depth limits and usable error IDs remain
@@ -1136,22 +1133,13 @@ Paths below omit the common `Fight\Common\` prefix.
 | `Adapter\Http\Symfony\McpResponseFactory` | `Adapter\Mcp\Symfony\McpResponseFactory` |
 | `Adapter\Http\CodeIgniter\McpResponse` | `Adapter\Mcp\CodeIgniter\McpResponse` |
 
-All nine deprecated names remain functional throughout 1.x, with PHPDoc/documentation-only deprecation and no
-runtime notices. Their first deprecation shipped in released v1.5.0; removal requires separate
-future-major authorization and at least one actually released minor of deprecation. Existing consumers need not change immediately. Native Symfony
-responses remain usable by Laravel; no extra Laravel adapter or container auto-registration is introduced.
+All nine deprecated spellings shipped in v1.5.0 and are now removed. The canonical adapters do not promise
+consumer inheritance. Convert or drain trusted old native `McpOrigin` objects before upgrading; the normalized
+origin text retains its meaning. Native Symfony responses remain usable by Laravel; no extra Laravel adapter or
+automatic container registration is introduced.
 
-Eight legacy classes are final compatibility subclasses of their canonical implementations. The canonical parents
-are non-final only to preserve these released names; consumer inheritance is **not** a promised extension point.
-`McpOrigin` instead retains an explicit final legacy value implementation: validation delegates to the final canonical
-value while its factory still returns the old concrete class and preserves its original serialized private value.
-The old and canonical Origin values are distinct classes with the same normalized text, not interchangeable type aliases.
-Private serialization of service graphs is not a migration format or a new compatibility promise.
-
-The internal `McpEventStream` and `McpRequestBodyReader` move directly to `Adapter\Mcp\Http`. Their old names carry
-no public compatibility promise. The manifest adds nine public names without removing the nine released public
-names; the two helpers remain internal. This relocation adds no protocol methods, dependencies, permission policy,
-transaction guarantee or consumer runtime qualification. Existing product contracts and release probes remain intact.
+`McpEventStream` and `McpRequestBodyReader` remain internal to `Adapter\Mcp\Http`. The migration adds no protocol
+methods, dependencies, permission policy or transaction guarantee.
 
 ## Guarded HTTP
 

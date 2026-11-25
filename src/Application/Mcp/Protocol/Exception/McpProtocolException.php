@@ -4,8 +4,39 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Protocol\Exception;
 
-use Fight\Common\Application\Mcp\McpProtocolException as ReleasedMcpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use RuntimeException;
 
-// Preserve catchability in both directions and the released Throwable identity and state.
-$alias = __NAMESPACE__.'\\McpProtocolException';
-class_exists($alias, false) || class_alias(ReleasedMcpProtocolException::class, $alias);
+/**
+ * Class McpProtocolException
+ *
+ * Public semantic rejection signal that preserves a usable JSON-RPC identifier for the responder
+ */
+final class McpProtocolException extends RuntimeException
+{
+    /**
+     * Constructs McpProtocolException
+     */
+    public function __construct(
+        private readonly McpProtocolError $protocolError,
+        private readonly int|string|null $requestId
+    ) {
+        parent::__construct($this->protocolError->toArray()['message']);
+    }
+
+    /**
+     * Returns the semantic protocol error
+     */
+    public function protocolError(): McpProtocolError
+    {
+        return $this->protocolError;
+    }
+
+    /**
+     * Returns the usable request identifier when one was decoded
+     */
+    public function requestId(): int|string|null
+    {
+        return $this->requestId;
+    }
+}

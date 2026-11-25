@@ -29,6 +29,14 @@ use RuntimeException;
 #[CoversNothing]
 final class DbalConfiguredRecordingIntegrationTest extends UnitTestCase
 {
+    private const array DEFAULT_OBSERVATION_TABLE_NAMES = [
+        'fight_execution_schema',
+        'fight_execution_sessions',
+        'fight_execution_phases',
+        'fight_execution_observations',
+        'fight_execution_contents'
+    ];
+
     private array $connections = [];
     private array $directories = [];
 
@@ -46,7 +54,7 @@ final class DbalConfiguredRecordingIntegrationTest extends UnitTestCase
         $schema->install($connection);
         $sentinels = [];
         foreach ($this->names($tables) as $index => $name) {
-            $default = DbalObservationSchema::TABLES[$index];
+            $default = self::DEFAULT_OBSERVATION_TABLE_NAMES[$index];
             if ($name !== $default) {
                 // Populated overridden counterparts must never participate, even with incompatible shape.
                 $connection->executeStatement('CREATE TABLE '.$default.' (marker INTEGER)');
@@ -77,7 +85,7 @@ final class DbalConfiguredRecordingIntegrationTest extends UnitTestCase
         $existing = array_map(static fn (string $name): string => trim($name, '`"'), $connection->createSchemaManager()->listTableNames());
         foreach ($this->names($tables) as $index => $name) {
             self::assertContains($name, $existing);
-            self::assertContains(DbalObservationSchema::TABLES[$index], $existing);
+            self::assertContains(self::DEFAULT_OBSERVATION_TABLE_NAMES[$index], $existing);
         }
     }
 
@@ -228,7 +236,7 @@ final class DbalConfiguredRecordingIntegrationTest extends UnitTestCase
         $configured = ['Current_user', 'ExecutionSessions', 'ExecutionPhases', 'ExecutionObservations', 'ExecutionContents'];
         // Partial selections can link a default child to an overridden parent, and vice versa.
         foreach (array_reverse(array_keys($configured)) as $index) {
-            foreach ([$configured[$index], DbalObservationSchema::TABLES[$index]] as $name) {
+            foreach ([$configured[$index], self::DEFAULT_OBSERVATION_TABLE_NAMES[$index]] as $name) {
                 $connection->executeStatement('DROP TABLE IF EXISTS '.$platform->quoteSingleIdentifier($name));
             }
         }
@@ -254,7 +262,7 @@ final class DbalConfiguredRecordingIntegrationTest extends UnitTestCase
     private function executionTableCount(Connection $connection): int
     {
         $existing = array_map(static fn (string $name): string => trim($name, '`"'), $connection->createSchemaManager()->listTableNames());
-        return count(array_intersect($existing, [...DbalObservationSchema::TABLES, 'Current_user', 'ExecutionSessions', 'ExecutionPhases', 'ExecutionObservations', 'ExecutionContents']));
+        return count(array_intersect($existing, [...self::DEFAULT_OBSERVATION_TABLE_NAMES, 'Current_user', 'ExecutionSessions', 'ExecutionPhases', 'ExecutionObservations', 'ExecutionContents']));
     }
 
     private function snapshot(Connection $connection, DbalObservationTables $tables): array

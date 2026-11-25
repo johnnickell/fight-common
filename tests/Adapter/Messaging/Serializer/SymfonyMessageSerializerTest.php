@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Messaging\Serializer;
 
 use stdClass;
-use Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer;
+use Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Application\Serialization\JsonSerializer;
