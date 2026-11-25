@@ -40,7 +40,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | ready-for-agent | — | — |
+| None | — | — | — | — | — | — |
 
 ## Waiting
 
@@ -113,6 +113,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 11 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #333](https://github.com/johnnickell/fight-common/pull/333) |
 | 12 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #182](https://github.com/johnnickell/fight-common/pull/182) |
 | 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | done | — | [PR #275](https://github.com/johnnickell/fight-common/pull/275) |
+| 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #336](https://github.com/johnnickell/fight-common/pull/336) |
 | 13 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | — (standalone chore) | done | — | [PR #186](https://github.com/johnnickell/fight-common/pull/186) |
 | 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | done | — | [PR #274](https://github.com/johnnickell/fight-common/pull/274) |
 | 14 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | — (standalone chore) | done | — | [PR #187](https://github.com/johnnickell/fight-common/pull/187) |
