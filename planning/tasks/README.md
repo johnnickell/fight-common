@@ -128,7 +128,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | done | [TICKET-00060](../tickets/00060-TICKET.md) |
 | [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | done | [TICKET-00060](../tickets/00060-TICKET.md) |
 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | done | [TICKET-00060](../tickets/00060-TICKET.md) |
-| [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
+| [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | in-progress | [TICKET-00060](../tickets/00060-TICKET.md) |
 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | ready-for-agent | [TICKET-00057](../tickets/00057-TICKET.md) |
 | [TASK-00231](00231-TASK.md) | Reduce the Functional suite to at most 99 expanded cases | done | [TICKET-00057](../tickets/00057-TICKET.md) |
 | [TASK-00232](00232-TASK.md) | Remove obsolete Rector flags | done | — |
