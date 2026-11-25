@@ -2,7 +2,7 @@
 id: TICKET-00060
 epic: EPIC-00014
 title: Provide the v1.5.1 to v2.0.0 upgrade path
-status: ready-for-agent
+status: done
 ---
 
 # Provide the v1.5.1 to v2.0.0 upgrade path
@@ -41,9 +41,9 @@ Provide a tag-linked removal inventory, updated compatibility evidence, direct U
 | [TASK-00226](../tasks/00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | done |
 | [TASK-00227](../tasks/00227-TASK.md) | Enforce strict ResultSet and Pagination construction | done |
 | [TASK-00228](../tasks/00228-TASK.md) | Add and adopt the Base64URL helpers | done |
-| [TASK-00229](../tasks/00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | in-progress |
+| [TASK-00229](../tasks/00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
-[WF-052](../wayfinder/tickets/WF-052-define-the-2-0-upgrade-contract.md) owns the approved scope. The child TASKs above record implementation progress; upgrade verification and the final guide remain with [TASK-00229](../tasks/00229-TASK.md).
+[WF-052](../wayfinder/tickets/WF-052-define-the-2-0-upgrade-contract.md) owns the approved scope. The child TASKs above record implementation and verification. [TASK-00229](../tasks/00229-TASK.md) records independent acceptance of the [upgrade guide](../../UPGRADE.md).
