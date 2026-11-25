@@ -124,7 +124,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00222](00222-TASK.md) | Retire or justify Python in offline planning and archive commands | done | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00223](00223-TASK.md) | Retire or justify Python in host runtime and database tooling | done | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00224](00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
-| [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | ready-for-agent | [TICKET-00059](../tickets/00059-TICKET.md) |
+| [TASK-00225](00225-TASK.md) | Retire or justify Python in release helpers | done | [TICKET-00059](../tickets/00059-TICKET.md) |
 | [TASK-00226](00226-TASK.md) | Remove deprecated contracts and migrate their supported replacements | done | [TICKET-00060](../tickets/00060-TICKET.md) |
 | [TASK-00227](00227-TASK.md) | Enforce strict ResultSet and Pagination construction | done | [TICKET-00060](../tickets/00060-TICKET.md) |
 | [TASK-00228](00228-TASK.md) | Add and adopt the Base64URL helpers | ready-for-agent | [TICKET-00060](../tickets/00060-TICKET.md) |
