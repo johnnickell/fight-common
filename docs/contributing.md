@@ -164,22 +164,32 @@ Inspect each trust store separately; the affected `emSign ECC Root CA - G3` root
 prints bundle identities and rejects that root without contacting an untrusted TLS endpoint:
 
 ```bash
-for image in fight-common fight-common-docs-python-3.13.17; do
-  docker run --rm -i --pull=never --network=none --read-only "$image" python3 - <<'PY'
+set -euo pipefail
+docker run --rm --pull=never --network=none --read-only fight-common \
+  dpkg-query -W ca-certificates
+docker run --rm --pull=never --network=none --read-only fight-common \
+  php /usr/local/share/fight-common/check-ca-bundle.php
+
+docker run --rm --pull=never --network=none --read-only fight-common-docs-python-3.13.17 \
+  dpkg-query -W ca-certificates
+docker run --rm -i --pull=never --network=none --read-only fight-common-docs-python-3.13.17 python3 - <<'PY'
 import hashlib
 import importlib.metadata
 import ssl
+import sys
 
-paths = {"os": "/etc/ssl/certs/ca-certificates.crt"}
-for name in ("certifi", "pip._vendor.certifi"):
-    try:
-        module = __import__(name, fromlist=["where"])
-    except ImportError:
-        continue
-    print(name, module.__version__)
-    if name == "pip._vendor.certifi":
-        print("pip", importlib.metadata.version("pip"))
-    paths[name] = module.where()
+import certifi
+from pip._vendor import certifi as vendored_certifi
+
+print("python", sys.version.split()[0])
+print("pip", importlib.metadata.version("pip"))
+print("certifi", certifi.__version__)
+print("pip._vendor.certifi", vendored_certifi.__version__)
+paths = {
+    "os": "/etc/ssl/certs/ca-certificates.crt",
+    "certifi": certifi.where(),
+    "pip._vendor.certifi": vendored_certifi.where(),
+}
 for name, path in paths.items():
     with open(path, "rb") as bundle:
         print(name, path, hashlib.sha256(bundle.read()).hexdigest())
@@ -190,8 +200,6 @@ for name, path in paths.items():
                    for rdn in cert["subject"]
                    for key, value in rdn if key == "commonName"), name
 PY
-  if [ "$?" -ne 0 ]; then exit 1; fi
-done
 ```
 
 Record image IDs, actual interpreter/certifi/pip versions, OS `ca-certificates` package provenance, bundle

@@ -41,6 +41,6 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00056](00056-TICKET.md) | Record and inspect typed activity execution facts | done | [EPIC-00009](../epics/00009-EPIC.md) |
 | [TICKET-00057](00057-TICKET.md) | Shorten the full hosted CI gate | ready-for-agent | [EPIC-00014](../epics/00014-EPIC.md) |
 | [TICKET-00058](00058-TICKET.md) | Replace project context with a concise glossary | done | [EPIC-00014](../epics/00014-EPIC.md) |
-| [TICKET-00059](00059-TICKET.md) | Retire Python wherever practical | ready-for-agent | [EPIC-00014](../epics/00014-EPIC.md) |
+| [TICKET-00059](00059-TICKET.md) | Retire Python wherever practical | done | [EPIC-00014](../epics/00014-EPIC.md) |
 | [TICKET-00060](00060-TICKET.md) | Provide the v1.5.1 to v2.0.0 upgrade path | ready-for-agent | [EPIC-00014](../epics/00014-EPIC.md) |
 <!-- /planning:records -->

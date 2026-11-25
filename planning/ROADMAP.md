@@ -33,7 +33,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00224](tasks/00224-TASK.md) | Retire or justify Python in docs and identity tooling | ready-for-agent | — |
+| Ready Frontier | [TASK-00229](tasks/00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority

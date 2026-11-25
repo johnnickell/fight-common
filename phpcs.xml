@@ -7,6 +7,7 @@
     <file>release/scripts</file>
     <file>release/consumer</file>
     <file>scripts</file>
+    <file>etc/docker/php</file>
     <rule ref="./src/Standards/Phpcs/ruleset.xml">
     </rule>
     <rule ref="Generic.Commenting.DocComment.ContentAfterOpen">
