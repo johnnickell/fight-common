@@ -21,7 +21,9 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | in-progress | — |
+| None | — | — | — | — |
+
+No TASK is currently executable; unresolved work may remain.
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -34,7 +36,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
@@ -116,6 +118,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | 12 | [TASK-00229](00229-TASK.md) | Verify the upgrade path and finish UPGRADE.md | [TICKET-00060 — Provide the v1.5.1 to v2.0.0 upgrade path](../tickets/00060-TICKET.md) | done | — | [PR #336](https://github.com/johnnickell/fight-common/pull/336) |
 | 13 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | — (standalone chore) | done | — | [PR #186](https://github.com/johnnickell/fight-common/pull/186) |
 | 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | done | — | [PR #274](https://github.com/johnnickell/fight-common/pull/274) |
+| 13 | [TASK-00230](00230-TASK.md) | Shorten the remaining gate and measure the combined result | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | [PR #337](https://github.com/johnnickell/fight-common/pull/337) |
 | 14 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | — (standalone chore) | done | — | [PR #187](https://github.com/johnnickell/fight-common/pull/187) |
 | 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | done | — | [PR #278](https://github.com/johnnickell/fight-common/pull/278) |
 | 14 | [TASK-00231](00231-TASK.md) | Reduce the Functional suite to at most 99 expanded cases | [TICKET-00057 — Shorten the full hosted CI gate](../tickets/00057-TICKET.md) | done | — | [PR #325](https://github.com/johnnickell/fight-common/pull/325) |
