@@ -16,11 +16,11 @@ Local checkout observations are not claims about uninspected remote changes.
 **EPIC-handoff update:** local `develop` now contains TASK-00105 at merge `52ff756` (PR #163). The table below
 preserves the original inspection state; the isolated planning base was unchanged at that handoff. Publication
 preparation later fast-forwarded the planning branch to `52ff756`, without changing the historical inspection table.
-The accepted destination and completion evidence now live in [EPIC-00007](../../epics/00007-EPIC.md); no new
+The accepted destination and completion evidence now live in [EPIC-00007](../../epics/archive/00007-EPIC.md); no new
 runtime/conformance run is claimed.
 
 **Progress/cancellation closeout update — 2026-09-28:** TASK-00108 and TASK-00109 are now accepted package work.
-John explicitly closed [TASK-00110](../../tasks/00110-TASK.md) as `wontfix`, removing five-starter confirmation
+John explicitly closed [TASK-00110](../../tasks/archive/00110-TASK.md) as `wontfix`, removing five-starter confirmation
 as a Common gate. Fight Agent OS owns consumer implementation and reports Common defects upstream as bug-fix
 TASKs. The inspection table below remains historical; its former no-waiver instruction is superseded by this
 explicit decision and the [ADR 0024 amendment](../../adr/0024-framework-adapter-support-and-delivery-boundaries.md#progressive-mcp-adoption-amendment--2026-09-28).
@@ -37,8 +37,8 @@ not make remote Skills usable in Pi.
 
 The [delivery proposal](WF-045-mcp-resources-skills-delivery-proposal.md) led to John's acceptance of a separate
 Common EPIC destination and structured multi-file/lazy-read boundary in
-[WF-045](../tickets/WF-045-select-the-first-resources-and-skills-delivery.md) and the subsequently approved
-[EPIC-00007](../../epics/00007-EPIC.md). Detailed interfaces, numeric values and implementation slicing remain later
+[WF-045](../tickets/archive/WF-045-select-the-first-resources-and-skills-delivery.md) and the subsequently approved
+[EPIC-00007](../../epics/archive/00007-EPIC.md). Detailed interfaces, numeric values and implementation slicing remain later
 design. One cross-project reconciliation remains: Agent OS's accepted WF-014 assigns
 MCP wire mechanics to official SDKs rather than Common. The Common decision does not edit or silently supersede
 that downstream record.
@@ -47,21 +47,21 @@ that downstream record.
 
 | Boundary | Direct evidence | State at inspection |
 |---|---|---|
-| Common semantic MCP | [McpResponder](../../../src/Application/Mcp/McpResponder.php), [decoder](../../../src/Application/Mcp/McpRequestDecoder.php), [registry](../../../src/Application/Mcp/McpCapabilityRegistry.php), [capability contract](../../../src/Application/Mcp/McpCapability.php), [semantic tests](../../../tests/Application/Mcp/McpResponderTest.php), [TASK-00104](../../tasks/00104-TASK.md) | Implemented and merged. Supports one revision, `server/discover`, explicit method dispatch, semantic errors and metadata. Does not implement Resources just because standard method names are recognized. |
+| Common semantic MCP | [McpResponder](../../../src/Application/Mcp/McpResponder.php), [decoder](../../../src/Application/Mcp/McpRequestDecoder.php), [registry](../../../src/Application/Mcp/McpCapabilityRegistry.php), [capability contract](../../../src/Application/Mcp/McpCapability.php), [semantic tests](../../../tests/Application/Mcp/McpResponderTest.php), [TASK-00104](../../tasks/archive/00104-TASK.md) | Implemented and merged. Supports one revision, `server/discover`, explicit method dispatch, semantic errors and metadata. Does not implement Resources just because standard method names are recognized. |
 | Guarded HTTP | At the local HTTP checkpoint: `src/Adapter/Http/Mcp/McpRequestHandler.php`, `McpHeaderValidator.php` beside it, `tests/Functional/McpEndpointJourneyTest.php`, and `planning/tasks/00105-TASK.md` | Implemented on active branch, in progress pending independent review; not in this planning base. Required Origin policy, invocation guard, mirror validation, direct JSON and sanitized diagnostics. Recorded builder gate is historical evidence, not rerun here. |
-| Tools | [TICKET-00024](../../tickets/00024-TICKET.md), [TASK-00106](../../tasks/00106-TASK.md), [TASK-00107](../../tasks/00107-TASK.md) | Approved/planned; no production Tool implementation in inspected source. Own registration, schemas, availability, pagination, validated CQRS invocation and safe output. |
-| Progress and cancellation | [TICKET-00025](../../tickets/00025-TICKET.md), [TASK-00108](../../tasks/00108-TASK.md), [TASK-00109](../../tasks/00109-TASK.md), [TASK-00110](../../tasks/00110-TASK.md) | Planned. Genuine incremental SSE and disconnect qualification are not implemented. Five starter allocations remain `needs-info`; do not duplicate or waive this work. |
-| Protected interactions | [TICKET-00026](../../tickets/00026-TICKET.md), [TASK-00111](../../tasks/00111-TASK.md), [TASK-00112](../../tasks/00112-TASK.md) | Planned Tool `input_required`, protected retries and atomic destructive confirmation. Not a general Workflow engine. |
-| OAuth resource server | [TICKET-00027](../../tickets/00027-TICKET.md), [TASK-00113](../../tasks/00113-TASK.md) | Planned metadata, validation/handoff and HTTP challenges. Existing HMAC is distinct; invocation limiting is not authorization. |
-| Resources / Skills | Production MCP inventory and [EPIC-00006](../../epics/00006-EPIC.md) | Missing. No Resource provider, content model, list/read capability, static manifest service, `skills/list` or `skills/get`. Explicitly later capabilities in the current Tools EPIC. |
+| Tools | [TICKET-00024](../../tickets/archive/00024-TICKET.md), [TASK-00106](../../tasks/archive/00106-TASK.md), [TASK-00107](../../tasks/archive/00107-TASK.md) | Approved/planned; no production Tool implementation in inspected source. Own registration, schemas, availability, pagination, validated CQRS invocation and safe output. |
+| Progress and cancellation | [TICKET-00025](../../tickets/archive/00025-TICKET.md), [TASK-00108](../../tasks/archive/00108-TASK.md), [TASK-00109](../../tasks/archive/00109-TASK.md), [TASK-00110](../../tasks/archive/00110-TASK.md) | Planned. Genuine incremental SSE and disconnect qualification are not implemented. Five starter allocations remain `needs-info`; do not duplicate or waive this work. |
+| Protected interactions | [TICKET-00026](../../tickets/archive/00026-TICKET.md), [TASK-00111](../../tasks/archive/00111-TASK.md), [TASK-00112](../../tasks/archive/00112-TASK.md) | Planned Tool `input_required`, protected retries and atomic destructive confirmation. Not a general Workflow engine. |
+| OAuth resource server | [TICKET-00027](../../tickets/archive/00027-TICKET.md), [TASK-00113](../../tasks/archive/00113-TASK.md) | Planned metadata, validation/handoff and HTTP challenges. Existing HMAC is distinct; invocation limiting is not authorization. |
+| Resources / Skills | Production MCP inventory and [EPIC-00006](../../epics/archive/00006-EPIC.md) | Missing. No Resource provider, content model, list/read capability, static manifest service, `skills/list` or `skills/get`. Explicitly later capabilities in the current Tools EPIC. |
 | Released Common | [v1.2.0 source](https://github.com/johnnickell/fight-common/tree/v1.2.0/src), local tag tree and [changelog](../../../CHANGELOG.md) | Latest inspected local release tag is v1.2.0, with no `Application/Mcp` or `Adapter/Http/Mcp`. Merged MCP foundation is unreleased; this is not a fresh Packagist certification. |
 | Agent OS installed dependencies | [locked dependencies][ao-lock] | Common v1.2.0 at `a2cd615d9b5064c9c30e994655536176249cd73b`; Access Control v0.3.0 at `22ffab6452b2278b82df9b147e8949630b97355f`. Consumer does not yet receive Common's new MCP foundation. |
 | Agent OS runtime | [source tree][ao-src], [Harness extension][ao-extension], [foundation inventory][ao-foundation] | PHP security/persistence/API foundation and a presentation-only Pi package. No production Planning/Harness domain implementation or MCP route/client in inspected `src/` and `harness/`. Local `.pi/skills` are real instruction files, not remotely served Skills. |
 | Agent OS product destination | [Harness EPIC-00006][ao-epic], [WF-014][ao-trust], [Workflow WF-017][ao-workflow] | Approved requirements, mostly undecomposed Harness work. Terminal-first amendment removes browser/database-cutover as blanket prerequisites, not immutable context or live authorization requirements. Markdown remains current Planning authority. |
 
-Common's [closed MCP map](../fight-common-mcp-http-support-map.md), especially
-[WF-039 ownership](../tickets/WF-039-define-fight-common-and-consumer-ownership-boundary.md) and
-[WF-041 presentation](../tickets/WF-041-define-mcp-presentation-errors-and-response-modes.md), already settle
+Common's [closed MCP map](../archive/maps/fight-common-mcp-http-support-map.md), especially
+[WF-039 ownership](../tickets/archive/WF-039-define-fight-common-and-consumer-ownership-boundary.md) and
+[WF-041 presentation](../tickets/archive/WF-041-define-mcp-presentation-errors-and-response-modes.md), already settle
 policy-free Common mechanics and consumer-owned authority. The relevant archived
 [portability map](../archive/maps/fight-framework-portability-map.md) and
 [WF-025 standards/adapters decision](../tickets/archive/WF-025-psr-interoperability-and-adapter-seams.md)
@@ -231,9 +231,9 @@ make a recipient forget bytes already delivered. Harness cached-content/offline 
 
 ## Open questions and evidence limits
 
-- [WF-045](../tickets/WF-045-select-the-first-resources-and-skills-delivery.md) now records the human-accepted
+- [WF-045](../tickets/archive/WF-045-select-the-first-resources-and-skills-delivery.md) now records the human-accepted
   delivery boundary and multi-file clarification. The completed EPIC grill records scope and completion in
-  [EPIC-00007](../../epics/00007-EPIC.md), not in this research. Downstream ownership reconciliation remains separate.
+  [EPIC-00007](../../epics/archive/00007-EPIC.md), not in this research. Downstream ownership reconciliation remains separate.
 - Access Control's current checkout was not audited. Its future Agent-aware MCP availability attribute and
   Resource/Skill integration remain downstream requirements, not claims about an installed package.
 - Exact PHP interface signatures, YAML parser selection, limit/error implementation, SDK release pin and network

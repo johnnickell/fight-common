@@ -193,4 +193,4 @@ no task authority, and the harness is not an OS sandbox. Preserve enrollment/acc
 Do not make the custom split-pane workspace, managed Runner/database integration, HTTP runtime enrollment or
 provider qualification a prerequisite for library work. Those are separate optional capabilities. This adoption
 requires no upstream workflow trials; its approved verification boundary is recorded in
-[TASK-00172](../tasks/00172-TASK.md#accepted-decisions).
+[TASK-00172](../tasks/archive/00172-TASK.md#accepted-decisions).

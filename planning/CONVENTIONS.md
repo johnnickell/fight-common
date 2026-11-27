@@ -130,7 +130,7 @@ overall N/A, plus every required acceptance check. A green build alone is insuff
 records this administrative closeout; Review/QA publish reports without changing planning. Record publication,
 merge, release and deployment separately; done grants none of those authorities.
 
-This prospective rule was approved in [TASK-00172](tasks/00172-TASK.md). Preserve historical implementation-complete
+This prospective rule was approved in [TASK-00172](tasks/archive/00172-TASK.md). Preserve historical implementation-complete
 statuses and reports under their original policy; do not mass-reopen or infer current acceptance from old `done`.
 The [Delivery contract](../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout) separates
 accepted content from administrative metadata and any required final-head delivery checks.

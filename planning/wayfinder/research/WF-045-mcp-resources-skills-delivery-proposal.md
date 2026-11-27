@@ -1,22 +1,22 @@
 # Proposed first Resources and Skills delivery
 
 **Status:** Delivery boundary accepted by John in
-[WF-045](../tickets/WF-045-select-the-first-resources-and-skills-delivery.md), including the structured multi-file
-clarification below. The completed grill produced [EPIC-00007](../../epics/00007-EPIC.md), which now owns accepted
+[WF-045](../tickets/archive/WF-045-select-the-first-resources-and-skills-delivery.md), including the structured multi-file
+clarification below. The completed grill produced [EPIC-00007](../../epics/archive/00007-EPIC.md), which now owns accepted
 scope and completion evidence. Detailed APIs, numeric values and implementation slicing below remain illustrative
 later design, not additional human approval gates.
 **Evidence:** [Implementation checkpoints, official contracts and ownership map](WF-044-mcp-resources-skills-evidence.md).
-The approved requirement split is now [TICKET-00028](../../tickets/00028-TICKET.md),
-[TICKET-00029](../../tickets/00029-TICKET.md) and [TICKET-00030](../../tickets/00030-TICKET.md). TICKET-00028 now has
-approved [TASK-00117](../../tasks/00117-TASK.md) and [TASK-00118](../../tasks/00118-TASK.md); TICKET-00029 has
-[TASK-00119](../../tasks/00119-TASK.md) and [TASK-00120](../../tasks/00120-TASK.md). TICKET-00030 now has
-[TASK-00121](../../tasks/00121-TASK.md) and [TASK-00122](../../tasks/00122-TASK.md), completing approved decomposition.
+The approved requirement split is now [TICKET-00028](../../tickets/archive/00028-TICKET.md),
+[TICKET-00029](../../tickets/archive/00029-TICKET.md) and [TICKET-00030](../../tickets/archive/00030-TICKET.md). TICKET-00028 now has
+approved [TASK-00117](../../tasks/archive/00117-TASK.md) and [TASK-00118](../../tasks/archive/00118-TASK.md); TICKET-00029 has
+[TASK-00119](../../tasks/archive/00119-TASK.md) and [TASK-00120](../../tasks/archive/00120-TASK.md). TICKET-00030 now has
+[TASK-00121](../../tasks/archive/00121-TASK.md) and [TASK-00122](../../tasks/archive/00122-TASK.md), completing approved decomposition.
 No implementation has begun, and no release target or public PHP API is approved.
 
 ## Recommendation and done condition
 
-The accepted destination is the separate **[EPIC-00007 — Reusable MCP Resources and Structured Skills](../../epics/00007-EPIC.md)**.
-Reuse [EPIC-00006](../../epics/00006-EPIC.md), rather than expanding its already-decomposed Tools/transport work.
+The accepted destination is the separate **[EPIC-00007 — Reusable MCP Resources and Structured Skills](../../epics/archive/00007-EPIC.md)**.
+Reuse [EPIC-00006](../../epics/archive/00006-EPIC.md), rather than expanding its already-decomposed Tools/transport work.
 The new destination is: an authenticated consumer can compose generic Resources and static MCP Skills over the
 existing endpoint, with faithful discovery, authorized direct reads, consistent manifests and finite bounds.
 Common package fixtures prove that contract **through the existing guarded endpoint, including coexistence with
@@ -356,7 +356,7 @@ content-only proof that reuses the existing PSR endpoint.
 
 ## Accepted boundary and remaining fog
 
-[WF-045](../tickets/WF-045-select-the-first-resources-and-skills-delivery.md) records John's accepted choices:
+[WF-045](../tickets/archive/WF-045-select-the-first-resources-and-skills-delivery.md) records John's accepted choices:
 
 1. **Separate Common EPIC**, leaving the existing Tools EPIC's destination intact. Agent OS must deliberately
    adopt Common and still build its own client; downstream ownership wording remains to be reconciled there.

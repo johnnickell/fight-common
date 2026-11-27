@@ -10,11 +10,11 @@ current plans, and which additional MCP features are worth supporting?
 **Accepted constraint from John:** retain CQRS implementations. Paginate every large query where practical;
 provide summary statistics first and allow bounded paginated drill-down into details. This constrains the design
 without approving the proposed Tool catalog, persistence adapter or additional protocol features.
-Owner: [Reusable execution introspection and MCP evolution](../mcp-execution-introspection-map.md).
+Owner: [Reusable execution introspection and MCP evolution](../archive/maps/mcp-execution-introspection-map.md).
 
-**Subsequent decisions:** [WF-046](../tickets/WF-046-choose-execution-introspection-outcomes-and-ownership.md)
+**Subsequent decisions:** [WF-046](../tickets/archive/WF-046-choose-execution-introspection-outcomes-and-ownership.md)
 now approves Common-owned reusable CQRS implementation, persistence adapter and MCP presentation.
-[WF-047](../tickets/WF-047-define-safe-observation-recording-and-query-guarantees.md) records John's desired
+[WF-047](../tickets/archive/WF-047-define-safe-observation-recording-and-query-guarantees.md) records John's desired
 Factory-style browsing of captured messages, tool arguments/results and process output behind separate permissions.
 The safe-ledger exclusions below are not a blanket ban on protected rich-detail browsing. Reasoning and complete
 output capture are not requirements. John owns pending Agent OS planning alignment; citations below describe the
@@ -289,7 +289,7 @@ boundary between historical example, current consumer planning and proposed Comm
   [metadata filter](../../../src/Application/Mcp/Tool/Messaging/McpToolMetadataFilter.php),
   [request metadata](../../../src/Application/Mcp/McpRequestMetadata.php),
   [ownership standard](../../../docs/engineering/standards/Architecture.md#package-and-consumer-ownership).
-- **S10:** [Common WF-043 resource-server boundary](../tickets/WF-043-define-reusable-oauth-resource-server-support.md),
+- **S10:** [Common WF-043 resource-server boundary](../tickets/archive/WF-043-define-reusable-oauth-resource-server-support.md),
   [Agent OS TICKET-00061 Agent authority](https://github.com/johnnickell/fight-agent-os/blob/c0a4b9dd7055efc2d1f882a10078689c3b319b77/planning/tickets/00061-TICKET.md).
 - **S11:** [OpenTelemetry MCP conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/547934afa90a34298441caf80c43b27255c3a292/docs/gen-ai/mcp.md),
   [Agent spans](https://github.com/open-telemetry/semantic-conventions-genai/blob/547934afa90a34298441caf80c43b27255c3a292/docs/gen-ai/gen-ai-agent-spans.md).
@@ -306,12 +306,12 @@ boundary between historical example, current consumer planning and proposed Comm
 
 ## Open questions and planning handoff
 
-1. [WF-046 — Choose reusable execution introspection outcomes and ownership](../tickets/WF-046-choose-execution-introspection-outcomes-and-ownership.md):
+1. [WF-046 — Choose reusable execution introspection outcomes and ownership](../tickets/archive/WF-046-choose-execution-introspection-outcomes-and-ownership.md):
    should Common ship reusable observation mechanics plus MCP query presentation, or only protocol primitives
    while the first consumer proves the domain shape? Which caller and first end-to-end question matter most?
-2. [WF-047 — Define safe observation recording and query guarantees](../tickets/WF-047-define-safe-observation-recording-and-query-guarantees.md):
+2. [WF-047 — Define safe observation recording and query guarantees](../tickets/archive/WF-047-define-safe-observation-recording-and-query-guarantees.md):
    establish the actual minimum durable contract, producer trust, safe fields, failure semantics and store boundary.
-3. [WF-048 — Select additional MCP capabilities from consumer journeys](../tickets/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md):
+3. [WF-048 — Select additional MCP capabilities from consumer journeys](../tickets/archive/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md):
    select/defer features against accepted journeys and actual clients, not checklist completeness.
 
 No EPIC/TICKET/TASK, source implementation, consumer amendment, runtime enrollment, commit or publication is

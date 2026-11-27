@@ -83,7 +83,7 @@ weakening a support claim.
 
 ### Progressive MCP adoption amendment — 2026-09-28
 
-John explicitly closed [TASK-00110](../tasks/00110-TASK.md) as `wontfix`: Fight Agent OS will implement and qualify
+John explicitly closed [TASK-00110](../tasks/archive/00110-TASK.md) as `wontfix`: Fight Agent OS will implement and qualify
 its consumer MCP features and report demonstrated Common defects upstream as bug-fix TASKs. Common does not
 allocate five starter qualification TASKs, collect new progressive-MCP starter receipts, or retain a confirmation
 TASK as a prerequisite for TICKET-00025 completion or subsequent work. Consumer adoption is not a Common

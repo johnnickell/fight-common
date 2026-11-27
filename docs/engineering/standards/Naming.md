@@ -45,7 +45,7 @@ released-name exception rather than silently breaking callers or weakening the g
 
 [Architecture](Architecture.md#aggregate-ownership-and-namespaces) owns type placement and the single ownership
 rule; naming changes do not authorize moving types, changing wire/database keys or renaming message/Tool IDs.
-[TASK-00192](../../../planning/tasks/00192-TASK.md) owns the codebase-wide correction; this standard does not
+[TASK-00192](../../../planning/tasks/archive/00192-TASK.md) owns the codebase-wide correction; this standard does not
 claim it has already happened.
 
 PHP properties and frontend data properties are camelCase. Database columns and HTTP JSON fields are snake_case. Map at boundaries, including nested data. Use available `string()` conversion helpers where suitable; do not change an established external schema without a compatibility decision.

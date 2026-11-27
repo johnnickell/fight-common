@@ -51,7 +51,7 @@ Planning now distinguishes unfinished, executable and attention-needed work, wit
 
 ## Scoped compatibility exception — 2026-09-27
 
-For [TASK-00116](../../planning/tasks/00116-TASK.md), the maintainer explicitly retained DBAL 4.4 support before
+For [TASK-00116](../../planning/tasks/archive/00116-TASK.md), the maintainer explicitly retained DBAL 4.4 support before
 2.0 and separately approved the four-site constructor diagnostic exception documented in the
 [project profile](../../planning/agents/project-profile.md#approved-dbal-schema-compatibility-exception).
 This reconciles DBAL 4.5's new `@internal` annotation with the still-supported 4.4 public API. It does not change
@@ -74,7 +74,7 @@ installed skill files, hosted workflows, branch protections, release certificati
 
 ## Bounded adoption — TASK-00115
 
-[TASK-00115](../../planning/tasks/00115-TASK.md) records the maintainer-approved planning frontier, prospective TASK
+[TASK-00115](../../planning/tasks/archive/00115-TASK.md) records the maintainer-approved planning frontier, prospective TASK
 branch/PR identity, implementation-complete done, independent two-pass accept/revise review, canonical version-3
 handoff and mechanical-reconciliation provenance. This replaces the fixed dual-model percentage review contract;
 historical reports retain their original identities and meanings. Review and Testing now permit necessary reviewer
@@ -117,7 +117,7 @@ The installed Delivery digest above identifies this reviewed local amendment.
 ## Hosted CI discretion correction — 2026-10-09
 
 John explicitly corrected the project policy: a hosted green result has never been a prerequisite for human PR
-merge in Fight Common. [TASK-00146](../../planning/tasks/00146-TASK.md) aligns the project profile, ADR 0008,
+merge in Fight Common. [TASK-00146](../../planning/tasks/archive/00146-TASK.md) aligns the project profile, ADR 0008,
 release ADR 0028 and the local Testing standard. The existing Tests and Deploy Docs workflows remain useful
 independent signals; missing/failing results are disclosed with their cause, not labeled green. When current local
 acceptance and applicable QA are satisfied, land can finish its ready-for-human handoff despite optional CI
@@ -131,7 +131,7 @@ remain unchanged.
 
 ## Shared workflows and independent QA — 2026-10-20
 
-John approved [TASK-00172](../../planning/tasks/00172-TASK.md) to bind installed shared skills to Common-owned
+John approved [TASK-00172](../../planning/tasks/archive/00172-TASK.md) to bind installed shared skills to Common-owned
 policy and adopt Agent OS's independent QA contract. TASK `done` now requires independent Review acceptance and
 satisfied required QA (or justified overall N/A), in addition to implementation acceptance and required verification.
 This supersedes TASK-00115's earlier completion rule prospectively; historical statuses, approvals and reports
@@ -161,7 +161,7 @@ the installed Architecture digest above is refreshed from the prior TASK-00183 d
 
 ## Aggregate-first architecture and descriptive naming — TASK-00183
 
-John's 2026-11-02 decision in [TASK-00183](../../planning/tasks/00183-TASK.md) amends the local
+John's 2026-11-02 decision in [TASK-00183](../../planning/tasks/archive/00183-TASK.md) amends the local
 [Architecture](standards/Architecture.md#aggregate-ownership-and-namespaces) and
 [Naming](standards/Naming.md#variables-properties-and-parameters) standards. Architecture owns aggregate identity,
 repository and invariant placement, matching Application handler ownership, separate repository/transaction
@@ -178,7 +178,7 @@ conformance, independent acceptance, release or publication is asserted by this 
 
 ## No post-merge Board chore — historical 2026-10-27 checkpoint
 
-During [TASK-00166](../../planning/tasks/00166-TASK.md#latest-base-integration-and-permanent-delivery-policy), John
+During [TASK-00166](../../planning/tasks/archive/00166-TASK.md#latest-base-integration-and-permanent-delivery-policy), John
 rejected persistent merge-handoff notes and even a renamed post-merge burden, then directed that the docs be fixed.
 [The checkpoint conventions](https://github.com/johnnickell/fight-common/blob/9c66408eea782b2a975f893e0a0442e58ac2d536/planning/CONVENTIONS.md#current-delivery-handoffs) recorded the then-current Common rule: ordinary Land
 records verified PR URL and historical acceptance/publication, but creates no new delivery marker, tracked current
