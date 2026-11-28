@@ -6,8 +6,10 @@ namespace Fight\Test\Common\Adapter\Auth\Hmac;
 
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacMethods;
+use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
 use Fight\Common\Application\Auth\Exception\AuthException;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use GuzzleHttp\Psr7\ServerRequest;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ServerRequestInterface;
@@ -111,6 +113,42 @@ class HmacAuthenticatorTest extends UnitTestCase
         $request->shouldReceive('getBody')->andReturn($body);
         $request->shouldReceive('getMethod')->andReturn($method);
         $request->shouldReceive('getUri')->andReturn($uri);
+
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
+
+        self::assertTrue($authenticator->validate($request));
+    }
+
+    public function test_that_validate_checks_integrity_for_a_signed_request_with_non_empty_body(): void
+    {
+        $content = '0';
+        $signer = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
+        $signedRequest = $signer->signRequest(
+            new ServerRequest('POST', 'https://example.com/api', [], $content)
+        );
+        $timestamp = (int) $signedRequest->getHeaderLine('X-Timestamp');
+
+        /** @var MockInterface|ServerRequestInterface $request */
+        $request = $this->mock(ServerRequestInterface::class);
+        foreach (self::REQUIRED_HEADERS as $header) {
+            $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
+        }
+        $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->twice()->andReturn(true);
+        $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
+        $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
+        $request->shouldReceive('getHeaderLine')->with('Credential')->andReturn(self::PUBLIC_KEY);
+        $request->shouldReceive('getHeaderLine')->with('X-Content-SHA256')->twice()->andReturn(
+            $signedRequest->getHeaderLine('X-Content-SHA256')
+        );
+        $request->shouldReceive('getHeaderLine')->with('X-Nonce')->andReturn(
+            $signedRequest->getHeaderLine('X-Nonce')
+        );
+        $request->shouldReceive('getHeaderLine')->with('Signature')->andReturn(
+            $signedRequest->getHeaderLine('Signature')
+        );
+        $request->shouldReceive('getBody')->andReturn($signedRequest->getBody());
+        $request->shouldReceive('getMethod')->andReturn($signedRequest->getMethod());
+        $request->shouldReceive('getUri')->andReturn($signedRequest->getUri());
 
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
 

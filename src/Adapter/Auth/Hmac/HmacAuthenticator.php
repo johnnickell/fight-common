@@ -64,14 +64,14 @@ final class HmacAuthenticator implements Authenticator
 
         // validate that the content matches the content-sha256 hash
         $content = (string) $request->getBody();
-        if (!empty($content) && !$request->hasHeader('X-Content-SHA256')) {
+        if ($content !== '' && !$request->hasHeader('X-Content-SHA256')) {
             throw new AuthException(
                 'X-Content-SHA256 header is required with content',
                 HttpStatus::UNPROCESSABLE_ENTITY
             );
         }
 
-        if (!empty($content)) {
+        if ($content !== '') {
             $contentHash = hash('sha256', $content);
             if (!hash_equals($contentHash, $request->getHeaderLine('X-Content-SHA256'))) {
                 throw new AuthException('Invalid content hash', HttpStatus::BAD_REQUEST);
