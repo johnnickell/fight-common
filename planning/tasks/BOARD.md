@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00233](00233-TASK.md) | Recommend Common security patches by maintained release line | ready-for-agent | — |
+| Ready Frontier | [TASK-00235](00235-TASK.md) | Prepare Common v1.0.1 | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -40,13 +40,19 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 1 | [TASK-00233](00233-TASK.md) | Recommend Common security patches by maintained release line | — (standalone chore) | ready-for-agent | — | — |
+| 1 | [TASK-00235](00235-TASK.md) | Prepare Common v1.0.1 | — (standalone bug) | ready-for-agent | — | — |
+| 2 | [TASK-00234](00234-TASK.md) | Align signed request body integrity checks in Common | — (standalone bug) | ready-for-agent | — | — |
+| 3 | [TASK-00236](00236-TASK.md) | Reconcile the Common 1.1 maintenance base | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 2 | [TASK-00234](00234-TASK.md) | Align signed request body integrity checks in Common | — (standalone bug) | ready-for-agent | [TASK-00233](00233-TASK.md) | — |
+| 4 | [TASK-00237](00237-TASK.md) | Prepare Common v1.1.1 | — (standalone bug) | ready-for-agent | [TASK-00235](00235-TASK.md), [TASK-00236](00236-TASK.md) | — |
+| 5 | [TASK-00238](00238-TASK.md) | Prepare Common v1.2.1 | — (standalone bug) | ready-for-agent | [TASK-00235](00235-TASK.md) | — |
+| 6 | [TASK-00239](00239-TASK.md) | Prepare Common v1.3.1 | — (standalone bug) | ready-for-agent | [TASK-00235](00235-TASK.md) | — |
+| 7 | [TASK-00240](00240-TASK.md) | Prepare Common v1.4.3 | — (standalone bug) | ready-for-agent | [TASK-00235](00235-TASK.md) | — |
+| 8 | [TASK-00241](00241-TASK.md) | Prepare Common v1.5.2 | — (standalone bug) | ready-for-agent | [TASK-00235](00235-TASK.md) | — |
 
 ## Needs Info
 
@@ -70,7 +76,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 1 | [TASK-00233](00233-TASK.md) | Recommend Common security patches by maintained release line | — (standalone chore) | done | — | [PR #340](https://github.com/johnnickell/fight-common/pull/340) |
 <!-- /planning:board -->
 
 ## Wayfinder
