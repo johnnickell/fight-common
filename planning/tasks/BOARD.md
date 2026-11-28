@@ -76,7 +76,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 1 | [TASK-00233](00233-TASK.md) | Recommend Common security patches by maintained release line | — (standalone chore) | done | — | — |
+| 1 | [TASK-00233](00233-TASK.md) | Recommend Common security patches by maintained release line | — (standalone chore) | done | — | [PR #340](https://github.com/johnnickell/fight-common/pull/340) |
 <!-- /planning:board -->
 
 ## Wayfinder
